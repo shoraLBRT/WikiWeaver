@@ -1,0 +1,6 @@
+@WikiWeaver.MinimalApi_HostAddress = http://localhost:5172
+
+GET {{WikiWeaver.MinimalApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
