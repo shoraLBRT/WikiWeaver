@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WikiWeaver.Application;
 using WikiWeaver.Application.Mappings;
+using WikiWeaver.Application.Services;
 using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
 using WikiWeaver.MinimalApi.Endpoints;
@@ -29,6 +30,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapGet("/tree", async (NavigationTreeService service) =>
+{
+    var tree = await service.GetTreeAsync();
+    return Results.Ok(tree);
+});
 
 app.MapNodeEndpoints();
 app.MapArticleEndpoints();

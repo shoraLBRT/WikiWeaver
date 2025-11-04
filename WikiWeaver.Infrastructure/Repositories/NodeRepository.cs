@@ -7,14 +7,12 @@ namespace WikiWeaver.Infrastructure.Repositories
     public class NodeRepository : GenericRepository<Node>
     {
         public NodeRepository(WikiWeaverDbContext context) : base(context) { }
-
-        public async Task<Node?> GetNodeWithChildrenAsync(int id)
+        public async Task<List<Node>?> GetAllNodesWithArticlesAsync()
         {
-            return await _dbSet
+            var nodesWithArticles = await _dbSet
                 .Include(n => n.Children)
-                .Include(n => n.Article)
-                    .ThenInclude(a => a.Paragraphs)
-                .FirstOrDefaultAsync(n => n.Id == id);
+                .Include(n => n.Article).ToListAsync();
+            return nodesWithArticles;
         }
     }
 }

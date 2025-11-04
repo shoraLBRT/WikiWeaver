@@ -10,6 +10,7 @@ namespace WikiWeaver.Application
             services.AddScoped<NodeService>();
             services.AddScoped<ArticleService>();
             services.AddScoped<ParagraphService>();
+            services.AddScoped<NavigationTreeService>();
             return services;
         }
     }

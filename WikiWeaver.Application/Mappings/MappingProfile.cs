@@ -23,6 +23,10 @@ namespace WikiWeaver.Application.Mappings
             // Paragraph mappings
             CreateMap<Paragraph, ParagraphReadDto>();
             CreateMap<ParagraphCreateDto, Paragraph>();
+
+            // Navigation node mappings
+            CreateMap<Node, NavigationNodeDto>()
+                .ForMember(dest => dest.Article, opt => opt.MapFrom(src => src.Article));
         }
     }
 }
