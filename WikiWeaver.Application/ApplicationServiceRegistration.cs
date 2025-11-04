@@ -11,6 +11,7 @@ namespace WikiWeaver.Application
             services.AddScoped<ArticleService>();
             services.AddScoped<ParagraphService>();
             services.AddScoped<NavigationTreeService>();
+            services.AddScoped<ArticleContentService>();
             return services;
         }
     }

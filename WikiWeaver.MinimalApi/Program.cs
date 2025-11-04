@@ -4,6 +4,7 @@ using WikiWeaver.Application.Mappings;
 using WikiWeaver.Application.Services;
 using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
+using WikiWeaver.Infrastructure.UnitOfWork;
 using WikiWeaver.MinimalApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<WikiWeaverDbContext>(options =>
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(
     cfg => { },
     typeof(MappingProfile)
@@ -37,6 +39,7 @@ app.MapGet("/tree", async (NavigationTreeService service) =>
     return Results.Ok(tree);
 });
 
+app.MapArticleContentEndpoints();
 app.MapNodeEndpoints();
 app.MapArticleEndpoints();
 app.MapParagraphEndpoints();

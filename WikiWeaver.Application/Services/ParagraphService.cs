@@ -28,9 +28,29 @@ namespace WikiWeaver.Application.Services
             return paragraph is not null ? _mapper.Map<ParagraphReadDto>(paragraph) : null;
         }
 
-        public async Task<ParagraphReadDto> CreateAsync(ParagraphCreateDto createDto)
+        public async Task<ParagraphReadDto?> CreateAsync(ParagraphCreateDto createDto)
         {
+            var existingParagraphs = await _repository.GetParagraphsByArticleAsync(createDto.ArticleId);
+            var maxOrder = existingParagraphs.Count();
+
+            if (createDto.Order < 1)
+                throw new ArgumentException("Order must be greater than or equal to 1");
+
+            if (createDto.Order > maxOrder + 1)
+                throw new ArgumentException($"Order cannot be greater than {maxOrder + 1}");
+
+            var existingAtOrder = existingParagraphs.FirstOrDefault(p => p.Order == createDto.Order);
+
+            if (existingAtOrder != null)
+            {
+                foreach (var p in existingParagraphs.Where(p => p.Order >= createDto.Order))
+                {
+                    p.Order++;
+                }
+            }
             var paragraph = _mapper.Map<Paragraph>(createDto);
+            paragraph.IsDefault = true;
+
             await _repository.AddAsync(paragraph);
             await _repository.SaveChangesAsync();
             return _mapper.Map<ParagraphReadDto>(paragraph);
@@ -44,6 +64,12 @@ namespace WikiWeaver.Application.Services
             await _repository.DeleteAsync(paragraph);
             await _repository.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<ParagraphReadDto>> GetByArticleIdAsync(int articleId)
+        {
+            var paragraphs = await _repository.GetParagraphsByArticleAsync(articleId);
+            return _mapper.Map<IEnumerable<ParagraphReadDto>>(paragraphs.OrderBy(p => p.Order));
         }
     }
 }
