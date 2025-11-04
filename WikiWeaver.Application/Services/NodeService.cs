@@ -16,24 +16,24 @@ namespace WikiWeaver.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<List<NodeDto>> GetAllNodesAsync()
+        public async Task<List<NodeReadDto>> GetAllNodesAsync()
         {
             var nodes = await _nodeRepository.GetAllAsync();
-            return _mapper.Map<List<NodeDto>>(nodes.ToList());
+            return _mapper.Map<List<NodeReadDto>>(nodes.ToList());
         }
 
-        public async Task<NodeDto?> GetNodeByIdAsync(int id)
+        public async Task<NodeReadDto?> GetNodeByIdAsync(int id)
         {
             var node = await _nodeRepository.GetByIdAsync(id);
-            return _mapper.Map<NodeDto?>(node);
+            return _mapper.Map<NodeReadDto?>(node);
         }
 
-        public async Task<NodeDto> CreateNodeAsync(CreateNodeDto createNodeDto)
+        public async Task<NodeReadDto> CreateNodeAsync(NodeCreateDto createNodeDto)
         {
             var node = _mapper.Map<Node>(createNodeDto);
             await _nodeRepository.AddAsync(node);
             await _nodeRepository.SaveChangesAsync();
-            return _mapper.Map<NodeDto>(node);
+            return _mapper.Map<NodeReadDto>(node);
         }
 
         public async Task<bool> DeleteNodeAsync(int id)
@@ -45,13 +45,13 @@ namespace WikiWeaver.Application.Services
             await _nodeRepository.SaveChangesAsync();
             return true;
         }
-        public async Task<List<NodeDto>> GetNodeTreeAsync()
+        public async Task<List<NodeReadDto>> GetNodeTreeAsync()
         {
             var nodes = await _nodeRepository.GetAllAsync();
-            var nodeDtos = _mapper.Map<List<NodeDto>>(nodes);
+            var nodeDtos = _mapper.Map<List<NodeReadDto>>(nodes);
 
             var lookup = nodeDtos.ToDictionary(n => n.Id);
-            var roots = new List<NodeDto>();
+            var roots = new List<NodeReadDto>();
 
             foreach (var node in nodeDtos)
             {
@@ -61,7 +61,7 @@ namespace WikiWeaver.Application.Services
                 }
                 else if (lookup.TryGetValue(node.ParentId.Value, out var parent))
                 {
-                    parent.Children ??= new List<NodeDto>();
+                    parent.Children ??= new List<NodeReadDto>();
                     parent.Children.Add(node);
                 }
             }

@@ -57,7 +57,7 @@ app.MapGet("/nodes/{id:int}", async (int id, NodeService service) =>
     return Results.Ok(node);
 });
 
-app.MapPost("/nodes", async (CreateNodeDto dto, NodeService service) =>
+app.MapPost("/nodes", async (NodeCreateDto dto, NodeService service) =>
 {
     var createdNode = await service.CreateNodeAsync(dto);
     return Results.Created($"/nodes/{createdNode.Id}", createdNode);
