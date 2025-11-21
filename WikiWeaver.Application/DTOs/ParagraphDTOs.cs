@@ -17,4 +17,11 @@
         public int ArticleId { get; set; }
         public int Order { get; set; }
     }
+
+    public class ParagraphUpdateDto
+    {
+        public string Content { get; set; }
+        public int? ArticleId { get; set; }
+        public int Order { get; set; }
+    }
 }

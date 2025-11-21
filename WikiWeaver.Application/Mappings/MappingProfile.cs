@@ -14,15 +14,19 @@ namespace WikiWeaver.Application.Mappings
                 .ForMember(dest => dest.Children, opt => opt.Ignore()); // Always ignoring Children, will add if need
 
             CreateMap<NodeCreateDto, Node>()
-                .ForMember(d => d.Id, o => o.Ignore()); // Id setting by DB 
+                .ForMember(d => d.Id, o => o.Ignore()); // Id setting by DB
+            CreateMap<NodeUpdateDto, Node>()
+                .ForMember(d => d.Id, o => o.Ignore()); // Id shouldn't be updated
 
             // Article mappings
             CreateMap<Article, ArticleReadDto>();
             CreateMap<ArticleCreateDto, Article>();
+            CreateMap<ArticleUpdateDto, Article>();
 
             // Paragraph mappings
             CreateMap<Paragraph, ParagraphReadDto>();
             CreateMap<ParagraphCreateDto, Paragraph>();
+            CreateMap<ParagraphUpdateDto, Paragraph>();
 
             // Navigation node mappings
             CreateMap<Node, NavigationNodeDto>()

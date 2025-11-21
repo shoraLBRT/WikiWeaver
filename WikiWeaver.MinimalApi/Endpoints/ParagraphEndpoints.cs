@@ -27,6 +27,13 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 return Results.Created($"/paragraph/{createdParagraph.Id}", createdParagraph);
             });
 
+            group.MapPut("/{id}", async (int id, ParagraphUpdateDto updateDto, ParagraphService service) =>
+            {
+                var (success, error) = await service.UpdateAsync(id, updateDto);
+                if (!success) return Results.BadRequest(new { error });
+                return Results.NoContent();
+            });
+
             group.MapDelete("/{id}", async (int id, ParagraphService service) =>
             {
                 var success = await service.DeleteAsync(id);

@@ -14,4 +14,10 @@
         public string Title { get; set; }
         public int? ParentId { get; set; }
     }
+
+    public class NodeUpdateDto
+    {
+        public string Title { get; set; }
+        public int? ParentId { get; set; }
+    }
 }

@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/CODING_STANDARDS.md
+/MVP_TODO.md
+/PROJECT_CONCEPT.md
+/QWEN.md

@@ -36,6 +36,18 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<NodeReadDto>(node);
         }
 
+        public async Task<(bool success, string? error)> UpdateNodeAsync(int id, NodeUpdateDto dto)
+        {
+            var node = await _nodeRepository.GetByIdAsync(id);
+            if (node is null) return (false, "Node not found");
+
+            _mapper.Map(dto, node);
+            await _nodeRepository.UpdateAsync(node);
+            await _nodeRepository.SaveChangesAsync();
+
+            return (true, null);
+        }
+
         public async Task<bool> DeleteNodeAsync(int id)
         {
             var node = await _nodeRepository.GetByIdAsync(id);

@@ -37,6 +37,18 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<ArticleReadDto>(article);
         }
 
+        public async Task<(bool success, string? error)> UpdateAsync(int id, ArticleUpdateDto updateDto)
+        {
+            var article = await _articleRepository.GetByIdAsync(id);
+            if (article is null) return (false, "Article not found");
+
+            _mapper.Map(updateDto, article);
+            await _articleRepository.UpdateAsync(article);
+            await _articleRepository.SaveChangesAsync();
+
+            return (true, null);
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var article = await _articleRepository.GetByIdAsync(id);

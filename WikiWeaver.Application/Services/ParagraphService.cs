@@ -56,6 +56,43 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<ParagraphReadDto>(paragraph);
         }
 
+        public async Task<(bool success, string? error)> UpdateAsync(int id, ParagraphUpdateDto updateDto)
+        {
+            var paragraph = await _repository.GetByIdAsync(id);
+            if (paragraph is null) return (false, "Paragraph not found");
+
+            // If updating the order, we need to handle ordering properly
+            if (paragraph.Order != updateDto.Order)
+            {
+                // Get all paragraphs for the same article
+                var existingParagraphs = await _repository.GetParagraphsByArticleAsync(paragraph.ArticleId);
+
+                // Shift other paragraphs if needed
+                if (updateDto.Order > paragraph.Order)
+                {
+                    // Moving down in order - shift up paragraphs in between
+                    foreach (var p in existingParagraphs.Where(p => p.Id != id && p.Order > paragraph.Order && p.Order <= updateDto.Order))
+                    {
+                        p.Order--;
+                    }
+                }
+                else if (updateDto.Order < paragraph.Order)
+                {
+                    // Moving up in order - shift down paragraphs in between
+                    foreach (var p in existingParagraphs.Where(p => p.Id != id && p.Order < paragraph.Order && p.Order >= updateDto.Order))
+                    {
+                        p.Order++;
+                    }
+                }
+            }
+
+            _mapper.Map(updateDto, paragraph);
+            await _repository.UpdateAsync(paragraph);
+            await _repository.SaveChangesAsync();
+
+            return (true, null);
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var paragraph = await _repository.GetByIdAsync(id);

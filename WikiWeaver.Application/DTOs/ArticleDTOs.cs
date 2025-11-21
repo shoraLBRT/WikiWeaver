@@ -12,4 +12,10 @@
         public string Title { get; set; }
         public int? NodeId { get; set; }
     }
+
+    public class ArticleUpdateDto
+    {
+        public string Title { get; set; }
+        public int? NodeId { get; set; }
+    }
 }

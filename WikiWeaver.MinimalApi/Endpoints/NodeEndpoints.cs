@@ -36,6 +36,12 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 return Results.Created($"/nodes/{createdNode.Id}", createdNode);
             });
 
+            group.MapPut("/{id:int}", async (int id, NodeUpdateDto dto, NodeService service) =>
+            {
+                var (success, error) = await service.UpdateNodeAsync(id, dto);
+                if (!success) return Results.BadRequest(new { error });
+                return Results.NoContent();
+            });
 
             group.MapDelete("/{id:int}", async (int id, NodeService service) =>
             {
