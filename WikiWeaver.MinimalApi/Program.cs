@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using WikiWeaver.Application;
 using WikiWeaver.Application.Mappings;
-using WikiWeaver.Application.Services;
 using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
 using WikiWeaver.Infrastructure.UnitOfWork;
@@ -21,6 +21,14 @@ builder.Services.AddAutoMapper(
     typeof(MappingProfile)
 );
 builder.Services.AddEndpointsApiExplorer();
+
+// Настройка JSON сериализации для обработки циклических ссылок
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWikiWeaverReact", policy =>
