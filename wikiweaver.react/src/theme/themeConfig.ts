@@ -8,13 +8,15 @@ export const customTheme = {
     colorBgSpotlight: '#ffffff', // White background for spotlight elements
     colorText: 'rgba(0, 0, 0, 0.87)', // Dark text
     colorTextSecondary: 'rgba(0, 0, 0, 0.65)', // Secondary dark text
-    colorPrimary: '#1890ff',     // Keep the primary color
+    colorPrimary: '#1890ff',     // Primary color
     colorPrimaryBg: '#e6f7ff',   // Light blue background for primary buttons
+    colorBorder: '#d9d9d9',         // Border color
+    borderRadiusLG: 6,             // Large border radius
   },
   components: {
     Layout: {
-      headerBg: '#ffffff',  // White background specifically for header
-      siderBg: '#ffffff',   // White background for sider
+      headerBg: '#ffffff',  // Background for header
+      siderBg: '#ffffff',   // Background for sider
     },
     Button: {
       colorBgContainer: '#ffffff', // White background for default buttons

@@ -28,21 +28,24 @@ const ArticlePage: React.FC = () => {
 
   if (error) {
     return (
-      <Alert
-        message="Error loading article"
-        description={(error as Error).message}
-        type="error"
-        showIcon
-      />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Alert
+          message="Error loading article"
+          description={(error as Error).message}
+          type="error"
+          showIcon
+        />
+      </div>
     );
   }
 
   if (!articleContent) {
     return (
-      <Empty
-        description="Article not found"
-        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%' }}
-      />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Empty
+          description="Article not found"
+        />
+      </div>
     );
   }
 

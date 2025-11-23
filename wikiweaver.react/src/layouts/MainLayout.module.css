@@ -1,0 +1,68 @@
+.mainLayout {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.header {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  width: 100%;
+  height: 64px;
+}
+
+.headerBrandSection {
+  display: flex;
+  align-items: center;
+  width: 300px;
+  border-right: 2px solid #d9d9d9;
+  border-bottom: 2px solid #d9d9d9;
+}
+
+.headerBrandLink {
+  color: #000000;
+  padding-inline: 20px;
+  font-size: 24px;
+  width: 300px;
+  text-decoration: none;
+}
+
+.headerBrandLink h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 64px;
+}
+
+.sider {
+  background-color: #ffffff;
+  position: relative;
+  border-right: 2px solid #d9d9d9;
+}
+
+.siderButton {
+  color: #000000;
+  font-size: 16px;
+}
+
+.siderButtonExpanded {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+}
+
+.content {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 6px;
+  min-height: calc(100vh - 32px - 32px - 64px); /* Вычесть высоту header, margin и padding */
+}
+
+.contentWrapper {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
