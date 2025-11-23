@@ -21,6 +21,17 @@ builder.Services.AddAutoMapper(
     typeof(MappingProfile)
 );
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWikiWeaverReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -32,17 +43,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.MapGet("/tree", async (NavigationTreeService service) =>
-{
-    var tree = await service.GetTreeAsync();
-    return Results.Ok(tree);
-});
+app.UseCors("AllowWikiWeaverReact");
 
 app.MapArticleContentEndpoints();
-app.MapNodeEndpoints();
-app.MapArticleEndpoints();
-app.MapParagraphEndpoints();
+app.MapNavigationEndpoints();
+// TODO: will activate after MVP
+//app.MapNodeEndpoints();
+//app.MapArticleEndpoints();
+//app.MapParagraphEndpoints();
 
 app.Run();
 
