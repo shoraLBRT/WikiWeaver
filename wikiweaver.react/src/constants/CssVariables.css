@@ -1,0 +1,16 @@
+:root {
+  /* Размеры */
+  --sidebar-width: 300px;
+  --header-height: 64px;
+  
+  /* Отступы */
+  --sidebar-margin: 16px;
+  --content-margin: 24px;
+  
+  /* Z-index */
+  --sidebar-collapse-button-z-index: 1;
+  
+  /* Стилизация */
+  --border-radius: 6px;
+  --max-card-width: 600px;
+}

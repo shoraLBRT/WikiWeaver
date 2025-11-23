@@ -1,0 +1,36 @@
+.sider {
+  background-color: #ffffff;
+  position: relative;
+  border-right: 2px solid #d9d9d9;
+}
+
+.siderButton {
+  color: #000000;
+  font-size: 16px;
+}
+
+.siderCollapseButton {
+  color: #000000;
+  font-size: 16px;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+}
+
+.siderButtonExpanded {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.errorAlert {
+  margin: 24px;
+}

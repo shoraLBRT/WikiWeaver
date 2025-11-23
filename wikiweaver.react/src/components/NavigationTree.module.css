@@ -1,0 +1,13 @@
+.navigationTreeContainer {
+  background: #ffffff;
+  margin: 16px 0 16px 16px; /* APP_CONSTANTS.MARGINS.SIDEBAR и 0 */
+  border-radius: 6px; /* APP_CONSTANTS.TOKENS.BORDER_RADIUS_LG */
+  overflow: auto;
+  height: calc(100vh - 32px - 64px); /* Вычесть высоту header и margin */
+  position: sticky;
+  top: 16px; /* APP_CONSTANTS.MARGINS.SIDEBAR */
+}
+
+.treeContainer {
+  background: #ffffff;
+}

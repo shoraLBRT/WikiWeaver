@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
 import { Typography, Spin, Alert, Empty } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
+import { APP_CONSTANTS } from '../constants/AppConstants';
 
 const { Title, Paragraph } = Typography;
 
@@ -13,7 +14,7 @@ const ArticlePage: React.FC = () => {
 
   // Используем useQuery для получения данных статьи
   const { data: articleContent, isLoading, error } = useQuery({
-    queryKey: ['articleContent', articleId],
+    queryKey: [APP_CONSTANTS.QUERY_KEYS.ARTICLE_CONTENT, articleId],
     queryFn: () => getArticleContentById(articleId),
     enabled: !isNaN(articleId) && articleId > 0,
   });
@@ -30,7 +31,7 @@ const ArticlePage: React.FC = () => {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Alert
-          message="Error loading article"
+          message={APP_CONSTANTS.ERROR_MESSAGES.LOADING_ARTICLE}
           description={(error as Error).message}
           type="error"
           showIcon
@@ -43,7 +44,7 @@ const ArticlePage: React.FC = () => {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Empty
-          description="Article not found"
+          description={APP_CONSTANTS.PLACEHOLDER_TEXT.ARTICLE_NOT_FOUND}
         />
       </div>
     );
@@ -51,7 +52,7 @@ const ArticlePage: React.FC = () => {
 
   return (
     <div style={{ height: '100%' }}>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: APP_CONSTANTS.MARGINS.CONTENT }}>
         <Title level={2}>{articleContent.title}</Title>
       </div>
       <div>
@@ -62,7 +63,7 @@ const ArticlePage: React.FC = () => {
             </Paragraph>
           ))
         ) : (
-          <Empty description="No content available" />
+          <Empty description={APP_CONSTANTS.PLACEHOLDER_TEXT.NO_CONTENT_AVAILABLE} />
         )}
       </div>
     </div>

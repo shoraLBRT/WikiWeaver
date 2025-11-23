@@ -11,13 +11,13 @@
   justify-content: space-between;
   background: #ffffff;
   width: 100%;
-  height: 64px;
+  height: 64px; /* APP_CONSTANTS.DIMENSIONS.HEADER_HEIGHT */
 }
 
 .headerBrandSection {
   display: flex;
   align-items: center;
-  width: 300px;
+  width: 300px; /* APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH */
   border-right: 2px solid #d9d9d9;
   border-bottom: 2px solid #d9d9d9;
 }
@@ -26,35 +26,18 @@
   color: #000000;
   padding-inline: 20px;
   font-size: 24px;
-  width: 300px;
+  width: 300px; /* APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH */
   text-decoration: none;
 }
 
 .headerBrandLink h1 {
   margin: 0;
   font-size: 24px;
-  line-height: 64px;
-}
-
-.sider {
-  background-color: #ffffff;
-  position: relative;
-  border-right: 2px solid #d9d9d9;
-}
-
-.siderButton {
-  color: #000000;
-  font-size: 16px;
-}
-
-.siderButtonExpanded {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px;
+  line-height: 64px; /* APP_CONSTANTS.DIMENSIONS.HEADER_HEIGHT */
 }
 
 .content {
-  padding: 24px;
+  padding: 24px; /* APP_CONSTANTS.MARGINS.CONTENT */
   background: #ffffff;
   border-radius: 6px;
   min-height: calc(100vh - 32px - 32px - 64px); /* Вычесть высоту header, margin и padding */
