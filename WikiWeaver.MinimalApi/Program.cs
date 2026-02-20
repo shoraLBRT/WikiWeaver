@@ -62,10 +62,9 @@ app.UseCors("AllowWikiWeaverReact");
 
 app.MapArticleContentEndpoints();
 app.MapNavigationEndpoints();
-// TODO: will activate after MVP
-//app.MapNodeEndpoints();
-//app.MapArticleEndpoints();
-//app.MapParagraphEndpoints();
+app.MapNodeEndpoints();
+app.MapArticleEndpoints();
+app.MapParagraphEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
-

@@ -1,5 +1,3 @@
-import { theme } from 'antd';
-
 export const customTheme = {
   token: {
     colorBgContainer: '#ffffff', // White background for containers

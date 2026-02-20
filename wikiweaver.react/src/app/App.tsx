@@ -5,6 +5,7 @@ import { customTheme } from '../theme/themeConfig';
 import MainLayout from '../layouts/MainLayout';
 import WelcomePage from '../pages/WelcomePage';
 import ArticlePage from '../pages/ArticlePage';
+import AdminPage from '../pages/AdminPage';
 
 // Создаем экземпляр QueryClient
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ function App() {
             <Routes>
               <Route path="/" element={<WelcomePage />} />
               <Route path="/article/:id" element={<ArticlePage />} />
+              <Route path="/admin" element={<AdminPage />} />
             </Routes>
           </MainLayout>
         </Router>
