@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Data;
@@ -160,6 +161,19 @@ public static class AdminEndpoints
 
     private static async Task<AiProviderSettings> GetOrCreateAiSettingsAsync(WikiWeaverDbContext dbContext)
     {
+        try
+        {
+            return await GetOrCreateAiSettingsCoreAsync(dbContext);
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 1 && ex.Message.Contains("no such table: AiProviderSettings", StringComparison.OrdinalIgnoreCase))
+        {
+            await EnsureAiProviderSettingsTableAsync(dbContext);
+            return await GetOrCreateAiSettingsCoreAsync(dbContext);
+        }
+    }
+
+    private static async Task<AiProviderSettings> GetOrCreateAiSettingsCoreAsync(WikiWeaverDbContext dbContext)
+    {
         var settings = await dbContext.AiProviderSettings.FirstOrDefaultAsync();
         if (settings is not null)
         {
@@ -170,6 +184,20 @@ public static class AdminEndpoints
         dbContext.AiProviderSettings.Add(settings);
         await dbContext.SaveChangesAsync();
         return settings;
+    }
+
+    private static async Task EnsureAiProviderSettingsTableAsync(WikiWeaverDbContext dbContext)
+    {
+        await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS "AiProviderSettings" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_AiProviderSettings" PRIMARY KEY AUTOINCREMENT,
+                "BaseUrl" TEXT NOT NULL,
+                "Model" TEXT NOT NULL,
+                "ApiKey" TEXT NULL,
+                "IsEnabled" INTEGER NOT NULL
+            );
+            """);
     }
 
     private static object ToResponse(AiProviderSettings settings) => new
