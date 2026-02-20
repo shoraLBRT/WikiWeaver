@@ -44,6 +44,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Demonstration-only seed data to make navigation/content visible in fresh local environments.
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<WikiWeaverDbContext>();
+    await DemoDataSeeder.SeedAsync(dbContext);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

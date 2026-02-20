@@ -21,4 +21,9 @@
     <ProjectReference Include="..\WikiWeaver.Domain\WikiWeaver.Domain.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/SeedData/philosophy-demo-seed.json" />
+  </ItemGroup>
+
 </Project>
