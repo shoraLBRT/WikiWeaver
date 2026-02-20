@@ -21,9 +21,13 @@ public static class AdminEndpoints
 
             if (dbContext.Database.IsSqlite())
             {
+                // Some local databases may contain older schema variations where Nodes.ArticleId
+                // is enforced as a foreign key to Articles. Nullify optional references first,
+                // then remove dependent rows in a stable order.
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "UPDATE \"Nodes\" SET \"ParentId\" = NULL, \"ArticleId\" = NULL WHERE \"ParentId\" IS NOT NULL OR \"ArticleId\" IS NOT NULL;");
                 await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Paragraphs\";");
                 await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Articles\";");
-                await dbContext.Database.ExecuteSqlRawAsync("UPDATE \"Nodes\" SET \"ParentId\" = NULL WHERE \"ParentId\" IS NOT NULL;");
                 await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Nodes\";");
                 await dbContext.Database.ExecuteSqlRawAsync(
                     "DELETE FROM sqlite_sequence WHERE name IN ('Paragraphs', 'Articles', 'Nodes');");
