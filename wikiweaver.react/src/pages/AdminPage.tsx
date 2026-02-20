@@ -18,6 +18,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  checkAiConnection,
   cleanupDemoData,
   deleteArticle,
   deleteNode,
@@ -37,8 +38,11 @@ import {
 } from '../constants/ArticleUiConstants';
 
 const { Title, Text } = Typography;
-
 const CONFIRMATION_PHRASE = 'DELETE DEMO DATA';
+
+type AiSettingsFormValues = UpdateAiProviderSettingsDto & {
+  clearApiKey: boolean;
+};
 
 const getInitialUiMode = (): ParagraphUiMode => {
   const savedMode = localStorage.getItem(ARTICLE_UI_MODE_STORAGE_KEY);
@@ -52,15 +56,12 @@ const AdminPage: React.FC = () => {
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
   const [cleanupConfirmation, setCleanupConfirmation] = useState('');
   const [paragraphUiMode, setParagraphUiMode] = useState<ParagraphUiMode>(getInitialUiMode);
-  const [aiForm] = Form.useForm<UpdateAiProviderSettingsDto & { clearApiKey: boolean }>();
+  const [aiForm] = Form.useForm<AiSettingsFormValues>();
 
   const nodesQuery = useQuery({ queryKey: ['admin', 'nodes'], queryFn: getNodes });
   const articlesQuery = useQuery({ queryKey: ['admin', 'articles'], queryFn: getArticles });
   const paragraphsQuery = useQuery({ queryKey: ['admin', 'paragraphs'], queryFn: getParagraphs });
-  const aiSettingsQuery = useQuery({
-    queryKey: ['admin', 'ai-settings'],
-    queryFn: getAiProviderSettings,
-  });
+  const aiSettingsQuery = useQuery({ queryKey: ['admin', 'ai-settings'], queryFn: getAiProviderSettings });
 
   const refreshAll = async () => {
     await Promise.all([
@@ -118,6 +119,24 @@ const AdminPage: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
     },
     onError: (error) => messageApi.error(`Failed to update AI settings: ${(error as Error).message}`),
+  });
+
+  const aiConnectionCheckMutation = useMutation({
+    mutationFn: checkAiConnection,
+    onSuccess: (result) => {
+      messageApi.success(result.message);
+      Modal.info({
+        title: 'Результат проверки ИИ',
+        content: (
+          <Space direction="vertical" size="small" style={{ width: '100%' }}>
+            <Text>{result.message}</Text>
+            <Text type="secondary">Пример ответа модели:</Text>
+            <Input.TextArea value={result.styledText} autoSize={{ minRows: 4, maxRows: 8 }} readOnly />
+          </Space>
+        ),
+      });
+    },
+    onError: (error) => messageApi.error(`Проверка ИИ не пройдена: ${(error as Error).message}`),
   });
 
   const filteredNodes = useMemo(
@@ -203,12 +222,6 @@ const AdminPage: React.FC = () => {
     },
   ];
 
-  const onParagraphUiModeChange = (value: ParagraphUiMode) => {
-    setParagraphUiMode(value);
-    localStorage.setItem(ARTICLE_UI_MODE_STORAGE_KEY, value);
-    messageApi.success('Article paragraph UI mode updated.');
-  };
-
   const paragraphColumns: ColumnsType<ParagraphReadDto> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
     { title: 'Article ID', dataIndex: 'articleId', key: 'articleId', width: 120 },
@@ -237,12 +250,18 @@ const AdminPage: React.FC = () => {
     },
   ];
 
-  const aiSettings = aiSettingsQuery.data;
+  const onParagraphUiModeChange = (value: ParagraphUiMode) => {
+    setParagraphUiMode(value);
+    localStorage.setItem(ARTICLE_UI_MODE_STORAGE_KEY, value);
+    messageApi.success('Article paragraph UI mode updated.');
+  };
 
   const saveAiSettings = async () => {
     const values = await aiForm.validateFields();
     aiSettingsMutation.mutate(values);
   };
+
+  const aiSettings = aiSettingsQuery.data;
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -255,128 +274,153 @@ const AdminPage: React.FC = () => {
         description="This admin panel is currently public for MVP. Access restrictions (authentication/roles) must be added in the next iteration."
       />
 
-      <Input.Search
-        allowClear
-        placeholder="Search by id/title/content"
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-      />
-
       <Tabs
-        defaultActiveKey="nodes"
+        defaultActiveKey="data"
         items={[
           {
-            key: 'nodes',
-            label: `Nodes (${filteredNodes.length})`,
-            children: (
-              <Table
-                loading={nodesQuery.isLoading}
-                columns={nodeColumns}
-                dataSource={filteredNodes}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            ),
-          },
-          {
-            key: 'articles',
-            label: `Articles (${filteredArticles.length})`,
-            children: (
-              <Table
-                loading={articlesQuery.isLoading}
-                columns={articleColumns}
-                dataSource={filteredArticles}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            ),
-          },
-          {
-            key: 'paragraphs',
-            label: `Paragraphs (${filteredParagraphs.length})`,
-            children: (
-              <Table
-                loading={paragraphsQuery.isLoading}
-                columns={paragraphColumns}
-                dataSource={filteredParagraphs}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            ),
-          },
-          {
-            key: 'ai',
-            label: 'AI',
+            key: 'data',
+            label: 'Data',
             children: (
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                 <Alert
                   type="info"
                   showIcon
-                  message="OpenAI-compatible provider"
-                  description="Используется endpoint /v1/chat/completions и системный промпт для стилизации Markdown без изменения порядка слов."
+                  message="Данные контента"
+                  description="Здесь только просмотр и удаление сущностей: ноды, статьи и абзацы."
                 />
-                <Form
-                  form={aiForm}
-                  layout="vertical"
-                  initialValues={{
-                    baseUrl: aiSettings?.baseUrl,
-                    model: aiSettings?.model,
-                    isEnabled: aiSettings?.isEnabled,
-                    clearApiKey: false,
-                  }}
-                  key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
-                >
-                  <Form.Item label="Base URL" name="baseUrl" rules={[{ required: true, message: 'Base URL is required' }]}>
-                    <Input placeholder="https://api.openai.com/v1" />
-                  </Form.Item>
-                  <Form.Item label="Model" name="model" rules={[{ required: true, message: 'Model is required' }]}>
-                    <Input placeholder="gpt-4o-mini" />
-                  </Form.Item>
-                  <Form.Item label="API key (leave empty to keep existing)" name="apiKey">
-                    <Input.Password placeholder={aiSettings?.hasApiKey ? 'Configured' : 'sk-...'} />
-                  </Form.Item>
-                  <Form.Item name="clearApiKey" valuePropName="checked">
-                    <Switch checkedChildren="Clear API key" unCheckedChildren="Keep API key" />
-                  </Form.Item>
-                  <Form.Item name="isEnabled" valuePropName="checked">
-                    <Switch checkedChildren="AI enabled" unCheckedChildren="AI disabled" />
-                  </Form.Item>
-                  <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
-                    Save AI settings
-                  </Button>
-                </Form>
+                <Input.Search
+                  allowClear
+                  placeholder="Search by id/title/content"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+                <Tabs
+                  defaultActiveKey="nodes"
+                  items={[
+                    {
+                      key: 'nodes',
+                      label: `Nodes (${filteredNodes.length})`,
+                      children: (
+                        <Table
+                          loading={nodesQuery.isLoading}
+                          columns={nodeColumns}
+                          dataSource={filteredNodes}
+                          rowKey="id"
+                          pagination={{ pageSize: 10 }}
+                        />
+                      ),
+                    },
+                    {
+                      key: 'articles',
+                      label: `Articles (${filteredArticles.length})`,
+                      children: (
+                        <Table
+                          loading={articlesQuery.isLoading}
+                          columns={articleColumns}
+                          dataSource={filteredArticles}
+                          rowKey="id"
+                          pagination={{ pageSize: 10 }}
+                        />
+                      ),
+                    },
+                    {
+                      key: 'paragraphs',
+                      label: `Paragraphs (${filteredParagraphs.length})`,
+                      children: (
+                        <Table
+                          loading={paragraphsQuery.isLoading}
+                          columns={paragraphColumns}
+                          dataSource={filteredParagraphs}
+                          rowKey="id"
+                          pagination={{ pageSize: 10 }}
+                        />
+                      ),
+                    },
+                  ]}
+                />
               </Space>
             ),
           },
           {
-            key: 'tools',
-            label: 'Tools',
+            key: 'settings',
+            label: 'Settings',
             children: (
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Alert
-                  type="info"
-                  showIcon
-                  message="Article paragraphs UI mode"
-                  description="This setting is global and applies to all article pages."
-                />
-                <Segmented
-                  value={paragraphUiMode}
-                  onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
-                  options={[
-                    { label: 'Стрелки (карусель)', value: 'arrows' },
-                    { label: 'Рамка + номера', value: 'numbers' },
-                  ]}
-                />
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="Настройки AI (OpenAI-совместимый провайдер)"
+                    description="Base URL и Model определяют куда и какой моделью выполняется стилизация. Переключатель 'Использовать ИИ стилизацию' нужен, чтобы временно отключить ИИ без удаления ключа."
+                  />
+                  <Form
+                    form={aiForm}
+                    layout="vertical"
+                    initialValues={{
+                      baseUrl: aiSettings?.baseUrl,
+                      model: aiSettings?.model,
+                      isEnabled: aiSettings?.isEnabled,
+                      clearApiKey: false,
+                    }}
+                    key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
+                  >
+                    <Form.Item label="Base URL" name="baseUrl" rules={[{ required: true, message: 'Base URL is required' }]}>
+                      <Input placeholder="https://api.openai.com/v1" />
+                    </Form.Item>
+                    <Form.Item label="Model" name="model" rules={[{ required: true, message: 'Model is required' }]}>
+                      <Input placeholder="gpt-4o-mini" />
+                    </Form.Item>
+                    <Form.Item
+                      label="API key"
+                      name="apiKey"
+                      extra="Оставьте пустым, чтобы сохранить текущий ключ без изменений."
+                    >
+                      <Input.Password placeholder={aiSettings?.hasApiKey ? 'Configured' : 'sk-...'} />
+                    </Form.Item>
+                    <Form.Item name="isEnabled" valuePropName="checked" extra="Если выключено, ИИ-стилизация будет недоступна на странице создания статьи.">
+                      <Switch checkedChildren="Использовать ИИ стилизацию" unCheckedChildren="ИИ стилизация отключена" />
+                    </Form.Item>
+                    <Form.Item name="clearApiKey" valuePropName="checked" extra="Включайте только если нужно полностью удалить сохраненный API key из базы.">
+                      <Switch checkedChildren="Удалить сохраненный API key" unCheckedChildren="Оставить сохраненный API key" />
+                    </Form.Item>
 
-                <Alert
-                  type="error"
-                  showIcon
-                  message="Danger zone"
-                  description="Use this only to reset demo data. This action deletes all nodes, articles and paragraphs."
-                />
-                <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
-                  Delete all nodes and articles
-                </Button>
+                    <Space wrap>
+                      <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
+                        Save AI settings
+                      </Button>
+                      <Button loading={aiConnectionCheckMutation.isPending} onClick={() => aiConnectionCheckMutation.mutate()}>
+                        Проверить подключение ИИ
+                      </Button>
+                    </Space>
+                  </Form>
+                </Space>
+
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="Article paragraphs UI mode"
+                    description="This setting is global and applies to all article pages."
+                  />
+                  <Segmented
+                    value={paragraphUiMode}
+                    onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
+                    options={[
+                      { label: 'Стрелки (карусель)', value: 'arrows' },
+                      { label: 'Рамка + номера', value: 'numbers' },
+                    ]}
+                  />
+
+                  <Alert
+                    type="error"
+                    showIcon
+                    message="Danger zone"
+                    description="Use this only to reset demo data. This action deletes all nodes, articles and paragraphs."
+                  />
+                  <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
+                    Delete all nodes and articles
+                  </Button>
+                </Space>
               </Space>
             ),
           },

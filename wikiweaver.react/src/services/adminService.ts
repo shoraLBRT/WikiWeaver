@@ -4,6 +4,7 @@ import type {
   AdminCleanupResultDto,
   AdminNodeDto,
   AiProviderSettingsDto,
+  AiConnectionCheckResultDto,
   AiStyleRequestDto,
   AiStyleResponseDto,
   ArticleReadDto,
@@ -56,6 +57,15 @@ export const updateAiProviderSettings = async (payload: UpdateAiProviderSettings
 export const styleMarkdownWithAi = async (payload: AiStyleRequestDto): Promise<AiStyleResponseDto> => {
   try {
     const response = await apiClient.post<AiStyleResponseDto>('/admin/ai-style', payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+};
+
+export const checkAiConnection = async (): Promise<AiConnectionCheckResultDto> => {
+  try {
+    const response = await apiClient.post<AiConnectionCheckResultDto>('/admin/ai-check');
     return response.data;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));

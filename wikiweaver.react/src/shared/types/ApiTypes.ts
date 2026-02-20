@@ -72,6 +72,11 @@ export interface AiStyleResponseDto {
   styledText: string;
 }
 
+export interface AiConnectionCheckResultDto {
+  message: string;
+  styledText: string;
+}
+
 // Type for a navigation tree node
 export interface NavigationNodeDto {
   id: number;

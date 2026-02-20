@@ -20,6 +20,8 @@ public static class AdminEndpoints
 5) Верни только готовый Markdown без комментариев и пояснений.
 """;
 
+    private const string AiConnectionTestText = "Это тестовый текст для проверки ИИ стилизации markdown он должен вернуть аккуратный markdown без изменения порядка слов";
+
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/admin").WithTags("Admin");
@@ -36,9 +38,6 @@ public static class AdminEndpoints
 
             if (dbContext.Database.IsSqlite())
             {
-                // Some local databases may contain older schema variations where Nodes.ArticleId
-                // is enforced as a foreign key to Articles. Nullify optional references first,
-                // then remove dependent rows in a stable order.
                 await dbContext.Database.ExecuteSqlRawAsync(
                     "UPDATE \"Nodes\" SET \"ParentId\" = NULL, \"ArticleId\" = NULL WHERE \"ParentId\" IS NOT NULL OR \"ArticleId\" IS NOT NULL;");
                 await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Paragraphs\";");
@@ -115,58 +114,107 @@ public static class AdminEndpoints
             }
 
             var logger = loggerFactory.CreateLogger("AdminAiStyle");
-
             var settings = await GetOrCreateAiSettingsAsync(dbContext);
-            if (!settings.IsEnabled)
+
+            var result = await TryStyleTextWithProviderAsync(
+                request.Text,
+                settings,
+                httpClientFactory,
+                logger,
+                cancellationToken);
+
+            if (!result.IsSuccess)
             {
-                return Results.BadRequest(new { message = "AI styling is disabled in admin settings." });
+                return Results.BadRequest(new { message = result.ErrorMessage });
             }
 
-            if (string.IsNullOrWhiteSpace(settings.ApiKey))
+            return Results.Ok(new { styledText = result.StyledText });
+        });
+
+        group.MapPost("/ai-check", async (
+            WikiWeaverDbContext dbContext,
+            IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
+            CancellationToken cancellationToken) =>
+        {
+            var logger = loggerFactory.CreateLogger("AdminAiCheck");
+            var settings = await GetOrCreateAiSettingsAsync(dbContext);
+
+            var result = await TryStyleTextWithProviderAsync(
+                AiConnectionTestText,
+                settings,
+                httpClientFactory,
+                logger,
+                cancellationToken);
+
+            if (!result.IsSuccess)
             {
-                return Results.BadRequest(new { message = "API key is not configured." });
+                return Results.BadRequest(new { message = result.ErrorMessage });
             }
 
-            var payload = new
+            return Results.Ok(new
             {
-                model = settings.Model,
-                temperature = 0.1,
-                messages = new object[]
-                {
-                    new { role = "system", content = MarkdownStylingSystemPrompt },
-                    new { role = "user", content = request.Text }
-                }
-            };
-
-            var client = httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
-
-            var endpoint = BuildChatCompletionsEndpoint(settings.BaseUrl);
-            using var response = await client.PostAsJsonAsync(endpoint, payload, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                logger.LogWarning(
-                    "AI provider request failed. StatusCode: {StatusCode}, Response: {Response}",
-                    (int)response.StatusCode,
-                    error);
-                return Results.BadRequest(new
-                {
-                    message = $"AI provider request failed ({(int)response.StatusCode}): {ExtractProviderErrorMessage(error)}"
-                });
-            }
-
-            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-            var styledText = TryExtractContent(json.RootElement);
-            if (string.IsNullOrWhiteSpace(styledText))
-            {
-                return Results.BadRequest(new { message = "AI provider returned empty content." });
-            }
-
-            return Results.Ok(new { styledText });
+                message = "Проверка прошла успешно. Провайдер отвечает и возвращает текст.",
+                styledText = result.StyledText
+            });
         });
 
         return builder;
+    }
+
+    private static async Task<AiStyleResult> TryStyleTextWithProviderAsync(
+        string text,
+        AiProviderSettings settings,
+        IHttpClientFactory httpClientFactory,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        if (!settings.IsEnabled)
+        {
+            return AiStyleResult.Failure("ИИ отключён. Включите 'Использовать ИИ стилизацию' в настройках.");
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.ApiKey))
+        {
+            return AiStyleResult.Failure("API key не настроен. Добавьте ключ и сохраните настройки.");
+        }
+
+        var payload = new
+        {
+            model = settings.Model,
+            temperature = 0.1,
+            messages = new object[]
+            {
+                new { role = "system", content = MarkdownStylingSystemPrompt },
+                new { role = "user", content = text }
+            }
+        };
+
+        var client = httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
+
+        var endpoint = BuildChatCompletionsEndpoint(settings.BaseUrl);
+        using var response = await client.PostAsJsonAsync(endpoint, payload, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogWarning(
+                "AI provider request failed. StatusCode: {StatusCode}, Response: {Response}",
+                (int)response.StatusCode,
+                error);
+
+            var detailedMessage = $"AI provider request failed ({(int)response.StatusCode}): {ExtractProviderErrorMessage(error)}";
+            return AiStyleResult.Failure(detailedMessage);
+        }
+
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        var styledText = TryExtractContent(json.RootElement);
+        if (string.IsNullOrWhiteSpace(styledText))
+        {
+            return AiStyleResult.Failure("AI provider returned empty content.");
+        }
+
+        return AiStyleResult.Success(styledText);
     }
 
     private static async Task<AiProviderSettings> GetOrCreateAiSettingsAsync(WikiWeaverDbContext dbContext)
@@ -287,4 +335,10 @@ public static class AdminEndpoints
 
     private sealed record UpdateAiSettingsRequest(string BaseUrl, string Model, bool IsEnabled, string? ApiKey, bool ClearApiKey = false);
     private sealed record AiStyleRequest(string Text);
+
+    private sealed record AiStyleResult(bool IsSuccess, string? StyledText, string? ErrorMessage)
+    {
+        public static AiStyleResult Success(string styledText) => new(true, styledText, null);
+        public static AiStyleResult Failure(string errorMessage) => new(false, null, errorMessage);
+    }
 }
