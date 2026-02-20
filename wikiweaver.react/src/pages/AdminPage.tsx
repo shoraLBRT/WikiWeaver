@@ -9,6 +9,7 @@ import {
   Table,
   Tabs,
   Tag,
+  Segmented,
   Typography,
   message,
 } from 'antd';
@@ -24,10 +25,22 @@ import {
   getParagraphs,
 } from '../services/adminService';
 import type { AdminNodeDto, ArticleReadDto, ParagraphReadDto } from '../shared/types/ApiTypes';
+import {
+  ARTICLE_UI_MODE_STORAGE_KEY,
+  DEFAULT_ARTICLE_UI_MODE,
+  isParagraphUiMode,
+  type ParagraphUiMode,
+} from '../constants/ArticleUiConstants';
 
 const { Title, Text } = Typography;
 
 const CONFIRMATION_PHRASE = 'DELETE DEMO DATA';
+
+
+const getInitialUiMode = (): ParagraphUiMode => {
+  const savedMode = localStorage.getItem(ARTICLE_UI_MODE_STORAGE_KEY);
+  return isParagraphUiMode(savedMode) ? savedMode : DEFAULT_ARTICLE_UI_MODE;
+};
 
 const AdminPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -35,6 +48,7 @@ const AdminPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
   const [cleanupConfirmation, setCleanupConfirmation] = useState('');
+  const [paragraphUiMode, setParagraphUiMode] = useState<ParagraphUiMode>(getInitialUiMode);
 
   const nodesQuery = useQuery({ queryKey: ['admin', 'nodes'], queryFn: getNodes });
   const articlesQuery = useQuery({ queryKey: ['admin', 'articles'], queryFn: getArticles });
@@ -139,7 +153,7 @@ const AdminPage: React.FC = () => {
       render: (_, record) => (
         <Popconfirm
           title="Delete node"
-          description={`Delete node \"${record.title}\"?`}
+          description={`Delete node "${record.title}"?`}
           okText="Delete"
           okButtonProps={{ danger: true }}
           onConfirm={() => nodeDeleteMutation.mutate(record.id)}
@@ -161,7 +175,7 @@ const AdminPage: React.FC = () => {
       render: (_, record) => (
         <Popconfirm
           title="Delete article"
-          description={`Delete article \"${record.title}\"?`}
+          description={`Delete article "${record.title}"?`}
           okText="Delete"
           okButtonProps={{ danger: true }}
           onConfirm={() => articleDeleteMutation.mutate(record.id)}
@@ -171,6 +185,12 @@ const AdminPage: React.FC = () => {
       ),
     },
   ];
+
+  const onParagraphUiModeChange = (value: ParagraphUiMode) => {
+    setParagraphUiMode(value);
+    localStorage.setItem(ARTICLE_UI_MODE_STORAGE_KEY, value);
+    messageApi.success('Article paragraph UI mode updated.');
+  };
 
   const paragraphColumns: ColumnsType<ParagraphReadDto> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
@@ -265,6 +285,21 @@ const AdminPage: React.FC = () => {
             label: 'Tools',
             children: (
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Alert
+                  type="info"
+                  showIcon
+                  message="Article paragraphs UI mode"
+                  description="This setting is global and applies to all article pages."
+                />
+                <Segmented
+                  value={paragraphUiMode}
+                  onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
+                  options={[
+                    { label: 'Стрелки (карусель)', value: 'arrows' },
+                    { label: 'Рамка + номера', value: 'numbers' },
+                  ]}
+                />
+
                 <Alert
                   type="error"
                   showIcon
