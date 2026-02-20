@@ -8,7 +8,7 @@ WikiWeaver is a flexible and extensible open-source platform for building, struc
 * **Dynamic Articles**: Attach one article per node with ordered paragraphs.
 * **Alternative Content Paths**: Support for alternative paragraphs within articles to reflect different viewpoints or contexts.
 * **Extensible Architecture**: Built using Domain-Driven Design (DDD), allowing clean separation of layers and easy maintainability.
-* **Entity Mappings & Persistence**: Entity Framework Core with PostgreSQL for reliable data storage.
+* **Entity Mappings & Persistence**: Entity Framework Core with SQLite for lightweight reliable data storage.
 * **API-First Approach**: REST API built on ASP.NET Core Minimal API, ready for frontend onboarding.
 * **Front-End Flexibility**: Designed to integrate seamlessly with modern front-end frameworks like React.
 
@@ -16,7 +16,7 @@ WikiWeaver is a flexible and extensible open-source platform for building, struc
 
 * **Backend**: ASP.NET Core 8 Minimal API
 * **Architecture**: Domain-Driven Design (DDD)
-* **Database**: PostgreSQL with Entity Framework Core
+* **Database**: SQLite with Entity Framework Core
 * **Frontend**: React (planned)
 * **Tooling**: AutoMapper, Swagger, Dependency Injection, FluentValidation (planned)
 
@@ -35,6 +35,8 @@ WikiWeaver/
 Currently under active development. The API is partially complete and provides basic CRUD operations for Nodes, Articles, and Paragraphs.
 
 You can interact with the API via Swagger UI once the application is running. The frontend is planned for future implementation.
+
+By default, the API uses local SQLite files (`wikiweaver.db` and `wikiweaver.dev.db`) configured in appsettings for easier local setup.
 
 ## Roadmap
 

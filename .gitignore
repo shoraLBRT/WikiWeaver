@@ -366,3 +366,8 @@ FodyWeavers.xsd
 /PROJECT_CONCEPT.md
 /QWEN.md
 /WikiWeaver.React/.env
+# SQLite local database files
+*.db
+*.db-shm
+*.db-wal
+
