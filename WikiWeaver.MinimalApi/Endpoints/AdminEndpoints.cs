@@ -19,8 +19,20 @@ public static class AdminEndpoints
 
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-            await dbContext.Database.ExecuteSqlRawAsync(
-                "TRUNCATE TABLE \"Paragraphs\", \"Articles\", \"Nodes\" RESTART IDENTITY CASCADE;");
+            if (dbContext.Database.IsSqlite())
+            {
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Paragraphs\";");
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Articles\";");
+                await dbContext.Database.ExecuteSqlRawAsync("UPDATE \"Nodes\" SET \"ParentId\" = NULL WHERE \"ParentId\" IS NOT NULL;");
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM \"Nodes\";");
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM sqlite_sequence WHERE name IN ('Paragraphs', 'Articles', 'Nodes');");
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "TRUNCATE TABLE \"Paragraphs\", \"Articles\", \"Nodes\" RESTART IDENTITY CASCADE;");
+            }
 
             await transaction.CommitAsync();
 

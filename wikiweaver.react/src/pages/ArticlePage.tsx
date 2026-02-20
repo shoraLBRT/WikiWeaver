@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
-import { Typography, Spin, Alert, Empty, Button, Space, Segmented, Tag } from 'antd';
+import { Typography, Spin, Alert, Empty, Button, Space } from 'antd';
 import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import {
@@ -14,8 +14,6 @@ import {
 import type { ParagraphDto } from '../shared/types/ApiTypes';
 
 const { Title, Paragraph } = Typography;
-
-type ParagraphUiMode = 'arrows' | 'numbers';
 
 const paragraphContainerStyle: React.CSSProperties = {
   marginBottom: 24,
