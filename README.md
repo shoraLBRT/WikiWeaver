@@ -36,6 +36,8 @@ Currently under active development. The API is partially complete and provides b
 
 You can interact with the API via Swagger UI once the application is running. The frontend is planned for future implementation.
 
+By default, the API uses local SQLite files (`wikiweaver.db` and `wikiweaver.dev.db`) configured in appsettings for easier local setup.
+
 ## Roadmap
 
 * [ ] Implement paragraph alternative selection logic
