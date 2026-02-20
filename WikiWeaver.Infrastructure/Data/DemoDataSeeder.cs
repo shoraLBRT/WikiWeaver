@@ -21,38 +21,67 @@ public static class DemoDataSeeder
 
         var seedData = await LoadSeedDataAsync(cancellationToken);
 
+        ValidateSeedData(seedData);
+
+        var nodeByTitle = new Dictionary<string, Node>(StringComparer.Ordinal);
+
         var roots = seedData.Roots
             .Select(title => new Node { Title = title })
             .ToList();
 
         dbContext.Nodes.AddRange(roots);
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        var nodeByTitle = roots.ToDictionary(n => n.Title);
+        foreach (var root in roots)
+            nodeByTitle[root.Title] = root;
 
-        var childNodes = new List<Node>();
-        foreach (var seedNode in seedData.Nodes)
-        {
-            if (!nodeByTitle.TryGetValue(seedNode.ParentTitle, out var parentNode))
-                continue;
-
-            var childNode = new Node
+        var pendingNodes = seedData.Nodes
+            .Select(node => new DemoNodeSeed
             {
-                Title = seedNode.Title,
-                ParentId = parentNode.Id
-            };
+                Title = node.Title,
+                ParentTitle = node.ParentTitle
+            })
+            .ToList();
 
-            childNodes.Add(childNode);
-            nodeByTitle[childNode.Title] = childNode;
+        while (pendingNodes.Count > 0)
+        {
+            var resolvedInPass = new List<DemoNodeSeed>();
+
+            foreach (var pendingNode in pendingNodes)
+            {
+                if (!nodeByTitle.TryGetValue(pendingNode.ParentTitle, out var parentNode))
+                    continue;
+
+                var childNode = new Node
+                {
+                    Title = pendingNode.Title,
+                    Parent = parentNode
+                };
+
+                dbContext.Nodes.Add(childNode);
+                nodeByTitle[childNode.Title] = childNode;
+                resolvedInPass.Add(pendingNode);
+            }
+
+            if (resolvedInPass.Count == 0)
+            {
+                var unresolvedTitles = string.Join(", ", pendingNodes.Select(node => $"'{node.Title}' (parent: '{node.ParentTitle}')"));
+                throw new InvalidOperationException(
+                    $"Demo seed contains nodes with missing parents or cyclic dependencies: {unresolvedTitles}");
+            }
+
+            foreach (var resolvedNode in resolvedInPass)
+                pendingNodes.Remove(resolvedNode);
         }
 
-        dbContext.Nodes.AddRange(childNodes);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         foreach (var seedArticle in seedData.Articles)
         {
             if (!nodeByTitle.TryGetValue(seedArticle.NodeTitle, out var node))
-                continue;
+            {
+                throw new InvalidOperationException(
+                    $"Demo seed article '{seedArticle.Title}' references unknown node title '{seedArticle.NodeTitle}'.");
+            }
 
             var article = new Article
             {
@@ -93,6 +122,46 @@ public static class DemoDataSeeder
             cancellationToken);
 
         return seedData ?? throw new InvalidOperationException("Demo seed file is empty or invalid.");
+    }
+
+    private static void ValidateSeedData(DemoSeedData seedData)
+    {
+        var duplicateRootTitles = seedData.Roots
+            .GroupBy(title => title, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateRootTitles.Count > 0)
+            throw new InvalidOperationException($"Demo seed contains duplicate root titles: {string.Join(", ", duplicateRootTitles)}");
+
+        var duplicateNodeTitles = seedData.Nodes
+            .GroupBy(node => node.Title, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateNodeTitles.Count > 0)
+            throw new InvalidOperationException($"Demo seed contains duplicate node titles: {string.Join(", ", duplicateNodeTitles)}");
+
+        var allTitles = new HashSet<string>(seedData.Roots, StringComparer.Ordinal);
+        foreach (var nodeTitle in seedData.Nodes.Select(node => node.Title))
+        {
+            if (!allTitles.Add(nodeTitle))
+                throw new InvalidOperationException($"Demo seed title is duplicated between roots/nodes: '{nodeTitle}'.");
+        }
+
+        var duplicateArticleNodeReferences = seedData.Articles
+            .GroupBy(article => article.NodeTitle, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateArticleNodeReferences.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Demo seed contains multiple articles for the same node title: {string.Join(", ", duplicateArticleNodeReferences)}");
+        }
     }
 
     private sealed class DemoSeedData
