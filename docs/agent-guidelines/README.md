@@ -7,6 +7,7 @@ This folder contains universal engineering instructions that can be followed by 
 - `testing.md` — testing strategy, test quality bar, and execution rules.
 - `commits.md` — commit message standard and change-set hygiene.
 - `security.md` — secure coding rules and review checklist.
+- `pr.md` — pr message standard.
 
 ## How to use
 1. Read this file first.
