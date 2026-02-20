@@ -44,6 +44,20 @@ You can interact with the API via Swagger UI once the application is running. Th
 * [ ] Add full React-based frontend for interacting with content
 * [ ] Deploy using Docker and CI/CD pipeline
 
+
+## Agent Collaboration
+
+The repository includes agent-focused instructions in:
+
+- `AGENTS.md`
+- `docs/agent-guidelines/README.md`
+- `docs/agent-guidelines/coding-style.md`
+- `docs/agent-guidelines/testing.md`
+- `docs/agent-guidelines/commits.md`
+- `docs/agent-guidelines/security.md`
+
+These documents define universal development, testing, commit, and security expectations for both human contributors and coding agents.
+
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests to help improve the project.
