@@ -63,6 +63,8 @@ const AdminPage: React.FC = () => {
   const paragraphsQuery = useQuery({ queryKey: ['admin', 'paragraphs'], queryFn: getParagraphs });
   const aiSettingsQuery = useQuery({ queryKey: ['admin', 'ai-settings'], queryFn: getAiProviderSettings });
 
+  const isAiEnabled = Form.useWatch('isEnabled', aiForm) ?? false;
+
   const refreshAll = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['admin', 'nodes'] }),
@@ -258,7 +260,28 @@ const AdminPage: React.FC = () => {
 
   const saveAiSettings = async () => {
     const values = await aiForm.validateFields();
-    aiSettingsMutation.mutate(values);
+    aiSettingsMutation.mutate({ ...values, clearApiKey: values.clearApiKey ?? false });
+  };
+
+  const deleteStoredApiKey = async () => {
+    const values = await aiForm.validateFields(['baseUrl', 'model', 'isEnabled']);
+    aiForm.setFieldValue('apiKey', '');
+    aiForm.setFieldValue('clearApiKey', true);
+
+    aiSettingsMutation.mutate(
+      {
+        baseUrl: values.baseUrl,
+        model: values.model,
+        isEnabled: values.isEnabled,
+        clearApiKey: true,
+      },
+      {
+        onSuccess: async () => {
+          messageApi.success('Текущий API key удалён из настроек');
+          await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
+        },
+      },
+    );
   };
 
   const aiSettings = aiSettingsQuery.data;
@@ -286,7 +309,7 @@ const AdminPage: React.FC = () => {
                   type="info"
                   showIcon
                   message="Данные контента"
-                  description="Здесь только просмотр и удаление сущностей: ноды, статьи и абзацы."
+                  description="Здесь только просмотр/удаление сущностей и отдельная вкладка очистки демо-данных."
                 />
                 <Input.Search
                   allowClear
@@ -336,6 +359,23 @@ const AdminPage: React.FC = () => {
                         />
                       ),
                     },
+                    {
+                      key: 'cleanup',
+                      label: 'Cleanup demo data',
+                      children: (
+                        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                          <Alert
+                            type="error"
+                            showIcon
+                            message="Danger zone"
+                            description="Use this only to reset demo data. This action deletes all nodes, articles and paragraphs."
+                          />
+                          <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
+                            Delete all nodes and articles
+                          </Button>
+                        </Space>
+                      ),
+                    },
                   ]}
                 />
               </Space>
@@ -345,83 +385,96 @@ const AdminPage: React.FC = () => {
             key: 'settings',
             label: 'Settings',
             children: (
-              <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <Alert
-                    type="info"
-                    showIcon
-                    message="Настройки AI (OpenAI-совместимый провайдер)"
-                    description="Base URL и Model определяют куда и какой моделью выполняется стилизация. Переключатель 'Использовать ИИ стилизацию' нужен, чтобы временно отключить ИИ без удаления ключа."
-                  />
-                  <Form
-                    form={aiForm}
-                    layout="vertical"
-                    initialValues={{
-                      baseUrl: aiSettings?.baseUrl,
-                      model: aiSettings?.model,
-                      isEnabled: aiSettings?.isEnabled,
-                      clearApiKey: false,
-                    }}
-                    key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
-                  >
-                    <Form.Item label="Base URL" name="baseUrl" rules={[{ required: true, message: 'Base URL is required' }]}>
-                      <Input placeholder="https://api.openai.com/v1" />
-                    </Form.Item>
-                    <Form.Item label="Model" name="model" rules={[{ required: true, message: 'Model is required' }]}>
-                      <Input placeholder="gpt-4o-mini" />
-                    </Form.Item>
-                    <Form.Item
-                      label="API key"
-                      name="apiKey"
-                      extra="Оставьте пустым, чтобы сохранить текущий ключ без изменений."
-                    >
-                      <Input.Password placeholder={aiSettings?.hasApiKey ? 'Configured' : 'sk-...'} />
-                    </Form.Item>
-                    <Form.Item name="isEnabled" valuePropName="checked" extra="Если выключено, ИИ-стилизация будет недоступна на странице создания статьи.">
-                      <Switch checkedChildren="Использовать ИИ стилизацию" unCheckedChildren="ИИ стилизация отключена" />
-                    </Form.Item>
-                    <Form.Item name="clearApiKey" valuePropName="checked" extra="Включайте только если нужно полностью удалить сохраненный API key из базы.">
-                      <Switch checkedChildren="Удалить сохраненный API key" unCheckedChildren="Оставить сохраненный API key" />
-                    </Form.Item>
+              <Tabs
+                defaultActiveKey="ai"
+                items={[
+                  {
+                    key: 'ai',
+                    label: 'AI',
+                    children: (
+                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                        <Alert
+                          type="info"
+                          showIcon
+                          message="Настройки AI (OpenAI-совместимый провайдер)"
+                          description="Base URL и Model определяют endpoint и модель для стилизации. Переключатель выше включает/отключает ИИ во всём приложении без потери сохранённых настроек."
+                        />
+                        <Form
+                          form={aiForm}
+                          layout="vertical"
+                          initialValues={{
+                            baseUrl: aiSettings?.baseUrl,
+                            model: aiSettings?.model,
+                            isEnabled: aiSettings?.isEnabled,
+                            clearApiKey: false,
+                          }}
+                          key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
+                        >
+                          <Form.Item
+                            name="isEnabled"
+                            valuePropName="checked"
+                            extra="Если выключено (серый), ИИ стилизация отключена в приложении, а поля конфигурации ниже блокируются."
+                          >
+                            <Switch />
+                          </Form.Item>
 
-                    <Space wrap>
-                      <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
-                        Save AI settings
-                      </Button>
-                      <Button loading={aiConnectionCheckMutation.isPending} onClick={() => aiConnectionCheckMutation.mutate()}>
-                        Проверить подключение ИИ
-                      </Button>
-                    </Space>
-                  </Form>
-                </Space>
+                          <Form.Item label="Base URL" name="baseUrl" rules={[{ required: true, message: 'Base URL is required' }]}>
+                            <Input placeholder="https://api.openai.com/v1" disabled={!isAiEnabled} />
+                          </Form.Item>
+                          <Form.Item label="Model" name="model" rules={[{ required: true, message: 'Model is required' }]}>
+                            <Input placeholder="gpt-4o-mini" disabled={!isAiEnabled} />
+                          </Form.Item>
+                          <Form.Item
+                            label="API key"
+                            name="apiKey"
+                            extra="Оставьте пустым при обычном сохранении, чтобы сохранить текущий ключ без изменений."
+                          >
+                            <Input.Password placeholder={aiSettings?.hasApiKey ? 'Configured' : 'sk-...'} disabled={!isAiEnabled} />
+                          </Form.Item>
 
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <Alert
-                    type="info"
-                    showIcon
-                    message="Article paragraphs UI mode"
-                    description="This setting is global and applies to all article pages."
-                  />
-                  <Segmented
-                    value={paragraphUiMode}
-                    onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
-                    options={[
-                      { label: 'Стрелки (карусель)', value: 'arrows' },
-                      { label: 'Рамка + номера', value: 'numbers' },
-                    ]}
-                  />
-
-                  <Alert
-                    type="error"
-                    showIcon
-                    message="Danger zone"
-                    description="Use this only to reset demo data. This action deletes all nodes, articles and paragraphs."
-                  />
-                  <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
-                    Delete all nodes and articles
-                  </Button>
-                </Space>
-              </Space>
+                          <Space wrap>
+                            <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
+                              Save AI settings
+                            </Button>
+                            <Button danger onClick={deleteStoredApiKey} loading={aiSettingsMutation.isPending}>
+                              Удалить текущие данные API key
+                            </Button>
+                            <Button
+                              loading={aiConnectionCheckMutation.isPending}
+                              onClick={() => aiConnectionCheckMutation.mutate()}
+                              disabled={!isAiEnabled}
+                            >
+                              Проверить подключение ИИ
+                            </Button>
+                          </Space>
+                        </Form>
+                      </Space>
+                    ),
+                  },
+                  {
+                    key: 'ui',
+                    label: 'UI',
+                    children: (
+                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                        <Alert
+                          type="info"
+                          showIcon
+                          message="Article paragraphs UI mode"
+                          description="This setting is global and applies to all article pages."
+                        />
+                        <Segmented
+                          value={paragraphUiMode}
+                          onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
+                          options={[
+                            { label: 'Стрелки (карусель)', value: 'arrows' },
+                            { label: 'Рамка + номера', value: 'numbers' },
+                          ]}
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
             ),
           },
         ]}
