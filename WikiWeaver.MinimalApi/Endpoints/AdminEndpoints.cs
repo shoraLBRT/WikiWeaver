@@ -1,10 +1,24 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Data;
 
 namespace WikiWeaver.MinimalApi.Endpoints;
 
 public static class AdminEndpoints
 {
+    private const string MarkdownStylingSystemPrompt = """
+Ты редактор Markdown-стиля. Твоя задача: улучшить оформление markdown, пунктуацию, орфографию и читаемость.
+Строгие ограничения:
+1) Не меняй смысл текста.
+2) Не переставляй слова и не перефразируй предложения.
+3) Не добавляй и не удаляй факты.
+4) Сохраняй исходный язык.
+5) Верни только готовый Markdown без комментариев и пояснений.
+""";
+
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/admin").WithTags("Admin");
@@ -55,6 +69,153 @@ public static class AdminEndpoints
             });
         });
 
+        group.MapGet("/ai-settings", async (WikiWeaverDbContext dbContext) =>
+        {
+            var settings = await GetOrCreateAiSettingsAsync(dbContext);
+            return Results.Ok(ToResponse(settings));
+        });
+
+        group.MapPut("/ai-settings", async (UpdateAiSettingsRequest request, WikiWeaverDbContext dbContext) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.BaseUrl) || string.IsNullOrWhiteSpace(request.Model))
+            {
+                return Results.BadRequest(new { message = "BaseUrl and model are required." });
+            }
+
+            var settings = await GetOrCreateAiSettingsAsync(dbContext);
+            settings.BaseUrl = request.BaseUrl.Trim().TrimEnd('/');
+            settings.Model = request.Model.Trim();
+            settings.IsEnabled = request.IsEnabled;
+
+            if (!string.IsNullOrWhiteSpace(request.ApiKey))
+            {
+                settings.ApiKey = request.ApiKey.Trim();
+            }
+
+            if (request.ClearApiKey)
+            {
+                settings.ApiKey = null;
+            }
+
+            await dbContext.SaveChangesAsync();
+            return Results.Ok(ToResponse(settings));
+        });
+
+        group.MapPost("/ai-style", async (
+            AiStyleRequest request,
+            WikiWeaverDbContext dbContext,
+            IHttpClientFactory httpClientFactory,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Text))
+            {
+                return Results.BadRequest(new { message = "Text is required." });
+            }
+
+            var settings = await GetOrCreateAiSettingsAsync(dbContext);
+            if (!settings.IsEnabled)
+            {
+                return Results.BadRequest(new { message = "AI styling is disabled in admin settings." });
+            }
+
+            if (string.IsNullOrWhiteSpace(settings.ApiKey))
+            {
+                return Results.BadRequest(new { message = "API key is not configured." });
+            }
+
+            var payload = new
+            {
+                model = settings.Model,
+                temperature = 0.1,
+                messages = new object[]
+                {
+                    new { role = "system", content = MarkdownStylingSystemPrompt },
+                    new { role = "user", content = request.Text }
+                }
+            };
+
+            var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
+
+            var endpoint = BuildChatCompletionsEndpoint(settings.BaseUrl);
+            using var response = await client.PostAsJsonAsync(endpoint, payload, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                return Results.BadRequest(new { message = $"AI provider request failed: {error}" });
+            }
+
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var styledText = TryExtractContent(json.RootElement);
+            if (string.IsNullOrWhiteSpace(styledText))
+            {
+                return Results.BadRequest(new { message = "AI provider returned empty content." });
+            }
+
+            return Results.Ok(new { styledText });
+        });
+
         return builder;
     }
+
+    private static async Task<AiProviderSettings> GetOrCreateAiSettingsAsync(WikiWeaverDbContext dbContext)
+    {
+        var settings = await dbContext.AiProviderSettings.FirstOrDefaultAsync();
+        if (settings is not null)
+        {
+            return settings;
+        }
+
+        settings = new AiProviderSettings();
+        dbContext.AiProviderSettings.Add(settings);
+        await dbContext.SaveChangesAsync();
+        return settings;
+    }
+
+    private static object ToResponse(AiProviderSettings settings) => new
+    {
+        baseUrl = settings.BaseUrl,
+        model = settings.Model,
+        isEnabled = settings.IsEnabled,
+        hasApiKey = !string.IsNullOrWhiteSpace(settings.ApiKey)
+    };
+
+    private static string BuildChatCompletionsEndpoint(string baseUrl)
+    {
+        var trimmed = baseUrl.Trim().TrimEnd('/');
+        return trimmed.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
+            ? $"{trimmed}/chat/completions"
+            : $"{trimmed}/v1/chat/completions";
+    }
+
+    private static string? TryExtractContent(JsonElement root)
+    {
+        if (!root.TryGetProperty("choices", out var choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
+            return null;
+
+        var firstChoice = choices[0];
+        if (!firstChoice.TryGetProperty("message", out var message) || !message.TryGetProperty("content", out var content))
+            return null;
+
+        if (content.ValueKind == JsonValueKind.String)
+            return content.GetString();
+
+        if (content.ValueKind != JsonValueKind.Array)
+            return null;
+
+        var parts = new List<string>();
+        foreach (var item in content.EnumerateArray())
+        {
+            if (item.TryGetProperty("type", out var type) && type.ValueKind == JsonValueKind.String && type.GetString() != "text")
+                continue;
+
+            if (item.TryGetProperty("text", out var textElement) && textElement.ValueKind == JsonValueKind.String)
+                parts.Add(textElement.GetString() ?? string.Empty);
+        }
+
+        return string.Concat(parts);
+    }
+
+    private sealed record UpdateAiSettingsRequest(string BaseUrl, string Model, bool IsEnabled, string? ApiKey, bool ClearApiKey = false);
+    private sealed record AiStyleRequest(string Text);
 }

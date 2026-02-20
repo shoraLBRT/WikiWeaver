@@ -12,6 +12,7 @@ namespace WikiWeaver.Infrastructure.Data
         public DbSet<Article> Articles { get; set; } = null!;
         public DbSet<Paragraph> Paragraphs { get; set; } = null!;
         public DbSet<Node> Nodes { get; set; } = null!;
+        public DbSet<AiProviderSettings> AiProviderSettings { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,7 +30,15 @@ namespace WikiWeaver.Infrastructure.Data
                 .WithOne(a => a.Node)
                 .HasForeignKey<Article>(a => a.NodeId);
 
-            // Article -> Paragraphs (1-N)
+            // AI provider settings
+            modelBuilder.Entity<AiProviderSettings>()
+                .Property(settings => settings.BaseUrl)
+                .HasMaxLength(512);
+
+            modelBuilder.Entity<AiProviderSettings>()
+                .Property(settings => settings.Model)
+                .HasMaxLength(120);
+
             modelBuilder.Entity<Article>()
                 .HasMany(a => a.Paragraphs)
                 .WithOne(p => p.Article)

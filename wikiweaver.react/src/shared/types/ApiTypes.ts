@@ -49,6 +49,29 @@ export interface AdminCleanupResultDto {
   message: string;
 }
 
+export interface AiProviderSettingsDto {
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  hasApiKey: boolean;
+}
+
+export interface UpdateAiProviderSettingsDto {
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  apiKey?: string;
+  clearApiKey?: boolean;
+}
+
+export interface AiStyleRequestDto {
+  text: string;
+}
+
+export interface AiStyleResponseDto {
+  styledText: string;
+}
+
 // Type for a navigation tree node
 export interface NavigationNodeDto {
   id: number;

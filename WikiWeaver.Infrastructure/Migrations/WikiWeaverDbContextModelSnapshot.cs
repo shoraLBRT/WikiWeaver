@@ -17,6 +17,33 @@ namespace WikiWeaver.Infrastructure.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.10");
 
+            modelBuilder.Entity("WikiWeaver.Domain.Entities.AiProviderSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ApiKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AiProviderSettings");
+                });
+
             modelBuilder.Entity("WikiWeaver.Domain.Entities.Article", b =>
                 {
                     b.Property<int>("Id")
