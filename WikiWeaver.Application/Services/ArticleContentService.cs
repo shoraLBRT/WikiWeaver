@@ -29,7 +29,7 @@ namespace WikiWeaver.Application.Services
             var paragraphs = await _paragraphRepo.GetParagraphsByArticleAsync(articleId);
             var paragraphDtos = paragraphs
                 .OrderBy(p => p.Order)
-                .Select(p => new ParagraphDto(p.Id, p.Content, p.Order))
+                .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
                 .ToList();
 
             return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
@@ -80,10 +80,19 @@ namespace WikiWeaver.Application.Services
             var orders = paragraphs.Select(p => p.Order).ToList();
             if (orders.Any(o => o < 1))
                 return (false, "Order must be >= 1.");
-            if (orders.Distinct().Count() != orders.Count)
-                return (false, "Order values must be unique.");
-            if (orders.Count != (orders.Any() ? orders.Max() : 0))
+
+            var distinctOrders = orders.Distinct().OrderBy(o => o).ToList();
+            if (distinctOrders.Count != (distinctOrders.Any() ? distinctOrders.Max() : 0))
                 return (false, "Order values must form a contiguous sequence from 1 to N.");
+
+            var defaultOrders = paragraphs
+                .Where(p => p.IsDefault)
+                .Select(p => p.Order)
+                .ToHashSet();
+
+            if (distinctOrders.Any(order => !defaultOrders.Contains(order)))
+                return (false, "Each order must contain one default paragraph.");
+
             return (true, null);
         }
 
@@ -109,6 +118,7 @@ namespace WikiWeaver.Application.Services
                 var entity = existingMap[incoming.Id];
                 entity.Content = incoming.Content;
                 entity.Order = incoming.Order;
+                entity.IsDefault = incoming.IsDefault;
             }
         }
 
@@ -120,7 +130,7 @@ namespace WikiWeaver.Application.Services
                 {
                     Content = incoming.Content,
                     Order = incoming.Order,
-                    IsDefault = true,
+                    IsDefault = incoming.IsDefault,
                     ArticleId = articleId
                 };
                 await _paragraphRepo.AddAsync(newParagraph);

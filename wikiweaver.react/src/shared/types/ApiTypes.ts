@@ -5,6 +5,7 @@ export interface ParagraphDto {
   id: number;
   content: string;
   order: number;
+  isDefault: boolean;
 }
 
 // Type for article content
