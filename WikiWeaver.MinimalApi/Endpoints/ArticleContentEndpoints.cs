@@ -1,4 +1,5 @@
-﻿using WikiWeaver.Application.Services;
+﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.Services;
 
 namespace WikiWeaver.MinimalApi.Endpoints
 {
@@ -12,6 +13,18 @@ namespace WikiWeaver.MinimalApi.Endpoints
             {
                 var content = await service.GetContentByArticleIdAsync(id);
                 return content is null ? Results.NotFound() : Results.Ok(content);
+            });
+
+
+            group.MapPost("/content", async (ArticleContentCreateDto dto, ArticleContentService service) =>
+            {
+                var (article, error) = await service.CreateArticleWithContentAsync(dto);
+                if (article is null)
+                {
+                    return Results.BadRequest(new { error });
+                }
+
+                return Results.Created($"/article/{article.Id}/content", article);
             });
 
             // group.MapPut("/{id}/content", async (int id, ArticleContentDto dto, ArticleContentService service) =>
