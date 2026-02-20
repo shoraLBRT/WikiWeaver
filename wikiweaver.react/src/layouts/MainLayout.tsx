@@ -1,22 +1,23 @@
 import React from 'react';
-import { Layout, Menu, Space, Tag, Button } from 'antd';
+import { Layout, Menu, Button, Typography } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
-import { GithubOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import styles from './MainLayout.module.css';
 
 const { Header, Content } = Layout;
+const { Title } = Typography;
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const topMenuItems = [
-  { key: '/', label: <Link to="/">Lib</Link> },
-  { key: '/article/new', label: <Link to="/article/new">Blog</Link> },
-  { key: '/admin', label: <Link to="/admin">Q&amp;A</Link> },
+  { key: '/', label: <Link to="/">Главная</Link> },
+  { key: '/article/new', label: <Link to="/article/new">Добавить статью</Link> },
+  { key: '/admin', label: <Link to="/admin">Admin panel</Link> },
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -30,7 +31,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <Layout className={styles.mainLayout}>
       <Header className={styles.header}>
-        <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }} />
+        <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
+          <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
+            {APP_CONSTANTS.APP_NAME}
+          </Title>
+        </div>
 
         <div className={styles.headerMainStart}>
           <Button
@@ -50,12 +55,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             selectedKeys={[location.pathname]}
           />
         </div>
-
-        <Space size={12} className={styles.headerRight}>
-          <Tag bordered={false} className={styles.versionTag}>0.20.1</Tag>
-          <Button size="small">RTL</Button>
-          <Button type="text" icon={<GithubOutlined />} />
-        </Space>
       </Header>
 
       <Layout className={styles.pageLayout}>

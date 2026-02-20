@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Spin, Alert, Input, Typography, Button } from 'antd';
+import { Layout, Spin, Alert, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { LoadingOutlined } from '@ant-design/icons';
 import { getNavigationTree } from '../services/Article/navigationService';
@@ -9,7 +9,6 @@ import { APP_CONSTANTS } from '../constants/AppConstants';
 import styles from './Sidebar.module.css';
 
 const { Sider } = Layout;
-const { Title } = Typography;
 
 interface SidebarProps {
   collapsed: boolean;
@@ -30,21 +29,16 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       collapsible
       collapsed={collapsed}
     >
-      <div className={styles.sidebarHeader}>
-        <Title level={4} className={`${styles.sidebarTitle} ${collapsed ? styles.sidebarTitleCollapsed : ''}`}>
-          {APP_CONSTANTS.APP_NAME}
-        </Title>
-        {!collapsed ? (
+      {!collapsed && (
+        <div className={styles.sidebarHeader}>
           <Input
             className={styles.searchInput}
             prefix={<SearchOutlined />}
             placeholder="Search"
             readOnly
           />
-        ) : (
-          <Button type="text" icon={<SearchOutlined />} className={styles.searchIconButton} />
-        )}
-      </div>
+        </div>
+      )}
 
       {!collapsed && (
         <div className={styles.navigationSection}>
