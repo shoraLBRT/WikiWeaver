@@ -35,6 +35,63 @@ namespace WikiWeaver.Application.Services
             return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
         }
 
+        public async Task<(ArticleContentDto? Article, string? ErrorMessage)> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Title))
+            {
+                return (null, "Title is required.");
+            }
+
+            var incomingParagraphs = dto.Paragraphs ?? new List<ParagraphDto>();
+            var (valid, errorMessage) = ValidateOrder(incomingParagraphs);
+            if (!valid)
+            {
+                return (null, errorMessage);
+            }
+
+            try
+            {
+                await _uow.BeginTransactionAsync();
+
+                var article = new Article
+                {
+                    Title = dto.Title,
+                    NodeId = dto.NodeId
+                };
+
+                await _articleRepo.AddAsync(article);
+                await _uow.SaveChangesAsync();
+
+                foreach (var incoming in incomingParagraphs)
+                {
+                    var paragraph = new Paragraph
+                    {
+                        ArticleId = article.Id,
+                        Content = incoming.Content,
+                        Order = incoming.Order,
+                        IsDefault = incoming.IsDefault
+                    };
+
+                    await _paragraphRepo.AddAsync(paragraph);
+                }
+
+                await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+
+                var paragraphDtos = (await _paragraphRepo.GetParagraphsByArticleAsync(article.Id))
+                    .OrderBy(p => p.Order)
+                    .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
+                    .ToList();
+
+                return (new ArticleContentDto(article.Id, article.Title, paragraphDtos), null);
+            }
+            catch
+            {
+                await _uow.RollbackAsync();
+                return (null, "Error occurred while creating article.");
+            }
+        }
+
         public async Task<(bool Success, string? ErrorMessage)> UpdateContentAsync(int articleId, ArticleContentDto dto)
         {
             if (!await ValidateArticleExistsAsync(articleId, dto.Id))
@@ -77,6 +134,9 @@ namespace WikiWeaver.Application.Services
 
         private (bool IsValid, string? ErrorMessage) ValidateOrder(List<ParagraphDto> paragraphs)
         {
+            if (!paragraphs.Any())
+                return (false, "At least one paragraph is required.");
+
             var orders = paragraphs.Select(p => p.Order).ToList();
             if (orders.Any(o => o < 1))
                 return (false, "Order must be >= 1.");
