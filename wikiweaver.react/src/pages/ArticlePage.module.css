@@ -9,11 +9,11 @@
 .plainParagraph {
   font-size: 16px;
   line-height: 1.8;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .paragraphContainer {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   border: 1px solid #d9d9d9;
   border-radius: 8px;
   padding: 16px;
@@ -21,7 +21,7 @@
 }
 
 .arrowsWrapper {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .arrowsLayout {
@@ -42,7 +42,7 @@
 }
 
 .markdown p {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
 }
 
 .markdown p:last-child {
