@@ -1,6 +1,6 @@
 ﻿namespace WikiWeaver.Application.DTOs
 {
-    public record ParagraphDto(int Id, string Content, int Order);
+    public record ParagraphDto(int Id, string Content, int Order, bool IsDefault);
 
     public class ParagraphReadDto
     {
