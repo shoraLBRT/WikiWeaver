@@ -106,12 +106,15 @@ public static class AdminEndpoints
             AiStyleRequest request,
             WikiWeaverDbContext dbContext,
             IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(request.Text))
             {
                 return Results.BadRequest(new { message = "Text is required." });
             }
+
+            var logger = loggerFactory.CreateLogger("AdminAiStyle");
 
             var settings = await GetOrCreateAiSettingsAsync(dbContext);
             if (!settings.IsEnabled)
@@ -143,7 +146,14 @@ public static class AdminEndpoints
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                return Results.BadRequest(new { message = $"AI provider request failed: {error}" });
+                logger.LogWarning(
+                    "AI provider request failed. StatusCode: {StatusCode}, Response: {Response}",
+                    (int)response.StatusCode,
+                    error);
+                return Results.BadRequest(new
+                {
+                    message = $"AI provider request failed ({(int)response.StatusCode}): {ExtractProviderErrorMessage(error)}"
+                });
             }
 
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
@@ -214,6 +224,37 @@ public static class AdminEndpoints
         return trimmed.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
             ? $"{trimmed}/chat/completions"
             : $"{trimmed}/v1/chat/completions";
+    }
+
+    private static string ExtractProviderErrorMessage(string rawError)
+    {
+        if (string.IsNullOrWhiteSpace(rawError))
+            return "empty provider response";
+
+        try
+        {
+            using var document = JsonDocument.Parse(rawError);
+            var root = document.RootElement;
+
+            if (root.TryGetProperty("error", out var errorElement))
+            {
+                if (errorElement.ValueKind == JsonValueKind.String)
+                    return errorElement.GetString() ?? "provider error";
+
+                if (errorElement.TryGetProperty("message", out var messageElement) && messageElement.ValueKind == JsonValueKind.String)
+                    return messageElement.GetString() ?? "provider error";
+            }
+
+            if (root.TryGetProperty("message", out var rootMessage) && rootMessage.ValueKind == JsonValueKind.String)
+                return rootMessage.GetString() ?? "provider error";
+        }
+        catch (JsonException)
+        {
+            // Fallback to plain text below.
+        }
+
+        const int maxLength = 400;
+        return rawError.Length <= maxLength ? rawError : rawError[..maxLength];
     }
 
     private static string? TryExtractContent(JsonElement root)

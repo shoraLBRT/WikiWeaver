@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import apiClient from '../shared/api-client/ApiClient';
 import type {
   AdminCleanupResultDto,
@@ -53,6 +54,22 @@ export const updateAiProviderSettings = async (payload: UpdateAiProviderSettings
 };
 
 export const styleMarkdownWithAi = async (payload: AiStyleRequestDto): Promise<AiStyleResponseDto> => {
-  const response = await apiClient.post<AiStyleResponseDto>('/admin/ai-style', payload);
-  return response.data;
+  try {
+    const response = await apiClient.post<AiStyleResponseDto>('/admin/ai-style', payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+};
+
+
+const extractApiErrorMessage = (error: unknown): string => {
+  if (error instanceof AxiosError) {
+    const responseMessage = error.response?.data?.message;
+    if (typeof responseMessage === 'string' && responseMessage.trim()) {
+      return responseMessage;
+    }
+  }
+
+  return error instanceof Error ? error.message : 'Unknown error';
 };
