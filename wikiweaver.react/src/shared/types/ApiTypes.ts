@@ -15,6 +15,12 @@ export interface ArticleContentDto {
   paragraphs: ParagraphDto[];
 }
 
+export interface ArticleContentCreateDto {
+  title: string;
+  nodeId?: number;
+  paragraphs: ParagraphDto[];
+}
+
 // Type for an article linked to a navigation node
 export interface ArticleReadDto {
   id: number;

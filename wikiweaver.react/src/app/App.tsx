@@ -6,6 +6,7 @@ import MainLayout from '../layouts/MainLayout';
 import WelcomePage from '../pages/WelcomePage';
 import ArticlePage from '../pages/ArticlePage';
 import AdminPage from '../pages/AdminPage';
+import AddArticlePage from '../pages/AddArticlePage';
 
 // Создаем экземпляр QueryClient
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ function App() {
               <Route path="/" element={<WelcomePage />} />
               <Route path="/article/:id" element={<ArticlePage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/article/new" element={<AddArticlePage />} />
             </Routes>
           </MainLayout>
         </Router>
