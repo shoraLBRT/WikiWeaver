@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
 import { Typography, Spin, Alert, Empty, Button, Space } from 'antd';
+import MarkdownContent from '../components/MarkdownContent';
+import styles from './ArticlePage.module.css';
 import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import {
@@ -13,21 +15,7 @@ import {
 } from '../constants/ArticleUiConstants';
 import type { ParagraphDto } from '../shared/types/ApiTypes';
 
-const { Title, Paragraph } = Typography;
-
-const paragraphContainerStyle: React.CSSProperties = {
-  marginBottom: 24,
-  border: '1px solid #d9d9d9',
-  borderRadius: 8,
-  padding: 16,
-  position: 'relative',
-};
-
-const plainParagraphStyle: React.CSSProperties = {
-  fontSize: '16px',
-  lineHeight: '1.8',
-  marginBottom: 24,
-};
+const { Title } = Typography;
 
 const getInitialUiMode = (): ParagraphUiMode => {
   const savedMode = localStorage.getItem(ARTICLE_UI_MODE_STORAGE_KEY);
@@ -95,8 +83,8 @@ const ArticlePage: React.FC = () => {
   }
 
   return (
-    <div style={{ height: '100%' }}>
-      <div style={{ marginBottom: APP_CONSTANTS.MARGINS.CONTENT }}>
+    <div className={styles.page}>
+      <div className={styles.title}>
         <Title level={2}>{articleContent.title}</Title>
       </div>
 
@@ -110,16 +98,16 @@ const ArticlePage: React.FC = () => {
 
             if (!hasAlternatives) {
               return (
-                <Paragraph key={order} style={plainParagraphStyle}>
-                  {selectedParagraph.content}
-                </Paragraph>
+                <div key={order} className={`${styles.markdown} ${styles.plainParagraph}`}>
+                  <MarkdownContent content={selectedParagraph.content} />
+                </div>
               );
             }
 
             if (uiMode === 'arrows') {
               return (
-                <div key={order} style={{ marginBottom: 24 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div key={order} className={styles.arrowsWrapper}>
+                  <div className={styles.arrowsLayout}>
                     <Button
                       type="text"
                       size="small"
@@ -128,10 +116,10 @@ const ArticlePage: React.FC = () => {
                       onClick={() => updateSelectedAlternative(order, selectedIndex - 1, paragraphs.length)}
                     />
 
-                    <div style={{ ...paragraphContainerStyle, marginBottom: 0, flex: 1 }}>
-                      <Paragraph style={{ fontSize: '16px', lineHeight: '1.8', marginBottom: 0 }}>
-                        {selectedParagraph.content}
-                      </Paragraph>
+                    <div className={styles.paragraphContainer} style={{ marginBottom: 0, flex: 1 }}>
+                      <div className={styles.markdown}>
+                        <MarkdownContent content={selectedParagraph.content} />
+                      </div>
                     </div>
 
                     <Button
@@ -147,12 +135,12 @@ const ArticlePage: React.FC = () => {
             }
 
             return (
-              <div key={order} style={paragraphContainerStyle}>
-                <Paragraph style={{ fontSize: '16px', lineHeight: '1.8', marginBottom: 24 }}>
-                  {selectedParagraph.content}
-                </Paragraph>
+              <div key={order} className={styles.paragraphContainer}>
+                <div className={styles.markdown}>
+                  <MarkdownContent content={selectedParagraph.content} />
+                </div>
 
-                <div style={{ position: 'absolute', right: 12, bottom: 10 }}>
+                <div className={styles.controls}>
                   <Space>
                     {paragraphs.map((_, index) => (
                       <Button
