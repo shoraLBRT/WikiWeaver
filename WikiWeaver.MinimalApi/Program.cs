@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using WikiWeaver.Application;
+using WikiWeaver.Application.Configuration;
 using WikiWeaver.Application.Mappings;
 using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<WikiWeaverDbContext>(options =>
 
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
+builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(
@@ -49,6 +51,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<WikiWeaverDbContext>();
+    await dbContext.Database.MigrateAsync();
     await DemoDataSeeder.SeedAsync(dbContext);
 }
 
