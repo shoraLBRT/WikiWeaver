@@ -1,23 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-// Хук для управления состоянием collapsible sidebar
+const SIDEBAR_COLLAPSE_STORAGE_KEY = 'sidebarCollapsed';
+
 export const useSidebar = (defaultCollapsed = false) => {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
-
-  // Опционально: сохранение состояния в localStorage
-  useEffect(() => {
-    const savedCollapsed = localStorage.getItem('sidebarCollapsed');
-    if (savedCollapsed !== null) {
-      setCollapsed(savedCollapsed === 'true');
+  const [collapsed, setCollapsed] = useState(() => {
+    const savedCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_STORAGE_KEY);
+    if (savedCollapsed === null) {
+      return defaultCollapsed;
     }
-  }, []);
+
+    return savedCollapsed === 'true';
+  });
 
   useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', collapsed.toString());
+    localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, collapsed.toString());
   }, [collapsed]);
 
   const toggleCollapsed = () => {
-    setCollapsed(!collapsed);
+    setCollapsed((prevCollapsed) => !prevCollapsed);
   };
 
   return {

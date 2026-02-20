@@ -1,61 +1,83 @@
 .mainLayout {
   min-height: 100vh;
-  background: #ffffff;
+  background: #f5f5f5;
 }
 
 .header {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #ffffff;
-  width: 100%;
   height: 64px;
+  padding: 0 20px 0 0;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 8px;
 }
 
-.headerBrandSection {
+.sidebarSpacer {
+  height: 100%;
+  border-right: 1px solid #f0f0f0;
+  transition: width 0.2s ease;
+}
+
+.headerMainStart {
   display: flex;
   align-items: center;
-  width: 300px;
-  border-right: 2px solid #d9d9d9;
-  border-bottom: 2px solid #d9d9d9;
+  justify-content: flex-start;
 }
 
-.headerBrandLink {
-  color: #000000;
-  padding-inline: 20px;
-  font-size: 24px;
-  width: 300px;
-  text-decoration: none;
+.navToggleButton {
+  font-size: 16px;
 }
 
-.headerBrandLink h1 {
+.headerCenter {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.topMenu {
+  border-bottom: none;
+  min-width: 280px;
+  background: transparent;
+}
+
+.headerRight {
+  justify-self: end;
+  padding-right: 20px;
+}
+
+.versionTag {
   margin: 0;
-  font-size: 24px;
-  line-height: 64px;
+  background: #fafafa;
 }
 
-.headerActions {
-  padding-inline: 20px;
-}
-
-.adminLink {
-  color: #1677ff;
-  font-weight: 600;
-  text-decoration: none;
+.pageLayout {
+  min-height: calc(100vh - 64px);
 }
 
 .content {
-  padding: 24px;
+  margin: 24px;
   background: #ffffff;
-  border-radius: 6px;
-  min-height: calc(100vh - 32px - 32px - 64px);
+  border-radius: 4px;
+  padding: 28px;
 }
 
-.contentWrapper {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@media (max-width: 1200px) {
+  .header {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 12px 20px;
+  }
+
+  .sidebarSpacer {
+    width: auto !important;
+    border-right: none;
+    display: none;
+  }
+
+  .headerCenter,
+  .headerRight {
+    justify-self: start;
+    padding-right: 0;
+  }
 }
