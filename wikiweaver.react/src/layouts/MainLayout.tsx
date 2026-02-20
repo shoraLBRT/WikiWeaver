@@ -22,6 +22,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                 </div>
                 <div className={styles.headerActions}>
+                    <Link to="/article/new" className={styles.adminLink}>Добавить статью</Link>
                     <Link to="/admin" className={styles.adminLink}>Admin panel</Link>
                 </div>
             </Header>
