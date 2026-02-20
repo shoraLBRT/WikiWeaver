@@ -11,13 +11,13 @@
   justify-content: space-between;
   background: #ffffff;
   width: 100%;
-  height: 64px; /* APP_CONSTANTS.DIMENSIONS.HEADER_HEIGHT */
+  height: 64px;
 }
 
 .headerBrandSection {
   display: flex;
   align-items: center;
-  width: 300px; /* APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH */
+  width: 300px;
   border-right: 2px solid #d9d9d9;
   border-bottom: 2px solid #d9d9d9;
 }
@@ -26,21 +26,31 @@
   color: #000000;
   padding-inline: 20px;
   font-size: 24px;
-  width: 300px; /* APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH */
+  width: 300px;
   text-decoration: none;
 }
 
 .headerBrandLink h1 {
   margin: 0;
   font-size: 24px;
-  line-height: 64px; /* APP_CONSTANTS.DIMENSIONS.HEADER_HEIGHT */
+  line-height: 64px;
+}
+
+.headerActions {
+  padding-inline: 20px;
+}
+
+.adminLink {
+  color: #1677ff;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .content {
-  padding: 24px; /* APP_CONSTANTS.MARGINS.CONTENT */
+  padding: 24px;
   background: #ffffff;
   border-radius: 6px;
-  min-height: calc(100vh - 32px - 32px - 64px); /* Вычесть высоту header, margin и padding */
+  min-height: calc(100vh - 32px - 32px - 64px);
 }
 
 .contentWrapper {

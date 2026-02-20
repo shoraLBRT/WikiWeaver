@@ -21,6 +21,27 @@ export interface ArticleReadDto {
   nodeId?: number;
 }
 
+export interface ParagraphReadDto {
+  id: number;
+  content: string;
+  articleId: number;
+  order: number;
+  isDefault: boolean;
+}
+
+export interface AdminNodeDto {
+  id: number;
+  title: string;
+  parentId: number | null;
+}
+
+export interface AdminCleanupResultDto {
+  deletedNodes: number;
+  deletedArticles: number;
+  deletedParagraphs: number;
+  message: string;
+}
+
 // Type for a navigation tree node
 export interface NavigationNodeDto {
   id: number;

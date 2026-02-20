@@ -21,6 +21,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         <h1>{APP_CONSTANTS.APP_NAME}</h1>
                     </Link>
                 </div>
+                <div className={styles.headerActions}>
+                    <Link to="/admin" className={styles.adminLink}>Admin panel</Link>
+                </div>
             </Header>
             <Layout hasSider>
                 <Sidebar />
