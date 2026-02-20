@@ -40,6 +40,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpClient();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

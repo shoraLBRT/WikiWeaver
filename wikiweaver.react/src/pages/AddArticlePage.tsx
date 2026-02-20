@@ -3,6 +3,7 @@ import { Alert, Button, Card, Input, InputNumber, Modal, Radio, Space, Typograph
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createArticleContent } from '../services/Article/articleService';
+import { styleMarkdownWithAi } from '../services/adminService';
 import type { ArticleContentCreateDto, ParagraphDto } from '../shared/types/ApiTypes';
 import SimpleMarkdownEditor from '../components/SimpleMarkdownEditor';
 
@@ -40,6 +41,10 @@ const AddArticlePage: React.FC = () => {
       navigate(`/article/${created.id}`);
     },
     onError: (error) => messageApi.error(`Ошибка сохранения: ${(error as Error).message}`),
+  });
+
+  const styleMutation = useMutation({
+    mutationFn: (text: string) => styleMarkdownWithAi({ text }),
   });
 
   const totalAlternatives = useMemo(
@@ -110,14 +115,46 @@ const AddArticlePage: React.FC = () => {
     );
   };
 
-  const improveStyleWithAi = (groupOrder?: number, localId?: string) => {
-    // TODO(WW-AI-01): call backend AI endpoint that rewrites markdown while preserving meaning and links.
-    // TODO(WW-AI-02): add per-author opt-in settings and prompt template customization.
-    messageApi.info(
-      groupOrder && localId
-        ? `ИИ-улучшение для абзаца ${groupOrder} пока не подключено.`
-        : 'ИИ-улучшение статьи пока не подключено.',
-    );
+  const improveSingleAlternativeWithAi = async (groupOrder: number, localId: string) => {
+    const group = groups.find((item) => item.order === groupOrder);
+    const alternative = group?.alternatives.find((item) => item.localId === localId);
+
+    if (!alternative || !alternative.content.trim()) {
+      messageApi.warning('Заполните текст абзаца перед ИИ-стилизацией');
+      return;
+    }
+
+    try {
+      const result = await styleMutation.mutateAsync(alternative.content);
+      setAlternativeContent(groupOrder, localId, result.styledText);
+      messageApi.success(`Абзац ${groupOrder} стилизован`);
+    } catch (error) {
+      messageApi.error(`ИИ-стилизация не выполнена: ${(error as Error).message}`);
+    }
+  };
+
+  const improveAllWithAi = async () => {
+    const queue = groups
+      .flatMap((group) =>
+        group.alternatives
+          .filter((alternative) => alternative.content.trim())
+          .map((alternative) => ({ groupOrder: group.order, localId: alternative.localId, content: alternative.content })),
+      );
+
+    if (queue.length === 0) {
+      messageApi.warning('Нет заполненных абзацев для стилизации');
+      return;
+    }
+
+    try {
+      for (const item of queue) {
+        const result = await styleMutation.mutateAsync(item.content);
+        setAlternativeContent(item.groupOrder, item.localId, result.styledText);
+      }
+      messageApi.success(`Стилизовано версий: ${queue.length}`);
+    } catch (error) {
+      messageApi.error(`ИИ-стилизация не выполнена: ${(error as Error).message}`);
+    }
   };
 
   const saveArticle = () => {
@@ -201,7 +238,7 @@ const AddArticlePage: React.FC = () => {
           />
           <Space>
             <Button onClick={() => setIsImportOpen(true)}>Импортировать черновик Markdown</Button>
-            <Button onClick={() => improveStyleWithAi()}>Улучшить стиль с помощью ИИ</Button>
+            <Button loading={styleMutation.isPending} onClick={improveAllWithAi}>Улучшить стиль с помощью ИИ</Button>
           </Space>
           <Text type="secondary">Абзацев: {groups.length} · Версий: {totalAlternatives}</Text>
         </Space>
@@ -231,7 +268,7 @@ const AddArticlePage: React.FC = () => {
                     }
                     extra={
                       <Space>
-                        <Button size="small" onClick={() => improveStyleWithAi(group.order, alternative.localId)}>
+                        <Button size="small" loading={styleMutation.isPending} onClick={() => improveSingleAlternativeWithAi(group.order, alternative.localId)}>
                           ИИ-стиль
                         </Button>
                         <Button size="small" danger onClick={() => removeAlternative(group.order, alternative.localId)}>
