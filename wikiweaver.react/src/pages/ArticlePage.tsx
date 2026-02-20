@@ -5,6 +5,12 @@ import { getArticleContentById } from '../services/Article/articleService';
 import { Typography, Spin, Alert, Empty, Button, Space, Segmented, Tag } from 'antd';
 import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import {
+  ARTICLE_UI_MODE_STORAGE_KEY,
+  DEFAULT_ARTICLE_UI_MODE,
+  isParagraphUiMode,
+  type ParagraphUiMode,
+} from '../constants/ArticleUiConstants';
 import type { ParagraphDto } from '../shared/types/ApiTypes';
 
 const { Title, Paragraph } = Typography;
@@ -19,10 +25,21 @@ const paragraphContainerStyle: React.CSSProperties = {
   position: 'relative',
 };
 
+const plainParagraphStyle: React.CSSProperties = {
+  fontSize: '16px',
+  lineHeight: '1.8',
+  marginBottom: 24,
+};
+
+const getInitialUiMode = (): ParagraphUiMode => {
+  const savedMode = localStorage.getItem(ARTICLE_UI_MODE_STORAGE_KEY);
+  return isParagraphUiMode(savedMode) ? savedMode : DEFAULT_ARTICLE_UI_MODE;
+};
+
 const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const articleId = parseInt(id || '0', 10);
-  const [uiMode, setUiMode] = useState<ParagraphUiMode>('arrows');
+  const [uiMode] = useState<ParagraphUiMode>(getInitialUiMode);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
 
   const { data: articleContent, isLoading, error } = useQuery({
@@ -85,18 +102,6 @@ const ArticlePage: React.FC = () => {
         <Title level={2}>{articleContent.title}</Title>
       </div>
 
-      <Space direction="vertical" size="middle" style={{ marginBottom: 16 }}>
-        <Tag color="blue">UI выбора альтернатив</Tag>
-        <Segmented
-          value={uiMode}
-          onChange={(value) => setUiMode(value as ParagraphUiMode)}
-          options={[
-            { label: 'Стрелки (карусель)', value: 'arrows' },
-            { label: 'Рамка + номера', value: 'numbers' },
-          ]}
-        />
-      </Space>
-
       <div>
         {groupedParagraphs.length > 0 ? (
           groupedParagraphs.map(({ order, paragraphs }) => {
@@ -105,19 +110,25 @@ const ArticlePage: React.FC = () => {
             const selectedParagraph = paragraphs[selectedIndex] ?? paragraphs[0];
             const hasAlternatives = paragraphs.length > 1;
 
+            if (!hasAlternatives) {
+              return (
+                <Paragraph key={order} style={plainParagraphStyle}>
+                  {selectedParagraph.content}
+                </Paragraph>
+              );
+            }
+
             if (uiMode === 'arrows') {
               return (
                 <div key={order} style={{ marginBottom: 24 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {hasAlternatives && (
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<LeftOutlined />}
-                        aria-label="Предыдущая альтернатива"
-                        onClick={() => updateSelectedAlternative(order, selectedIndex - 1, paragraphs.length)}
-                      />
-                    )}
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<LeftOutlined />}
+                      aria-label="Предыдущая альтернатива"
+                      onClick={() => updateSelectedAlternative(order, selectedIndex - 1, paragraphs.length)}
+                    />
 
                     <div style={{ ...paragraphContainerStyle, marginBottom: 0, flex: 1 }}>
                       <Paragraph style={{ fontSize: '16px', lineHeight: '1.8', marginBottom: 0 }}>
@@ -125,15 +136,13 @@ const ArticlePage: React.FC = () => {
                       </Paragraph>
                     </div>
 
-                    {hasAlternatives && (
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<RightOutlined />}
-                        aria-label="Следующая альтернатива"
-                        onClick={() => updateSelectedAlternative(order, selectedIndex + 1, paragraphs.length)}
-                      />
-                    )}
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<RightOutlined />}
+                      aria-label="Следующая альтернатива"
+                      onClick={() => updateSelectedAlternative(order, selectedIndex + 1, paragraphs.length)}
+                    />
                   </div>
                 </div>
               );
@@ -141,27 +150,25 @@ const ArticlePage: React.FC = () => {
 
             return (
               <div key={order} style={paragraphContainerStyle}>
-                <Paragraph style={{ fontSize: '16px', lineHeight: '1.8', marginBottom: hasAlternatives ? 24 : 0 }}>
+                <Paragraph style={{ fontSize: '16px', lineHeight: '1.8', marginBottom: 24 }}>
                   {selectedParagraph.content}
                 </Paragraph>
 
-                {hasAlternatives && (
-                  <div style={{ position: 'absolute', right: 12, bottom: 10 }}>
-                    <Space>
-                      {paragraphs.map((_, index) => (
-                        <Button
-                          key={`${order}-num-${index}`}
-                          shape="circle"
-                          size="small"
-                          type={index === selectedIndex ? 'primary' : 'default'}
-                          onClick={() => updateSelectedAlternative(order, index, paragraphs.length)}
-                        >
-                          {index + 1}
-                        </Button>
-                      ))}
-                    </Space>
-                  </div>
-                )}
+                <div style={{ position: 'absolute', right: 12, bottom: 10 }}>
+                  <Space>
+                    {paragraphs.map((_, index) => (
+                      <Button
+                        key={`${order}-num-${index}`}
+                        shape="circle"
+                        size="small"
+                        type={index === selectedIndex ? 'primary' : 'default'}
+                        onClick={() => updateSelectedAlternative(order, index, paragraphs.length)}
+                      >
+                        {index + 1}
+                      </Button>
+                    ))}
+                  </Space>
+                </div>
               </div>
             );
           })
