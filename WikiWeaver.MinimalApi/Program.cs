@@ -10,7 +10,7 @@ using WikiWeaver.MinimalApi.Endpoints;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<WikiWeaverDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
