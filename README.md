@@ -68,7 +68,9 @@ The API applies migrations and seeds demo data on startup. Swagger is available 
 * [ ] Add validation and centralized error handling
 * [ ] Integrate user authentication
 * [x] Add React-based frontend for interacting with content
-* [ ] Deploy using Docker and CI/CD pipeline
+* [x] Add admin panel for moderating content
+* [x] Add AI style-supporter for authors
+* [x] Add markdown support style articles
 
 ## Agent Collaboration
 
