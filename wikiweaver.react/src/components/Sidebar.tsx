@@ -6,6 +6,7 @@ import { getNavigationTree } from '../services/Article/navigationService';
 import { useQuery } from '@tanstack/react-query';
 import NavigationTree from './NavigationTree';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import { locale } from '../localization';
 import styles from './Sidebar.module.css';
 
 const { Sider } = Layout;
@@ -34,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           <Input
             className={styles.searchInput}
             prefix={<SearchOutlined />}
-            placeholder="Search"
+            placeholder={locale.layout.navigation.searchPlaceholder}
             readOnly
           />
         </div>
@@ -48,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             </div>
           ) : error ? (
             <Alert
-              message={APP_CONSTANTS.ERROR_MESSAGES.LOADING_NAVIGATION}
+              message={locale.sidebar.loadError}
               description={(error as Error).message}
               type="error"
               showIcon
