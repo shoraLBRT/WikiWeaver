@@ -1,51 +1,74 @@
 # WikiWeaver
 
-WikiWeaver is a flexible and extensible open-source platform for building, structuring, and collaborating on wiki-style content. It allows users to organize content into a hierarchical structure, manage articles with multiple paragraph variations, and create knowledge-based systems with precision and clarity.
+WikiWeaver is an open-source platform for building and managing wiki-style knowledge trees. It supports hierarchical navigation, article authoring with paragraph alternatives, AI-assisted Markdown styling workflows, and an implemented MVP admin panel for content operations.
 
 ## Key Features
 
 * **Hierarchical Content Structure**: Organize content using a parent-child tree of nodes.
 * **Dynamic Articles**: Attach one article per node with ordered paragraphs.
-* **Alternative Content Paths**: Support for alternative paragraphs within articles to reflect different viewpoints or contexts.
-* **Extensible Architecture**: Built using Domain-Driven Design (DDD), allowing clean separation of layers and easy maintainability.
-* **Entity Mappings & Persistence**: Entity Framework Core with SQLite for lightweight reliable data storage.
-* **API-First Approach**: REST API built on ASP.NET Core Minimal API, ready for frontend onboarding.
-* **Front-End Flexibility**: Designed to integrate seamlessly with modern front-end frameworks like React.
+* **Alternative Content Paths**: Create multiple paragraph variants and choose defaults per paragraph group.
+* **Markdown Authoring & Rendering**: Write and view article content in Markdown.
+* **AI-Assisted Markdown Styling**: Style article text through configurable AI provider settings (admin-managed).
+* **Admin MVP Tools**: Manage nodes/articles/paragraphs and run demo cleanup operations from `/admin`.
+* **Extensible Architecture**: Domain-Driven Design (DDD) with clear separation of layers.
 
 ## Tech Stack
 
 * **Backend**: ASP.NET Core 8 Minimal API
 * **Architecture**: Domain-Driven Design (DDD)
 * **Database**: SQLite with Entity Framework Core
-* **Frontend**: React (planned)
-* **Tooling**: AutoMapper, Swagger, Dependency Injection, FluentValidation (planned)
+* **Frontend**: React + TypeScript + Ant Design
+* **Tooling**: AutoMapper, Swagger, Dependency Injection, React Query
+
+## Database
+
+WikiWeaver currently uses **SQLite as the default baseline database** (`wikiweaver.db`, `wikiweaver.dev.db`).
+
+The project intentionally moved away from PostgreSQL for the current MVP phase to keep local setup simple and fast.
 
 ## Project Structure
 
 ```
 WikiWeaver/
-├── WikiWeaver.Domain/         # Core Domain Entities & Interfaces
+├── WikiWeaver.Domain/         # Core domain entities
 ├── WikiWeaver.Application/    # Services, DTOs, and business logic
-├── WikiWeaver.Infrastructure/ # EF Core DbContext, Repositories
-└── WikiWeaver.MinimalApi/     # API Endpoints & Application Bootstrap
+├── WikiWeaver.Infrastructure/ # EF Core DbContext, migrations, repositories, seeders
+├── WikiWeaver.MinimalApi/     # API endpoints and app bootstrap
+├── wikiweaver.react/          # React frontend
+└── docs/                      # Plans and engineering guidelines
 ```
 
 ## Getting Started
 
-Currently under active development. The API is partially complete and provides basic CRUD operations for Nodes, Articles, and Paragraphs.
+1. **Run backend**
+   ```bash
+   dotnet restore
+   dotnet build
+   dotnet run --project WikiWeaver.MinimalApi
+   ```
 
-You can interact with the API via Swagger UI once the application is running. The frontend is planned for future implementation.
+2. **Run frontend**
+   ```bash
+   cd wikiweaver.react
+   npm install
+   npm run dev
+   ```
 
-By default, the API uses local SQLite files (`wikiweaver.db` and `wikiweaver.dev.db`) configured in appsettings for easier local setup.
+The API applies migrations and seeds demo data on startup. Swagger is available in Development mode.
+
+## Testing Status
+
+* Demo data has been significantly expanded to cover realistic content/navigation flows.
+* Seed content includes markdown-rich articles and paragraph alternatives for UI testing.
+* Dedicated integration tests for admin authorization and safety checks are planned, but not fully implemented yet.
 
 ## Roadmap
 
-* [ ] Implement paragraph alternative selection logic
+* [x] Implement paragraph alternative selection logic
 * [ ] Add validation and centralized error handling
 * [ ] Integrate user authentication
-* [ ] Add full React-based frontend for interacting with content
+* [x] Add React-based frontend for interacting with content
 * [ ] Deploy using Docker and CI/CD pipeline
-
 
 ## Agent Collaboration
 
