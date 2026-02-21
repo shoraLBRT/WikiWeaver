@@ -132,6 +132,26 @@ public static class DemoDataSeeder
         }
     }
 
+    private static IEnumerable<Paragraph> BuildParagraphs(DemoParagraphSeed paragraphSeed, int order)
+    {
+        yield return new Paragraph
+        {
+            Content = paragraphSeed.Default,
+            Order = order,
+            IsDefault = true
+        };
+
+        foreach (var alternative in paragraphSeed.Alternatives)
+        {
+            yield return new Paragraph
+            {
+                Content = alternative,
+                Order = order,
+                IsDefault = false
+            };
+        }
+    }
+
     private static async Task<DemoSeedData> LoadSeedDataAsync(CancellationToken cancellationToken)
     {
         var assembly = typeof(DemoDataSeeder).Assembly;
@@ -246,6 +266,12 @@ public static class DemoDataSeeder
     {
         public string NodeTitle { get; init; } = string.Empty;
         public string Title { get; init; } = string.Empty;
-        public List<string> Paragraphs { get; init; } = new();
+        public List<DemoParagraphSeed> Paragraphs { get; init; } = new();
+    }
+
+    private sealed class DemoParagraphSeed
+    {
+        public string Default { get; init; } = string.Empty;
+        public List<string> Alternatives { get; init; } = new();
     }
 }
