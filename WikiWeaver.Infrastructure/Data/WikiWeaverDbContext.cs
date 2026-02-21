@@ -13,6 +13,8 @@ namespace WikiWeaver.Infrastructure.Data
         public DbSet<Paragraph> Paragraphs { get; set; } = null!;
         public DbSet<Node> Nodes { get; set; } = null!;
         public DbSet<AiProviderSettings> AiProviderSettings { get; set; } = null!;
+        public DbSet<AdminUser> AdminUsers { get; set; } = null!;
+        public DbSet<AdminInviteToken> AdminInviteTokens { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -44,6 +46,34 @@ namespace WikiWeaver.Infrastructure.Data
                 .WithOne(p => p.Article)
                 .HasForeignKey(p => p.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdminUser>()
+                .HasIndex(admin => admin.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<AdminUser>()
+                .Property(admin => admin.Email)
+                .HasMaxLength(320);
+
+            modelBuilder.Entity<AdminInviteToken>()
+                .HasIndex(token => token.TokenHash)
+                .IsUnique();
+
+            modelBuilder.Entity<AdminInviteToken>()
+                .Property(token => token.TokenHash)
+                .HasMaxLength(128);
+
+            modelBuilder.Entity<AdminInviteToken>()
+                .HasOne(token => token.CreatedByAdmin)
+                .WithMany()
+                .HasForeignKey(token => token.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AdminInviteToken>()
+                .HasOne(token => token.UsedByAdmin)
+                .WithMany()
+                .HasForeignKey(token => token.UsedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }

@@ -88,3 +88,30 @@ export interface NavigationNodeDto {
 
 // Type for the entire navigation tree (list of root nodes)
 export type NavigationTreeDto = NavigationNodeDto[];
+
+
+export interface AdminAuthStatusDto {
+  requiresBootstrapAdmin: boolean;
+}
+
+export interface AdminRegisterRequestDto {
+  email: string;
+  password: string;
+  inviteToken?: string;
+}
+
+export interface AdminLoginRequestDto {
+  email: string;
+  password: string;
+}
+
+export interface AdminAuthResponseDto {
+  accessToken: string;
+  expiresAtUtc: string;
+  email: string;
+}
+
+export interface AdminInviteTokenCreateResponseDto {
+  token: string;
+  expiresAtUtc: string;
+}

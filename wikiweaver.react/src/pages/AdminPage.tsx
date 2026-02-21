@@ -29,6 +29,7 @@ import {
   getParagraphs,
   updateAiProviderSettings,
 } from '../services/adminService';
+import { generateInviteToken } from '../services/authService';
 import type { AdminNodeDto, ArticleReadDto, ParagraphReadDto, UpdateAiProviderSettingsDto } from '../shared/types/ApiTypes';
 import {
   ARTICLE_UI_MODE_STORAGE_KEY,
@@ -57,6 +58,7 @@ const AdminPage: React.FC = () => {
   const [cleanupConfirmation, setCleanupConfirmation] = useState('');
   const [paragraphUiMode, setParagraphUiMode] = useState<ParagraphUiMode>(getInitialUiMode);
   const [aiForm] = Form.useForm<AiSettingsFormValues>();
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
 
   const nodesQuery = useQuery({ queryKey: ['admin', 'nodes'], queryFn: getNodes });
   const articlesQuery = useQuery({ queryKey: ['admin', 'articles'], queryFn: getArticles });
@@ -121,6 +123,16 @@ const AdminPage: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
     },
     onError: (error) => messageApi.error(`Failed to update AI settings: ${(error as Error).message}`),
+  });
+
+
+  const inviteTokenMutation = useMutation({
+    mutationFn: generateInviteToken,
+    onSuccess: (result) => {
+      setInviteToken(result.token);
+      messageApi.success('Invite token generated');
+    },
+    onError: (error) => messageApi.error(`Failed to generate invite token: ${(error as Error).message}`),
   });
 
   const aiConnectionCheckMutation = useMutation({
@@ -289,13 +301,16 @@ const AdminPage: React.FC = () => {
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
-      <Title level={2}>Admin panel (MVP)</Title>
-      <Alert
-        type="warning"
-        showIcon
-        message="Temporary open access"
-        description="This admin panel is currently public for MVP. Access restrictions (authentication/roles) must be added in the next iteration."
-      />
+      <Title level={2}>Admin panel</Title>
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <Text strong>Invite token для нового администратора</Text>
+        <Space>
+          <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
+            Сгенерировать invite token
+          </Button>
+          {inviteToken && <Text code>{inviteToken}</Text>}
+        </Space>
+      </Space>
 
       <Tabs
         defaultActiveKey="data"
