@@ -11,143 +11,123 @@ namespace WikiWeaver.Infrastructure.Data;
 public static class DemoDataSeeder
 {
     private const string DemoSeedFileName = "philosophy-demo-seed.json";
+    private const string AlternativeParagraphPrefix = "[ALT]";
 
     public static async Task SeedAsync(WikiWeaverDbContext dbContext, CancellationToken cancellationToken = default)
     {
         await dbContext.Database.MigrateAsync(cancellationToken);
 
-        if (await dbContext.Nodes.AnyAsync(cancellationToken) || await dbContext.Articles.AnyAsync(cancellationToken))
+        if (await HasAnyContentAsync(dbContext, cancellationToken))
             return;
 
         var seedData = await LoadSeedDataAsync(cancellationToken);
-
         ValidateSeedData(seedData);
 
+        var nodeByTitle = await SeedNodesAsync(dbContext, seedData, cancellationToken);
+        await SeedArticlesAsync(dbContext, seedData, nodeByTitle, cancellationToken);
+    }
+
+    private static async Task<bool> HasAnyContentAsync(WikiWeaverDbContext dbContext, CancellationToken cancellationToken)
+    {
+        return await dbContext.Nodes.AnyAsync(cancellationToken)
+            || await dbContext.Articles.AnyAsync(cancellationToken);
+    }
+
+    private static async Task<Dictionary<string, Node>> SeedNodesAsync(
+        WikiWeaverDbContext dbContext,
+        DemoSeedData seedData,
+        CancellationToken cancellationToken)
+    {
         var nodeByTitle = new Dictionary<string, Node>(StringComparer.Ordinal);
 
-        var roots = seedData.Roots
-            .Select(title => new Node { Title = title })
-            .ToList();
+        foreach (var rootTitle in seedData.Roots)
+        {
+            var rootNode = new Node { Title = rootTitle };
+            dbContext.Nodes.Add(rootNode);
+            nodeByTitle[rootTitle] = rootNode;
+        }
 
-        dbContext.Nodes.AddRange(roots);
-
-        foreach (var root in roots)
-            nodeByTitle[root.Title] = root;
-
-        var pendingNodes = seedData.Nodes
-            .Select(node => new DemoNodeSeed
-            {
-                Title = node.Title,
-                ParentTitle = node.ParentTitle
-            })
-            .ToList();
-
+        var pendingNodes = seedData.Nodes.ToList();
         while (pendingNodes.Count > 0)
         {
-            var resolvedInPass = new List<DemoNodeSeed>();
+            var insertedInPass = 0;
 
-            foreach (var pendingNode in pendingNodes)
+            foreach (var nodeSeed in pendingNodes.ToList())
             {
-                if (!nodeByTitle.TryGetValue(pendingNode.ParentTitle, out var parentNode))
+                if (!nodeByTitle.TryGetValue(nodeSeed.ParentTitle, out var parentNode))
                     continue;
 
                 var childNode = new Node
                 {
-                    Title = pendingNode.Title,
+                    Title = nodeSeed.Title,
                     Parent = parentNode
                 };
 
                 dbContext.Nodes.Add(childNode);
-                nodeByTitle[childNode.Title] = childNode;
-                resolvedInPass.Add(pendingNode);
+                nodeByTitle[nodeSeed.Title] = childNode;
+                pendingNodes.Remove(nodeSeed);
+                insertedInPass++;
             }
 
-            if (resolvedInPass.Count == 0)
-            {
-                var unresolvedTitles = string.Join(", ", pendingNodes.Select(node => $"'{node.Title}' (parent: '{node.ParentTitle}')"));
-                throw new InvalidOperationException(
-                    $"Demo seed contains nodes with missing parents or cyclic dependencies: {unresolvedTitles}");
-            }
-
-            foreach (var resolvedNode in resolvedInPass)
-                pendingNodes.Remove(resolvedNode);
+            if (insertedInPass == 0)
+                throw BuildUnresolvedNodesException(pendingNodes);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        return nodeByTitle;
+    }
 
-        foreach (var seedArticle in seedData.Articles)
+    private static async Task SeedArticlesAsync(
+        WikiWeaverDbContext dbContext,
+        DemoSeedData seedData,
+        IReadOnlyDictionary<string, Node> nodeByTitle,
+        CancellationToken cancellationToken)
+    {
+        foreach (var articleSeed in seedData.Articles)
         {
-            if (!nodeByTitle.TryGetValue(seedArticle.NodeTitle, out var node))
+            if (!nodeByTitle.TryGetValue(articleSeed.NodeTitle, out var node))
             {
                 throw new InvalidOperationException(
-                    $"Demo seed article '{seedArticle.Title}' references unknown node title '{seedArticle.NodeTitle}'.");
+                    $"Demo seed article '{articleSeed.Title}' references unknown node title '{articleSeed.NodeTitle}'.");
             }
 
-            var article = new Article
+            dbContext.Articles.Add(new Article
             {
-                Title = seedArticle.Title,
+                Title = articleSeed.Title,
                 NodeId = node.Id,
-                Paragraphs = BuildParagraphs(seedArticle.Paragraphs).ToList()
-            };
-
-            dbContext.Articles.Add(article);
+                Paragraphs = BuildParagraphs(articleSeed.Paragraphs).ToList()
+            });
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-    private static IEnumerable<Paragraph> BuildParagraphs(List<string> rawParagraphs)
+
+    private static InvalidOperationException BuildUnresolvedNodesException(IEnumerable<DemoNodeSeed> unresolvedNodes)
+    {
+        var unresolvedTitles = string.Join(", ", unresolvedNodes.Select(node => $"'{node.Title}' (parent: '{node.ParentTitle}')"));
+        return new InvalidOperationException(
+            $"Demo seed contains nodes with missing parents or cyclic dependencies: {unresolvedTitles}");
+    }
+
+    private static IEnumerable<Paragraph> BuildParagraphs(IEnumerable<string> rawParagraphs)
     {
         var currentOrder = 0;
 
         foreach (var rawParagraph in rawParagraphs)
         {
-            var isAlternative = rawParagraph.StartsWith("[ALT]", StringComparison.Ordinal);
+            var isAlternative = rawParagraph.StartsWith(AlternativeParagraphPrefix, StringComparison.Ordinal);
             var content = isAlternative
-                ? rawParagraph["[ALT]".Length..].TrimStart()
+                ? rawParagraph[AlternativeParagraphPrefix.Length..].TrimStart()
                 : rawParagraph;
 
-            if (isAlternative)
-            {
-                if (currentOrder == 0)
-                    throw new InvalidOperationException("Alternative paragraph cannot be the first paragraph in an article.");
-
-                yield return new Paragraph
-                {
-                    Content = content,
-                    Order = currentOrder,
-                    IsDefault = false
-                };
-
-                continue;
-            }
-
-            currentOrder++;
+            if (!isAlternative)
+                currentOrder++;
 
             yield return new Paragraph
             {
                 Content = content,
                 Order = currentOrder,
-                IsDefault = true
-            };
-        }
-    }
-
-    private static IEnumerable<Paragraph> BuildParagraphs(DemoParagraphSeed paragraphSeed, int order)
-    {
-        yield return new Paragraph
-        {
-            Content = paragraphSeed.Default,
-            Order = order,
-            IsDefault = true
-        };
-
-        foreach (var alternative in paragraphSeed.Alternatives)
-        {
-            yield return new Paragraph
-            {
-                Content = alternative,
-                Order = order,
-                IsDefault = false
+                IsDefault = !isAlternative
             };
         }
     }
@@ -175,23 +155,14 @@ public static class DemoDataSeeder
 
     private static void ValidateSeedData(DemoSeedData seedData)
     {
-        var duplicateRootTitles = seedData.Roots
-            .GroupBy(title => title, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key)
-            .ToList();
+        ValidateDuplicates(seedData);
+        ValidateArticles(seedData.Articles);
+    }
 
-        if (duplicateRootTitles.Count > 0)
-            throw new InvalidOperationException($"Demo seed contains duplicate root titles: {string.Join(", ", duplicateRootTitles)}");
-
-        var duplicateNodeTitles = seedData.Nodes
-            .GroupBy(node => node.Title, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key)
-            .ToList();
-
-        if (duplicateNodeTitles.Count > 0)
-            throw new InvalidOperationException($"Demo seed contains duplicate node titles: {string.Join(", ", duplicateNodeTitles)}");
+    private static void ValidateDuplicates(DemoSeedData seedData)
+    {
+        EnsureNoDuplicates(seedData.Roots, "Demo seed contains duplicate root titles: {0}");
+        EnsureNoDuplicates(seedData.Nodes.Select(node => node.Title), "Demo seed contains duplicate node titles: {0}");
 
         var allTitles = new HashSet<string>(seedData.Roots, StringComparer.Ordinal);
         foreach (var nodeTitle in seedData.Nodes.Select(node => node.Title))
@@ -200,19 +171,14 @@ public static class DemoDataSeeder
                 throw new InvalidOperationException($"Demo seed title is duplicated between roots/nodes: '{nodeTitle}'.");
         }
 
-        var duplicateArticleNodeReferences = seedData.Articles
-            .GroupBy(article => article.NodeTitle, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key)
-            .ToList();
+        EnsureNoDuplicates(
+            seedData.Articles.Select(article => article.NodeTitle),
+            "Demo seed contains multiple articles for the same node title: {0}");
+    }
 
-        if (duplicateArticleNodeReferences.Count > 0)
-        {
-            throw new InvalidOperationException(
-                $"Demo seed contains multiple articles for the same node title: {string.Join(", ", duplicateArticleNodeReferences)}");
-        }
-
-        foreach (var article in seedData.Articles)
+    private static void ValidateArticles(IEnumerable<DemoArticleSeed> articles)
+    {
+        foreach (var article in articles)
         {
             if (article.Paragraphs.Count == 0)
                 throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");
@@ -220,9 +186,9 @@ public static class DemoDataSeeder
             var defaultParagraphCount = 0;
             foreach (var paragraph in article.Paragraphs)
             {
-                var isAlternative = paragraph.StartsWith("[ALT]", StringComparison.Ordinal);
+                var isAlternative = paragraph.StartsWith(AlternativeParagraphPrefix, StringComparison.Ordinal);
                 var normalizedContent = isAlternative
-                    ? paragraph["[ALT]".Length..].TrimStart()
+                    ? paragraph[AlternativeParagraphPrefix.Length..].TrimStart()
                     : paragraph;
 
                 if (string.IsNullOrWhiteSpace(normalizedContent))
@@ -249,6 +215,18 @@ public static class DemoDataSeeder
         }
     }
 
+    private static void EnsureNoDuplicates(IEnumerable<string> values, string messageTemplate)
+    {
+        var duplicates = values
+            .GroupBy(value => value, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicates.Count > 0)
+            throw new InvalidOperationException(string.Format(messageTemplate, string.Join(", ", duplicates)));
+    }
+
     private sealed class DemoSeedData
     {
         public List<string> Roots { get; init; } = new();
@@ -266,12 +244,6 @@ public static class DemoDataSeeder
     {
         public string NodeTitle { get; init; } = string.Empty;
         public string Title { get; init; } = string.Empty;
-        public List<DemoParagraphSeed> Paragraphs { get; init; } = new();
-    }
-
-    private sealed class DemoParagraphSeed
-    {
-        public string Default { get; init; } = string.Empty;
-        public List<string> Alternatives { get; init; } = new();
+        public List<string> Paragraphs { get; init; } = new();
     }
 }
