@@ -28,10 +28,11 @@
   font-weight: 700 !important;
   font-size: 36px !important;
   line-height: 1.1 !important;
+  white-space: nowrap;
 }
 
 .headerTitleCollapsed {
-  font-size: 26px !important;
+  font-size: 14px !important;
 }
 
 .headerMainStart {
