@@ -5,6 +5,7 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import { locale } from '../localization';
 import styles from './MainLayout.module.css';
 
 const { Header, Content } = Layout;
@@ -15,9 +16,9 @@ interface MainLayoutProps {
 }
 
 const topMenuItems = [
-  { key: '/', label: <Link to="/">Главная</Link> },
-  { key: '/article/new', label: <Link to="/article/new">Добавить статью</Link> },
-  { key: '/admin', label: <Link to="/admin">Admin panel</Link> },
+  { key: '/', label: <Link to="/">{locale.layout.menu.home}</Link> },
+  { key: '/article/new', label: <Link to="/article/new">{locale.layout.menu.addArticle}</Link> },
+  { key: '/admin', label: <Link to="/admin">{locale.layout.menu.admin}</Link> },
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -33,14 +34,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Header className={styles.header}>
         <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
           <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
-            {APP_CONSTANTS.APP_NAME}
+            {locale.app.name}
           </Title>
         </div>
 
         <div className={styles.headerMainStart}>
           <Button
             type="text"
-            aria-label={collapsed ? 'Open navigation panel' : 'Close navigation panel'}
+            aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
             icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
             onClick={toggleCollapsed}
             className={styles.navToggleButton}

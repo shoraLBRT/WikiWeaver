@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 import apiClient from '../shared/api-client/ApiClient';
+import { locale } from '../localization';
 import type {
   AdminCleanupResultDto,
   AdminNodeDto,
@@ -81,5 +82,5 @@ const extractApiErrorMessage = (error: unknown): string => {
     }
   }
 
-  return error instanceof Error ? error.message : 'Unknown error';
+  return error instanceof Error ? error.message : locale.common.unknownError;
 };
