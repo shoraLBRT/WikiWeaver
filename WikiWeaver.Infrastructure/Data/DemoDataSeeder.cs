@@ -88,12 +88,7 @@ public static class DemoDataSeeder
                 Title = seedArticle.Title,
                 NodeId = node.Id,
                 Paragraphs = seedArticle.Paragraphs
-                    .Select((content, index) => new Paragraph
-                    {
-                        Content = content,
-                        Order = index + 1,
-                        IsDefault = true
-                    })
+                    .SelectMany((paragraphSeed, index) => BuildParagraphs(paragraphSeed, index + 1))
                     .ToList()
             };
 
@@ -101,6 +96,26 @@ public static class DemoDataSeeder
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static IEnumerable<Paragraph> BuildParagraphs(DemoParagraphSeed paragraphSeed, int order)
+    {
+        yield return new Paragraph
+        {
+            Content = paragraphSeed.Default,
+            Order = order,
+            IsDefault = true
+        };
+
+        foreach (var alternative in paragraphSeed.Alternatives)
+        {
+            yield return new Paragraph
+            {
+                Content = alternative,
+                Order = order,
+                IsDefault = false
+            };
+        }
     }
 
     private static async Task<DemoSeedData> LoadSeedDataAsync(CancellationToken cancellationToken)
@@ -162,6 +177,18 @@ public static class DemoDataSeeder
             throw new InvalidOperationException(
                 $"Demo seed contains multiple articles for the same node title: {string.Join(", ", duplicateArticleNodeReferences)}");
         }
+
+        foreach (var article in seedData.Articles)
+        {
+            if (article.Paragraphs.Count == 0)
+                throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");
+
+            if (article.Paragraphs.Any(paragraph => string.IsNullOrWhiteSpace(paragraph.Default)))
+            {
+                throw new InvalidOperationException(
+                    $"Demo seed article '{article.Title}' contains a paragraph with empty default content.");
+            }
+        }
     }
 
     private sealed class DemoSeedData
@@ -181,6 +208,12 @@ public static class DemoDataSeeder
     {
         public string NodeTitle { get; init; } = string.Empty;
         public string Title { get; init; } = string.Empty;
-        public List<string> Paragraphs { get; init; } = new();
+        public List<DemoParagraphSeed> Paragraphs { get; init; } = new();
+    }
+
+    private sealed class DemoParagraphSeed
+    {
+        public string Default { get; init; } = string.Empty;
+        public List<string> Alternatives { get; init; } = new();
     }
 }
