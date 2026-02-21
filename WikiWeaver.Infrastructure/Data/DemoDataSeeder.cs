@@ -95,40 +95,13 @@ public static class DemoDataSeeder
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-    private static IEnumerable<Paragraph> BuildParagraphs(List<string> rawParagraphs)
+    private static IEnumerable<Paragraph> BuildParagraphs(List<DemoParagraphSeed> paragraphSeeds)
     {
-        var currentOrder = 0;
-
-        foreach (var rawParagraph in rawParagraphs)
+        for (var index = 0; index < paragraphSeeds.Count; index++)
         {
-            var isAlternative = rawParagraph.StartsWith("[ALT]", StringComparison.Ordinal);
-            var content = isAlternative
-                ? rawParagraph["[ALT]".Length..].TrimStart()
-                : rawParagraph;
-
-            if (isAlternative)
-            {
-                if (currentOrder == 0)
-                    throw new InvalidOperationException("Alternative paragraph cannot be the first paragraph in an article.");
-
-                yield return new Paragraph
-                {
-                    Content = content,
-                    Order = currentOrder,
-                    IsDefault = false
-                };
-
-                continue;
-            }
-
-            currentOrder++;
-
-            yield return new Paragraph
-            {
-                Content = content,
-                Order = currentOrder,
-                IsDefault = true
-            };
+            var order = index + 1;
+            foreach (var paragraph in BuildParagraphs(paragraphSeeds[index], order))
+                yield return paragraph;
         }
     }
 
@@ -217,34 +190,22 @@ public static class DemoDataSeeder
             if (article.Paragraphs.Count == 0)
                 throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");
 
-            var defaultParagraphCount = 0;
             foreach (var paragraph in article.Paragraphs)
             {
-                var isAlternative = paragraph.StartsWith("[ALT]", StringComparison.Ordinal);
-                var normalizedContent = isAlternative
-                    ? paragraph["[ALT]".Length..].TrimStart()
-                    : paragraph;
-
-                if (string.IsNullOrWhiteSpace(normalizedContent))
+                if (string.IsNullOrWhiteSpace(paragraph.Default))
                 {
                     throw new InvalidOperationException(
-                        $"Demo seed article '{article.Title}' contains an empty paragraph.");
+                        $"Demo seed article '{article.Title}' contains an empty default paragraph.");
                 }
 
-                if (isAlternative && defaultParagraphCount == 0)
+                foreach (var alternative in paragraph.Alternatives)
                 {
-                    throw new InvalidOperationException(
-                        $"Demo seed article '{article.Title}' starts with an alternative paragraph before any default paragraph.");
+                    if (string.IsNullOrWhiteSpace(alternative))
+                    {
+                        throw new InvalidOperationException(
+                            $"Demo seed article '{article.Title}' contains an empty alternative paragraph.");
+                    }
                 }
-
-                if (!isAlternative)
-                    defaultParagraphCount++;
-            }
-
-            if (defaultParagraphCount == 0)
-            {
-                throw new InvalidOperationException(
-                    $"Demo seed article '{article.Title}' must contain at least one default paragraph.");
             }
         }
     }
