@@ -15,7 +15,6 @@ interface MainLayoutProps {
 }
 
 const topMenuItems = [
-  { key: '/', label: <Link to="/">Главная</Link> },
   { key: '/article/new', label: <Link to="/article/new">Добавить статью</Link> },
   { key: '/admin', label: <Link to="/admin">Admin panel</Link> },
 ];
@@ -32,9 +31,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Layout className={styles.mainLayout}>
       <Header className={styles.header}>
         <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
-          <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
-            {APP_CONSTANTS.APP_NAME}
-          </Title>
+          <Link to="/" className={styles.headerTitleLink}>
+            <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
+              {APP_CONSTANTS.APP_NAME}
+            </Title>
+          </Link>
         </div>
 
         <div className={styles.headerMainStart}>
