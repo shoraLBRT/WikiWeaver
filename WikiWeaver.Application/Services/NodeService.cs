@@ -1,6 +1,6 @@
-﻿// WikiWeaver.Application/Services/NodeService.cs
 using AutoMapper;
 using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.Exceptions;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
 
@@ -36,27 +36,31 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<NodeReadDto>(node);
         }
 
-        public async Task<(bool success, string? error)> UpdateNodeAsync(int id, NodeUpdateDto dto)
+        public async Task UpdateNodeAsync(int id, NodeUpdateDto dto)
         {
             var node = await _nodeRepository.GetByIdAsync(id);
-            if (node is null) return (false, "Node not found");
+            if (node is null)
+            {
+                throw new NotFoundException("Node not found");
+            }
 
             _mapper.Map(dto, node);
             await _nodeRepository.UpdateAsync(node);
             await _nodeRepository.SaveChangesAsync();
-
-            return (true, null);
         }
 
-        public async Task<bool> DeleteNodeAsync(int id)
+        public async Task DeleteNodeAsync(int id)
         {
             var node = await _nodeRepository.GetByIdAsync(id);
-            if (node is null) return false;
+            if (node is null)
+            {
+                throw new NotFoundException("Node not found");
+            }
 
             await _nodeRepository.DeleteAsync(node);
             await _nodeRepository.SaveChangesAsync();
-            return true;
         }
+
         public async Task<List<NodeReadDto>> GetNodeTreeAsync()
         {
             var nodes = await _nodeRepository.GetAllAsync();

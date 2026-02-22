@@ -1,4 +1,5 @@
 ﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.Exceptions;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
 using WikiWeaver.Infrastructure.UnitOfWork;
@@ -21,10 +22,13 @@ namespace WikiWeaver.Application.Services
             _uow = uow;
         }
 
-        public async Task<ArticleContentDto?> GetContentByArticleIdAsync(int articleId)
+        public async Task<ArticleContentDto> GetContentByArticleIdAsync(int articleId)
         {
             var article = await _articleRepo.GetByIdAsync(articleId);
-            if (article is null) return null;
+            if (article is null)
+            {
+                throw new NotFoundException("Article not found");
+            }
 
             var paragraphs = await _paragraphRepo.GetParagraphsByArticleAsync(articleId);
             var paragraphDtos = paragraphs
@@ -35,18 +39,18 @@ namespace WikiWeaver.Application.Services
             return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
         }
 
-        public async Task<(ArticleContentDto? Article, string? ErrorMessage)> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
+        public async Task<ArticleContentDto> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Title))
             {
-                return (null, "Title is required.");
+                throw new ValidationException("Title is required.");
             }
 
             var incomingParagraphs = dto.Paragraphs ?? new List<ParagraphDto>();
             var (valid, errorMessage) = ValidateOrder(incomingParagraphs);
             if (!valid)
             {
-                return (null, errorMessage);
+                throw new ValidationException(errorMessage ?? "Invalid paragraph order.");
             }
 
             try
@@ -83,12 +87,12 @@ namespace WikiWeaver.Application.Services
                     .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
                     .ToList();
 
-                return (new ArticleContentDto(article.Id, article.Title, paragraphDtos), null);
+                return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
             }
             catch
             {
                 await _uow.RollbackAsync();
-                return (null, "Error occurred while creating article.");
+                throw;
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Services;
 
 namespace WikiWeaver.MinimalApi.Endpoints
@@ -12,22 +12,19 @@ namespace WikiWeaver.MinimalApi.Endpoints
             group.MapGet("/", async (NodeService service) =>
             {
                 var nodes = await service.GetAllNodesAsync();
-                if (nodes is null) return Results.NotFound();
                 return Results.Ok(nodes);
             });
 
             group.MapGet("/tree", async (NodeService service) =>
             {
                 var nodeTree = await service.GetNodeTreeAsync();
-                if (nodeTree is null) return Results.NotFound();
                 return Results.Ok(nodeTree);
             });
 
             group.MapGet("/{id:int}", async (int id, NodeService service) =>
             {
                 var node = await service.GetNodeByIdAsync(id);
-                if (node is null) return Results.NotFound();
-                return Results.Ok(node);
+                return node is null ? Results.NotFound() : Results.Ok(node);
             });
 
             group.MapPost("/", async (NodeCreateDto dto, NodeService service) =>
@@ -38,15 +35,14 @@ namespace WikiWeaver.MinimalApi.Endpoints
 
             group.MapPut("/{id:int}", async (int id, NodeUpdateDto dto, NodeService service) =>
             {
-                var (success, error) = await service.UpdateNodeAsync(id, dto);
-                if (!success) return Results.BadRequest(new { error });
+                await service.UpdateNodeAsync(id, dto);
                 return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id:int}", async (int id, NodeService service) =>
             {
-                var deleted = await service.DeleteNodeAsync(id);
-                return deleted ? Results.NoContent() : Results.NotFound();
+                await service.DeleteNodeAsync(id);
+                return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             return builder;
