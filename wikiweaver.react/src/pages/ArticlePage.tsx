@@ -160,29 +160,29 @@ const ArticlePage: React.FC = () => {
             if (uiMode === 'arrows') {
               return (
                 <div key={order} className={styles.arrowsWrapper}>
-                  <div className={styles.arrowsLayout}>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<LeftOutlined />}
-                      aria-label={locale.articlePage.previousAlternative}
-                      onClick={() => moveAlternative(order, selectedIndex, -1, paragraphs.length)}
-                    />
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<LeftOutlined />}
+                    className={`${styles.arrowButton} ${styles.arrowLeft}`}
+                    aria-label={locale.articlePage.previousAlternative}
+                    onClick={() => moveAlternative(order, selectedIndex, -1, paragraphs.length)}
+                  />
 
-                    <div className={styles.paragraphContainer} style={{ marginBottom: 0, flex: 1 }}>
-                      <div className={styles.markdown}>
-                        <MarkdownContent content={selectedParagraph.content} />
-                      </div>
+                  <div className={`${styles.paragraphContainer} ${styles.carouselParagraphContainer}`}>
+                    <div className={styles.markdown}>
+                      <MarkdownContent content={selectedParagraph.content} />
                     </div>
-
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<RightOutlined />}
-                      aria-label={locale.articlePage.nextAlternative}
-                      onClick={() => moveAlternative(order, selectedIndex, 1, paragraphs.length)}
-                    />
                   </div>
+
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<RightOutlined />}
+                    className={`${styles.arrowButton} ${styles.arrowRight}`}
+                    aria-label={locale.articlePage.nextAlternative}
+                    onClick={() => moveAlternative(order, selectedIndex, 1, paragraphs.length)}
+                  />
                 </div>
               );
             }
