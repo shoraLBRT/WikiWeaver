@@ -49,9 +49,19 @@ const ArticlePage: React.FC = () => {
       .map(([order, paragraphs]) => ({ order, paragraphs }));
   }, [articleContent]);
 
-  const updateSelectedAlternative = (order: number, index: number, total: number) => {
+  const normalizeAlternativeIndex = (index: number, total: number) => {
+    if (total <= 0) return 0;
+    return ((index % total) + total) % total;
+  };
+
+  const selectAlternative = (order: number, index: number, total: number) => {
     const boundedIndex = Math.max(0, Math.min(index, total - 1));
     setSelectedAlternatives((current) => ({ ...current, [order]: boundedIndex }));
+  };
+
+  const moveAlternative = (order: number, currentIndex: number, direction: -1 | 1, total: number) => {
+    const nextIndex = normalizeAlternativeIndex(currentIndex + direction, total);
+    setSelectedAlternatives((current) => ({ ...current, [order]: nextIndex }));
   };
 
   if (isLoading) {
@@ -108,29 +118,29 @@ const ArticlePage: React.FC = () => {
             if (uiMode === 'arrows') {
               return (
                 <div key={order} className={styles.arrowsWrapper}>
-                  <div className={styles.arrowsLayout}>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<LeftOutlined />}
-                      aria-label={locale.articlePage.previousAlternative}
-                      onClick={() => updateSelectedAlternative(order, selectedIndex - 1, paragraphs.length)}
-                    />
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<LeftOutlined />}
+                    className={`${styles.arrowButton} ${styles.arrowLeft}`}
+                    aria-label={locale.articlePage.previousAlternative}
+                    onClick={() => moveAlternative(order, selectedIndex, -1, paragraphs.length)}
+                  />
 
-                    <div className={styles.paragraphContainer} style={{ marginBottom: 0, flex: 1 }}>
-                      <div className={styles.markdown}>
-                        <MarkdownContent content={selectedParagraph.content} />
-                      </div>
+                  <div className={`${styles.paragraphContainer} ${styles.carouselParagraphContainer}`}>
+                    <div className={styles.markdown}>
+                      <MarkdownContent content={selectedParagraph.content} />
                     </div>
-
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<RightOutlined />}
-                      aria-label={locale.articlePage.nextAlternative}
-                      onClick={() => updateSelectedAlternative(order, selectedIndex + 1, paragraphs.length)}
-                    />
                   </div>
+
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<RightOutlined />}
+                    className={`${styles.arrowButton} ${styles.arrowRight}`}
+                    aria-label={locale.articlePage.nextAlternative}
+                    onClick={() => moveAlternative(order, selectedIndex, 1, paragraphs.length)}
+                  />
                 </div>
               );
             }
@@ -149,7 +159,7 @@ const ArticlePage: React.FC = () => {
                         shape="circle"
                         size="small"
                         type={index === selectedIndex ? 'primary' : 'default'}
-                        onClick={() => updateSelectedAlternative(order, index, paragraphs.length)}
+                        onClick={() => selectAlternative(order, index, paragraphs.length)}
                       >
                         {index + 1}
                       </Button>

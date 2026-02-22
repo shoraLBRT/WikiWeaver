@@ -21,13 +21,28 @@
 }
 
 .arrowsWrapper {
+  --carousel-arrow-offset: 36px;
+  position: relative;
   margin-bottom: 12px;
 }
 
-.arrowsLayout {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.carouselParagraphContainer {
+  margin-bottom: 0;
+}
+
+.arrowButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.arrowLeft {
+  left: calc(-1 * var(--carousel-arrow-offset));
+}
+
+.arrowRight {
+  right: calc(-1 * var(--carousel-arrow-offset));
 }
 
 .controls {
