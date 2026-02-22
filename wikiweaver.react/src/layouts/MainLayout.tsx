@@ -14,54 +14,52 @@ const { Header, Content } = Layout;
 const { Title } = Typography;
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 const topMenuItems = [
-  { key: '/', label: <Link to="/">{locale.layout.menu.home}</Link> },
-  { key: '/article/new', label: <Link to="/article/new">{locale.layout.menu.addArticle}</Link> },
-  { key: '/admin', label: <Link to="/admin">{locale.layout.menu.admin}</Link> },
+    { key: '/article/new', label: <Link to="/article/new">{locale.layout.menu.addArticle}</Link> }
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { collapsed, toggleCollapsed } = useSidebar();
-  const isAdmin = isAdminAuthenticated();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { collapsed, toggleCollapsed } = useSidebar();
+    const isAdmin = isAdminAuthenticated();
 
-  const sidebarSpaceWidth = collapsed
-    ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
-    : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH;
+    const sidebarSpaceWidth = collapsed
+        ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
+        : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH;
 
-  return (
-    <Layout className={styles.mainLayout}>
-      <Header className={styles.header}>
-        <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
-          <Link to="/" className={styles.headerTitleLink}>
-            <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
-              {locale.app.name}
-            </Title>
-          </Link>
-        </div>
+    return (
+        <Layout className={styles.mainLayout}>
+            <Header className={styles.header}>
+                <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
+                    <Link to="/" className={styles.headerTitleLink}>
+                        <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
+                            {locale.app.name}
+                        </Title>
+                    </Link>
+                </div>
 
-        <div className={styles.headerMainStart}>
-          <Button
-            type="text"
-            aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
-            icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-            onClick={toggleCollapsed}
-            className={styles.navToggleButton}
-          />
-        </div>
+                <div className={styles.headerMainStart}>
+                    <Button
+                        type="text"
+                        aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+                        icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
+                        onClick={toggleCollapsed}
+                        className={styles.navToggleButton}
+                    />
+                </div>
 
-        <div className={styles.headerCenter}>
-          <Menu
-            mode="horizontal"
-            className={styles.topMenu}
-            items={topMenuItems}
-            selectedKeys={[location.pathname]}
-          />
-        </div>
+                <div className={styles.headerCenter}>
+                    <Menu
+                        mode="horizontal"
+                        className={styles.topMenu}
+                        items={topMenuItems}
+                        selectedKeys={[location.pathname]}
+                    />
+                </div>
 
         <div className={styles.headerActions}>
           <Tooltip title={locale.layout.actions.adminPanel}>
@@ -86,14 +84,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </Header>
 
-      <Layout className={styles.pageLayout}>
-        <Sidebar collapsed={collapsed} />
-        <Content className={styles.content}>
-          {children}
-        </Content>
-      </Layout>
-    </Layout>
-  );
+            <Layout className={styles.pageLayout}>
+                <Sidebar collapsed={collapsed} />
+                <Content className={styles.content}>
+                    {children}
+                </Content>
+            </Layout>
+        </Layout>
+    );
 };
 
 export default MainLayout;

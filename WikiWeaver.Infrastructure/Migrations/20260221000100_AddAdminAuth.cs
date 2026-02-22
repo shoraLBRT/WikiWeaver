@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace WikiWeaver.Infrastructure.Migrations
 {
+    [DbContext(typeof(Data.WikiWeaverDbContext))]
+    [Migration("20260221000100_AddAdminAuth")]
     public partial class AddAdminAuth : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
