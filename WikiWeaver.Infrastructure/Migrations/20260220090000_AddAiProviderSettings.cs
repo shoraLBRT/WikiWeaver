@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 #nullable disable
 
 namespace WikiWeaver.Infrastructure.Migrations
 {
+    [DbContext(typeof(Data.WikiWeaverDbContext))]
+    [Migration("20260220090000_AddAiProviderSettings")]
     public partial class AddAiProviderSettings : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
