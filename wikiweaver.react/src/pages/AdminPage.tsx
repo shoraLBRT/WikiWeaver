@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   checkAiConnection,
   cleanupDemoData,
@@ -53,6 +54,7 @@ const getInitialUiMode = (): ParagraphUiMode => {
 
 const AdminPage: React.FC = () => {
   const t = locale.adminPage;
+  const navigate = useNavigate();
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
@@ -469,6 +471,18 @@ const AdminPage: React.FC = () => {
                   },
                 ]}
               />
+            ),
+          },
+          {
+            key: 'create-article',
+            label: t.createArticleTab,
+            children: (
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Alert type="info" showIcon message={t.createArticleTitle} description={t.createArticleDescription} />
+                <Button type="primary" onClick={() => navigate('/article/new')}>
+                  {t.createArticleAction}
+                </Button>
+              </Space>
             ),
           },
         ]}
