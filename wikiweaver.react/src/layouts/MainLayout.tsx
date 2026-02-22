@@ -37,9 +37,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Layout className={styles.mainLayout}>
       <Header className={styles.header}>
         <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
-          <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
-            {locale.app.name}
-          </Title>
+          <Link to="/" className={styles.headerTitleLink}>
+            <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
+              {locale.app.name}
+            </Title>
+          </Link>
         </div>
 
         <div className={styles.headerMainStart}>

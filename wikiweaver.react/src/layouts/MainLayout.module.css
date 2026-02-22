@@ -23,15 +23,22 @@
   padding-inline: 12px;
 }
 
+.headerTitleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
 .headerTitle {
   margin: 0 !important;
   font-weight: 700 !important;
   font-size: 36px !important;
   line-height: 1.1 !important;
+  white-space: nowrap;
+  transition: font-size 0.2s ease;
 }
 
 .headerTitleCollapsed {
-  font-size: 26px !important;
+  font-size: 14px !important;
 }
 
 .headerMainStart {
