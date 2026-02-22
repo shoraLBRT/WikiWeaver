@@ -29,6 +29,7 @@ import {
   getParagraphs,
   updateAiProviderSettings,
 } from '../services/adminService';
+import { generateInviteToken } from '../services/authService';
 import type { AdminNodeDto, ArticleReadDto, ParagraphReadDto, UpdateAiProviderSettingsDto } from '../shared/types/ApiTypes';
 import {
   ARTICLE_UI_MODE_STORAGE_KEY,
@@ -36,9 +37,9 @@ import {
   isParagraphUiMode,
   type ParagraphUiMode,
 } from '../constants/ArticleUiConstants';
+import { formatMessage, locale } from '../localization';
 
 const { Title, Text } = Typography;
-const CONFIRMATION_PHRASE = 'DELETE DEMO DATA';
 
 type AiSettingsFormValues = UpdateAiProviderSettingsDto & {
   clearApiKey: boolean;
@@ -50,6 +51,8 @@ const getInitialUiMode = (): ParagraphUiMode => {
 };
 
 const AdminPage: React.FC = () => {
+  const t = locale.adminPage;
+  const confirmationPhrase = t.cleanupConfirmationPhrase;
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,6 +60,7 @@ const AdminPage: React.FC = () => {
   const [cleanupConfirmation, setCleanupConfirmation] = useState('');
   const [paragraphUiMode, setParagraphUiMode] = useState<ParagraphUiMode>(getInitialUiMode);
   const [aiForm] = Form.useForm<AiSettingsFormValues>();
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
 
   const nodesQuery = useQuery({ queryKey: ['admin', 'nodes'], queryFn: getNodes });
   const articlesQuery = useQuery({ queryKey: ['admin', 'articles'], queryFn: getArticles });
@@ -77,50 +81,64 @@ const AdminPage: React.FC = () => {
   const nodeDeleteMutation = useMutation({
     mutationFn: deleteNode,
     onSuccess: async () => {
-      messageApi.success('Node deleted');
+      messageApi.success(t.nodeDeleted);
       await refreshAll();
     },
-    onError: (error) => messageApi.error(`Failed to delete node: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.nodeDeleteFailed}: ${(error as Error).message}`),
   });
 
   const articleDeleteMutation = useMutation({
     mutationFn: deleteArticle,
     onSuccess: async () => {
-      messageApi.success('Article deleted');
+      messageApi.success(t.articleDeleted);
       await refreshAll();
     },
-    onError: (error) => messageApi.error(`Failed to delete article: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.articleDeleteFailed}: ${(error as Error).message}`),
   });
 
   const paragraphDeleteMutation = useMutation({
     mutationFn: deleteParagraph,
     onSuccess: async () => {
-      messageApi.success('Paragraph deleted');
+      messageApi.success(t.paragraphDeleted);
       await refreshAll();
     },
-    onError: (error) => messageApi.error(`Failed to delete paragraph: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.paragraphDeleteFailed}: ${(error as Error).message}`),
   });
 
   const cleanupMutation = useMutation({
     mutationFn: cleanupDemoData,
     onSuccess: async (result) => {
       messageApi.success(
-        `Cleanup completed. Deleted ${result.deletedNodes} nodes, ${result.deletedArticles} articles and ${result.deletedParagraphs} paragraphs.`,
+        formatMessage(t.cleanupDone, {
+          nodes: result.deletedNodes,
+          articles: result.deletedArticles,
+          paragraphs: result.deletedParagraphs,
+        }),
       );
       setCleanupConfirmation('');
       setIsCleanupModalOpen(false);
       await refreshAll();
     },
-    onError: (error) => messageApi.error(`Failed to cleanup demo data: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.cleanupFailed}: ${(error as Error).message}`),
   });
 
   const aiSettingsMutation = useMutation({
     mutationFn: updateAiProviderSettings,
     onSuccess: async () => {
-      messageApi.success('AI settings updated');
+      messageApi.success(t.aiSettingsUpdated);
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
     },
-    onError: (error) => messageApi.error(`Failed to update AI settings: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.aiSettingsUpdateFailed}: ${(error as Error).message}`),
+  });
+
+
+  const inviteTokenMutation = useMutation({
+    mutationFn: generateInviteToken,
+    onSuccess: (result) => {
+      setInviteToken(result.token);
+      messageApi.success('Invite token generated');
+    },
+    onError: (error) => messageApi.error(`Failed to generate invite token: ${(error as Error).message}`),
   });
 
   const aiConnectionCheckMutation = useMutation({
@@ -128,17 +146,17 @@ const AdminPage: React.FC = () => {
     onSuccess: (result) => {
       messageApi.success(result.message);
       Modal.info({
-        title: 'Результат проверки ИИ',
+        title: t.aiCheckResultTitle,
         content: (
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <Text>{result.message}</Text>
-            <Text type="secondary">Пример ответа модели:</Text>
+            <Text type="secondary">{t.aiModelExample}</Text>
             <Input.TextArea value={result.styledText} autoSize={{ minRows: 4, maxRows: 8 }} readOnly />
           </Space>
         ),
       });
     },
-    onError: (error) => messageApi.error(`Проверка ИИ не пройдена: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.aiCheckFailed}: ${(error as Error).message}`),
   });
 
   const filteredNodes = useMemo(
@@ -175,78 +193,78 @@ const AdminPage: React.FC = () => {
   );
 
   const nodeColumns: ColumnsType<AdminNodeDto> = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
-    { title: 'Title', dataIndex: 'title', key: 'title' },
+    { title: locale.common.id, dataIndex: 'id', key: 'id', width: 90 },
+    { title: locale.common.title, dataIndex: 'title', key: 'title' },
     {
-      title: 'Parent ID',
+      title: t.parentId,
       dataIndex: 'parentId',
       key: 'parentId',
       width: 120,
-      render: (parentId: number | null) => parentId ?? <Tag>root</Tag>,
+      render: (parentId: number | null) => parentId ?? <Tag>{t.root}</Tag>,
     },
     {
-      title: 'Actions',
+      title: locale.common.actions,
       key: 'actions',
       width: 130,
       render: (_, record) => (
         <Popconfirm
-          title="Delete node"
-          description={`Delete node "${record.title}"?`}
-          okText="Delete"
+          title={t.deleteNode}
+          description={`${t.deleteNode}: "${record.title}"?`}
+          okText={locale.common.delete}
           okButtonProps={{ danger: true }}
           onConfirm={() => nodeDeleteMutation.mutate(record.id)}
         >
-          <Button danger size="small">Delete</Button>
+          <Button danger size="small">{locale.common.delete}</Button>
         </Popconfirm>
       ),
     },
   ];
 
   const articleColumns: ColumnsType<ArticleReadDto> = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Node ID', dataIndex: 'nodeId', key: 'nodeId', width: 120 },
+    { title: locale.common.id, dataIndex: 'id', key: 'id', width: 90 },
+    { title: locale.common.title, dataIndex: 'title', key: 'title' },
+    { title: t.parentId, dataIndex: 'nodeId', key: 'nodeId', width: 120 },
     {
-      title: 'Actions',
+      title: locale.common.actions,
       key: 'actions',
       width: 130,
       render: (_, record) => (
         <Popconfirm
-          title="Delete article"
-          description={`Delete article "${record.title}"?`}
-          okText="Delete"
+          title={t.deleteArticle}
+          description={`${t.deleteArticle}: "${record.title}"?`}
+          okText={locale.common.delete}
           okButtonProps={{ danger: true }}
           onConfirm={() => articleDeleteMutation.mutate(record.id)}
         >
-          <Button danger size="small">Delete</Button>
+          <Button danger size="small">{locale.common.delete}</Button>
         </Popconfirm>
       ),
     },
   ];
 
   const paragraphColumns: ColumnsType<ParagraphReadDto> = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
-    { title: 'Article ID', dataIndex: 'articleId', key: 'articleId', width: 120 },
-    { title: 'Order', dataIndex: 'order', key: 'order', width: 90 },
+    { title: locale.common.id, dataIndex: 'id', key: 'id', width: 90 },
+    { title: t.articleId, dataIndex: 'articleId', key: 'articleId', width: 120 },
+    { title: t.order, dataIndex: 'order', key: 'order', width: 90 },
     {
-      title: 'Content',
+      title: t.content,
       dataIndex: 'content',
       key: 'content',
       render: (content: string) => <Text ellipsis={{ tooltip: content }}>{content}</Text>,
     },
     {
-      title: 'Actions',
+      title: locale.common.actions,
       key: 'actions',
       width: 130,
       render: (_, record) => (
         <Popconfirm
-          title="Delete paragraph"
-          description={`Delete paragraph #${record.id}?`}
-          okText="Delete"
+          title={t.deleteParagraph}
+          description={`${t.deleteParagraph} #${record.id}?`}
+          okText={locale.common.delete}
           okButtonProps={{ danger: true }}
           onConfirm={() => paragraphDeleteMutation.mutate(record.id)}
         >
-          <Button danger size="small">Delete</Button>
+          <Button danger size="small">{locale.common.delete}</Button>
         </Popconfirm>
       ),
     },
@@ -255,7 +273,7 @@ const AdminPage: React.FC = () => {
   const onParagraphUiModeChange = (value: ParagraphUiMode) => {
     setParagraphUiMode(value);
     localStorage.setItem(ARTICLE_UI_MODE_STORAGE_KEY, value);
-    messageApi.success('Article paragraph UI mode updated.');
+    messageApi.success(locale.articlePage.uiModeUpdated);
   };
 
   const saveAiSettings = async () => {
@@ -277,7 +295,7 @@ const AdminPage: React.FC = () => {
       },
       {
         onSuccess: async () => {
-          messageApi.success('Текущий API key удалён из настроек');
+          messageApi.success(t.apiKeyDeleted);
           await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
         },
       },
@@ -289,31 +307,29 @@ const AdminPage: React.FC = () => {
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
-      <Title level={2}>Admin panel (MVP)</Title>
-      <Alert
-        type="warning"
-        showIcon
-        message="Temporary open access"
-        description="This admin panel is currently public for MVP. Access restrictions (authentication/roles) must be added in the next iteration."
-      />
+      <Title level={2}>{t.title}</Title>
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <Text strong>Invite token для нового администратора</Text>
+        <Space>
+          <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
+            Сгенерировать invite token
+          </Button>
+          {inviteToken && <Text code>{inviteToken}</Text>}
+        </Space>
+      </Space>
 
       <Tabs
         defaultActiveKey="data"
         items={[
           {
             key: 'data',
-            label: 'Data',
+            label: locale.common.data,
             children: (
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Alert
-                  type="info"
-                  showIcon
-                  message="Данные контента"
-                  description="Здесь только просмотр/удаление сущностей и отдельная вкладка очистки демо-данных."
-                />
+                <Alert type="info" showIcon message={t.contentDataTitle} description={t.contentDataDescription} />
                 <Input.Search
                   allowClear
-                  placeholder="Search by id/title/content"
+                  placeholder={t.searchPlaceholder}
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                 />
@@ -322,7 +338,7 @@ const AdminPage: React.FC = () => {
                   items={[
                     {
                       key: 'nodes',
-                      label: `Nodes (${filteredNodes.length})`,
+                      label: `${t.nodesTab} (${filteredNodes.length})`,
                       children: (
                         <Table
                           loading={nodesQuery.isLoading}
@@ -335,7 +351,7 @@ const AdminPage: React.FC = () => {
                     },
                     {
                       key: 'articles',
-                      label: `Articles (${filteredArticles.length})`,
+                      label: `${t.articlesTab} (${filteredArticles.length})`,
                       children: (
                         <Table
                           loading={articlesQuery.isLoading}
@@ -348,7 +364,7 @@ const AdminPage: React.FC = () => {
                     },
                     {
                       key: 'paragraphs',
-                      label: `Paragraphs (${filteredParagraphs.length})`,
+                      label: `${t.paragraphsTab} (${filteredParagraphs.length})`,
                       children: (
                         <Table
                           loading={paragraphsQuery.isLoading}
@@ -361,17 +377,12 @@ const AdminPage: React.FC = () => {
                     },
                     {
                       key: 'cleanup',
-                      label: 'Cleanup demo data',
+                      label: t.cleanupTab,
                       children: (
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                          <Alert
-                            type="error"
-                            showIcon
-                            message="Danger zone"
-                            description="Use this only to reset demo data. This action deletes all nodes, articles and paragraphs."
-                          />
+                          <Alert type="error" showIcon message={t.dangerZone} description={t.dangerDescription} />
                           <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
-                            Delete all nodes and articles
+                            {t.deleteAll}
                           </Button>
                         </Space>
                       ),
@@ -383,22 +394,17 @@ const AdminPage: React.FC = () => {
           },
           {
             key: 'settings',
-            label: 'Settings',
+            label: locale.common.settings,
             children: (
               <Tabs
                 defaultActiveKey="ai"
                 items={[
                   {
                     key: 'ai',
-                    label: 'AI',
+                    label: t.aiTab,
                     children: (
                       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Alert
-                          type="info"
-                          showIcon
-                          message="Настройки AI (OpenAI-совместимый провайдер)"
-                          description="Base URL и Model определяют endpoint и модель для стилизации. Переключатель выше включает/отключает ИИ во всём приложении без потери сохранённых настроек."
-                        />
+                        <Alert type="info" showIcon message={t.aiSettingsTitle} description={t.aiSettingsDescription} />
                         <Form
                           form={aiForm}
                           layout="vertical"
@@ -410,41 +416,33 @@ const AdminPage: React.FC = () => {
                           }}
                           key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
                         >
-                          <Form.Item
-                            name="isEnabled"
-                            valuePropName="checked"
-                            extra="Если выключено (серый), ИИ стилизация отключена в приложении, а поля конфигурации ниже блокируются."
-                          >
+                          <Form.Item name="isEnabled" valuePropName="checked" extra={t.aiDisabledHint}>
                             <Switch />
                           </Form.Item>
 
-                          <Form.Item label="Base URL" name="baseUrl" rules={[{ required: true, message: 'Base URL is required' }]}>
-                            <Input placeholder="https://api.openai.com/v1" disabled={!isAiEnabled} />
+                          <Form.Item label={t.baseUrl} name="baseUrl" rules={[{ required: true, message: t.baseUrlRequired }]}>
+                            <Input placeholder={t.baseUrlPlaceholder} disabled={!isAiEnabled} />
                           </Form.Item>
-                          <Form.Item label="Model" name="model" rules={[{ required: true, message: 'Model is required' }]}>
-                            <Input placeholder="gpt-4o-mini" disabled={!isAiEnabled} />
+                          <Form.Item label={t.model} name="model" rules={[{ required: true, message: t.modelRequired }]}>
+                            <Input placeholder={t.modelPlaceholder} disabled={!isAiEnabled} />
                           </Form.Item>
-                          <Form.Item
-                            label="API key"
-                            name="apiKey"
-                            extra="Оставьте пустым при обычном сохранении, чтобы сохранить текущий ключ без изменений."
-                          >
-                            <Input.Password placeholder={aiSettings?.hasApiKey ? 'Configured' : 'sk-...'} disabled={!isAiEnabled} />
+                          <Form.Item label={t.apiKey} name="apiKey" extra={t.apiKeyHint}>
+                            <Input.Password placeholder={aiSettings?.hasApiKey ? t.apiConfigured : t.apiKeyPlaceholder} disabled={!isAiEnabled} />
                           </Form.Item>
 
                           <Space wrap>
                             <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
-                              Save AI settings
+                              {t.saveAiSettings}
                             </Button>
                             <Button danger onClick={deleteStoredApiKey} loading={aiSettingsMutation.isPending}>
-                              Удалить текущие данные API key
+                              {t.deleteApiKey}
                             </Button>
                             <Button
                               loading={aiConnectionCheckMutation.isPending}
                               onClick={() => aiConnectionCheckMutation.mutate()}
                               disabled={!isAiEnabled}
                             >
-                              Проверить подключение ИИ
+                              {t.checkAiConnection}
                             </Button>
                           </Space>
                         </Form>
@@ -453,21 +451,16 @@ const AdminPage: React.FC = () => {
                   },
                   {
                     key: 'ui',
-                    label: 'UI',
+                    label: t.uiTab,
                     children: (
                       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Alert
-                          type="info"
-                          showIcon
-                          message="Article paragraphs UI mode"
-                          description="This setting is global and applies to all article pages."
-                        />
+                        <Alert type="info" showIcon message={t.articleUiModeTitle} description={t.articleUiModeDescription} />
                         <Segmented
                           value={paragraphUiMode}
                           onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
                           options={[
-                            { label: 'Стрелки (карусель)', value: 'arrows' },
-                            { label: 'Рамка + номера', value: 'numbers' },
+                            { label: t.uiModeArrows, value: 'arrows' },
+                            { label: t.uiModeNumbers, value: 'numbers' },
                           ]}
                         />
                       </Space>
@@ -481,25 +474,23 @@ const AdminPage: React.FC = () => {
       />
 
       <Modal
-        title="Delete all demo data"
+        title={t.cleanupModalTitle}
         open={isCleanupModalOpen}
         onCancel={() => setIsCleanupModalOpen(false)}
         onOk={() => cleanupMutation.mutate()}
         okButtonProps={{
           danger: true,
-          disabled: cleanupConfirmation !== CONFIRMATION_PHRASE,
+          disabled: cleanupConfirmation !== confirmationPhrase,
           loading: cleanupMutation.isPending,
         }}
-        okText="Delete everything"
+        okText={t.cleanupModalOk}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Text>
-            Type <Text code>{CONFIRMATION_PHRASE}</Text> to confirm that you want to permanently delete all nodes, articles and paragraphs.
-          </Text>
+          <Text>{formatMessage(t.cleanupModalHint, { phrase: confirmationPhrase })}</Text>
           <Input
             value={cleanupConfirmation}
             onChange={(event) => setCleanupConfirmation(event.target.value)}
-            placeholder={CONFIRMATION_PHRASE}
+            placeholder={confirmationPhrase}
           />
         </Space>
       </Modal>

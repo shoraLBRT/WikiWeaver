@@ -9,7 +9,7 @@
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
   display: grid;
-  grid-template-columns: auto auto 1fr;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: 8px;
 }
@@ -85,4 +85,12 @@
     border-right: none;
     padding-inline: 0;
   }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  gap: 4px;
 }

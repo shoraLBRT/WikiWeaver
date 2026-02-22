@@ -1,13 +1,22 @@
 import axios, { type AxiosInstance } from 'axios';
-import { API_BASE_URL } from '../../config'; // Path to config.ts from shared/api-client/
+import { API_BASE_URL } from '../../config';
+import { getStoredAdminToken } from '../../services/authTokenStorage';
 
-// Create an axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL, // Base URL for all requests
-  timeout: 10000, // Request timeout (10 seconds)
+  baseURL: API_BASE_URL,
+  timeout: 10000,
   headers: {
-    'Content-Type': 'application/json', // Set default Content-Type header
+    'Content-Type': 'application/json',
   },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = getStoredAdminToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
 });
 
 export default apiClient;

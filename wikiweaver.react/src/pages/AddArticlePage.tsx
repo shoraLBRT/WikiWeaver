@@ -6,6 +6,7 @@ import { createArticleContent } from '../services/Article/articleService';
 import { styleMarkdownWithAi } from '../services/adminService';
 import type { ArticleContentCreateDto, ParagraphDto } from '../shared/types/ApiTypes';
 import SimpleMarkdownEditor from '../components/SimpleMarkdownEditor';
+import { locale } from '../localization';
 
 const { Title, Text } = Typography;
 
@@ -34,13 +35,15 @@ const AddArticlePage: React.FC = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
 
+  const t = locale.addArticlePage;
+
   const mutation = useMutation({
     mutationFn: (payload: ArticleContentCreateDto) => createArticleContent(payload),
     onSuccess: (created) => {
-      messageApi.success('Статья сохранена');
+      messageApi.success(t.saved);
       navigate(`/article/${created.id}`);
     },
-    onError: (error) => messageApi.error(`Ошибка сохранения: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.saveError}: ${(error as Error).message}`),
   });
 
   const styleMutation = useMutation({
@@ -120,16 +123,16 @@ const AddArticlePage: React.FC = () => {
     const alternative = group?.alternatives.find((item) => item.localId === localId);
 
     if (!alternative || !alternative.content.trim()) {
-      messageApi.warning('Заполните текст абзаца перед ИИ-стилизацией');
+      messageApi.warning(t.warnings.fillBeforeAi);
       return;
     }
 
     try {
       const result = await styleMutation.mutateAsync(alternative.content);
       setAlternativeContent(groupOrder, localId, result.styledText);
-      messageApi.success(`Абзац ${groupOrder} стилизован`);
+      messageApi.success(`${t.aiStyledParagraph}: ${groupOrder}`);
     } catch (error) {
-      messageApi.error(`ИИ-стилизация не выполнена: ${(error as Error).message}`);
+      messageApi.error(`${t.aiStyleFailed}: ${(error as Error).message}`);
     }
   };
 
@@ -142,7 +145,7 @@ const AddArticlePage: React.FC = () => {
       );
 
     if (queue.length === 0) {
-      messageApi.warning('Нет заполненных абзацев для стилизации');
+      messageApi.warning(t.warnings.noParagraphsForAi);
       return;
     }
 
@@ -151,15 +154,15 @@ const AddArticlePage: React.FC = () => {
         const result = await styleMutation.mutateAsync(item.content);
         setAlternativeContent(item.groupOrder, item.localId, result.styledText);
       }
-      messageApi.success(`Стилизовано версий: ${queue.length}`);
+      messageApi.success(`${t.styledVersions}: ${queue.length}`);
     } catch (error) {
-      messageApi.error(`ИИ-стилизация не выполнена: ${(error as Error).message}`);
+      messageApi.error(`${t.aiStyleFailed}: ${(error as Error).message}`);
     }
   };
 
   const saveArticle = () => {
     if (!title.trim()) {
-      messageApi.warning('Укажите заголовок статьи');
+      messageApi.warning(t.warnings.titleRequired);
       return;
     }
 
@@ -175,7 +178,7 @@ const AddArticlePage: React.FC = () => {
     );
 
     if (paragraphs.length === 0) {
-      messageApi.warning('Добавьте хотя бы один заполненный абзац');
+      messageApi.warning(t.warnings.paragraphRequired);
       return;
     }
 
@@ -184,7 +187,7 @@ const AddArticlePage: React.FC = () => {
     );
 
     if (emptyDefaults) {
-      messageApi.warning('Для каждого абзаца должна быть заполнена хотя бы одна версия по умолчанию');
+      messageApi.warning(t.warnings.defaultRequired);
       return;
     }
 
@@ -202,7 +205,7 @@ const AddArticlePage: React.FC = () => {
       .filter(Boolean);
 
     if (parts.length === 0) {
-      messageApi.warning('Не найдено абзацев для импорта');
+      messageApi.warning(t.warnings.importEmpty);
       return;
     }
 
@@ -212,43 +215,38 @@ const AddArticlePage: React.FC = () => {
     })));
     setIsImportOpen(false);
     setImportText('');
-    messageApi.success(`Импортировано абзацев: ${parts.length}`);
+    messageApi.success(`${t.importedParagraphs}: ${parts.length}`);
   };
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
-      <Title level={2}>Новая статья</Title>
-      <Alert
-        type="info"
-        showIcon
-        message="Модель хранения"
-        description="Каждый абзац — это группа альтернатив. Можно сохранить только основную версию, а альтернативы добавить позже, либо сразу создать несколько версий в одном порядке."
-      />
+      <Title level={2}>{t.title}</Title>
+      <Alert type="info" showIcon message={t.modelTitle} description={t.modelDescription} />
 
       <Card>
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Заголовок статьи" />
+          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t.articleTitlePlaceholder} />
           <InputNumber
             value={nodeId ?? undefined}
             onChange={(value) => setNodeId(value ?? null)}
-            placeholder="Node ID (необязательно)"
+            placeholder={t.nodeIdPlaceholder}
             style={{ width: 240 }}
             min={1}
           />
           <Space>
-            <Button onClick={() => setIsImportOpen(true)}>Импортировать черновик Markdown</Button>
-            <Button loading={styleMutation.isPending} onClick={improveAllWithAi}>Улучшить стиль с помощью ИИ</Button>
+            <Button onClick={() => setIsImportOpen(true)}>{t.importDraft}</Button>
+            <Button loading={styleMutation.isPending} onClick={improveAllWithAi}>{t.improveAllAi}</Button>
           </Space>
-          <Text type="secondary">Абзацев: {groups.length} · Версий: {totalAlternatives}</Text>
+          <Text type="secondary">{t.paragraphStats}: {groups.length} · {t.versionsStats}: {totalAlternatives}</Text>
         </Space>
       </Card>
 
       {groups.map((group) => (
         <Card
           key={group.order}
-          title={`Абзац #${group.order}`}
-          extra={<Button onClick={() => addAlternative(group.order)}>Добавить альтернативу</Button>}
+          title={`${t.paragraphTitle} #${group.order}`}
+          extra={<Button onClick={() => addAlternative(group.order)}>{t.addAlternative}</Button>}
         >
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Radio.Group
@@ -262,17 +260,17 @@ const AddArticlePage: React.FC = () => {
                     size="small"
                     title={
                       <Space>
-                        <Radio value={alternative.localId}>Версия {index + 1}</Radio>
-                        {alternative.isDefault && <Text type="success">По умолчанию</Text>}
+                        <Radio value={alternative.localId}>{t.version} {index + 1}</Radio>
+                        {alternative.isDefault && <Text type="success">{t.defaultLabel}</Text>}
                       </Space>
                     }
                     extra={
                       <Space>
                         <Button size="small" loading={styleMutation.isPending} onClick={() => improveSingleAlternativeWithAi(group.order, alternative.localId)}>
-                          ИИ-стиль
+                          {t.aiStyle}
                         </Button>
                         <Button size="small" danger onClick={() => removeAlternative(group.order, alternative.localId)}>
-                          Удалить
+                          {t.remove}
                         </Button>
                       </Space>
                     }
@@ -280,7 +278,7 @@ const AddArticlePage: React.FC = () => {
                     <SimpleMarkdownEditor
                       value={alternative.content}
                       onChange={(content) => setAlternativeContent(group.order, alternative.localId, content)}
-                      placeholder="Напишите версию абзаца в Markdown"
+                      placeholder={t.editorPlaceholder}
                     />
                   </Card>
                 ))}
@@ -291,24 +289,24 @@ const AddArticlePage: React.FC = () => {
       ))}
 
       <Space>
-        <Button onClick={addParagraphGroup}>Добавить абзац</Button>
-        <Button type="primary" loading={mutation.isPending} onClick={saveArticle}>Сохранить статью</Button>
+        <Button onClick={addParagraphGroup}>{t.addParagraph}</Button>
+        <Button type="primary" loading={mutation.isPending} onClick={saveArticle}>{t.saveArticle}</Button>
       </Space>
 
       <Modal
-        title="Импортировать черновик Markdown"
+        title={t.importModalTitle}
         open={isImportOpen}
         onCancel={() => setIsImportOpen(false)}
         onOk={importMarkdownAsParagraphs}
-        okText="Импортировать"
+        okText={t.importButton}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
-          <Text>Разделяйте абзацы пустой строкой. Импорт создаст по одной версии на каждый абзац.</Text>
+          <Text>{t.importHint}</Text>
           <Input.TextArea
             rows={10}
             value={importText}
             onChange={(event) => setImportText(event.target.value)}
-            placeholder={'Абзац 1\n\nАбзац 2\n\nАбзац 3'}
+            placeholder={t.importPlaceholder}
           />
         </Space>
       </Modal>

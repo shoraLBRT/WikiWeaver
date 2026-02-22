@@ -13,6 +13,7 @@ namespace WikiWeaver.Application
             services.AddScoped<NavigationTreeService>();
             services.AddScoped<ArticleContentService>();
             services.AddScoped<AdminService>();
+            services.AddScoped<AdminAuthService>();
             return services;
         }
     }

@@ -7,7 +7,7 @@ public static class AdminEndpoints
 {
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/admin").WithTags("Admin");
+        var group = builder.MapGroup("/admin").WithTags("Admin").RequireAuthorization("AdminOnly");
 
         group.MapPost("/cleanup", async (AdminService service, CancellationToken cancellationToken) =>
         {
