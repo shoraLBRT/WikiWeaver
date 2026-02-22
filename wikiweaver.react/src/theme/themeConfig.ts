@@ -3,7 +3,6 @@ export const customTheme = {
     colorBgContainer: '#ffffff', // White background for containers
     colorBgLayout: '#ffffff',    // White background for layouts
     colorBgElevated: '#ffffff',  // White background for elevated components
-    colorBgSpotlight: '#ffffff', // White background for spotlight elements
     colorText: 'rgba(0, 0, 0, 0.87)', // Dark text
     colorTextSecondary: 'rgba(0, 0, 0, 0.65)', // Secondary dark text
     colorPrimary: '#1890ff',     // Primary color

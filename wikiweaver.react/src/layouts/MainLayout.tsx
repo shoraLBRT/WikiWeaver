@@ -64,7 +64,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
 
         <div className={styles.headerActions}>
-          <Tooltip title="Админ панель">
+          <Tooltip title={locale.layout.actions.adminPanel}>
             <Button
               type="text"
               icon={<SafetyCertificateOutlined />}
@@ -72,7 +72,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             />
           </Tooltip>
           {isAdmin && (
-            <Tooltip title="Выйти">
+            <Tooltip title={locale.layout.actions.logout}>
               <Button
                 type="text"
                 icon={<LogoutOutlined />}
