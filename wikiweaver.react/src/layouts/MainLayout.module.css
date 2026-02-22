@@ -9,7 +9,7 @@
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
   gap: 8px;
 }
@@ -51,16 +51,6 @@
   font-size: 16px;
 }
 
-.headerCenter {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.topMenu {
-  border-bottom: none;
-  min-width: 280px;
-  background: transparent;
-}
 
 .pageLayout {
   min-height: calc(100vh - 64px);
