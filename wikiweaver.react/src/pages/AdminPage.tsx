@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert,
   Button,
   Form,
   Input,
@@ -310,26 +309,16 @@ const AdminPage: React.FC = () => {
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
-      <Title level={2}>{t.title}</Title>
-      <Space direction="vertical" size="small" style={{ width: '100%' }}>
-        <Text strong>{t.inviteTokenTitle}</Text>
-        <Space>
-          <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
-            {t.generateInviteToken}
-          </Button>
-          {inviteToken && <Text code>{inviteToken}</Text>}
-        </Space>
-      </Space>
+      <Title level={2} style={{ marginTop: 0 }}>{t.title}</Title>
 
       <Tabs
-        defaultActiveKey="data"
+        defaultActiveKey="content"
         items={[
           {
-            key: 'data',
-            label: locale.common.data,
+            key: 'content',
+            label: t.contentTab,
             children: (
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Alert type="info" showIcon message={t.contentDataTitle} description={t.contentDataDescription} />
                 <Input.Search
                   allowClear
                   placeholder={t.searchPlaceholder}
@@ -379,15 +368,21 @@ const AdminPage: React.FC = () => {
                       ),
                     },
                     {
+                      key: 'create-article',
+                      label: t.createArticleTab,
+                      children: (
+                        <Button type="primary" onClick={() => navigate('/article/new')}>
+                          {t.createArticleAction}
+                        </Button>
+                      ),
+                    },
+                    {
                       key: 'cleanup',
                       label: t.cleanupTab,
                       children: (
-                        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                          <Alert type="error" showIcon message={t.dangerZone} description={t.dangerDescription} />
-                          <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
-                            {t.deleteAll}
-                          </Button>
-                        </Space>
+                        <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
+                          {t.deleteAll}
+                        </Button>
                       ),
                     },
                   ]}
@@ -407,7 +402,6 @@ const AdminPage: React.FC = () => {
                     label: t.aiTab,
                     children: (
                       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Alert type="info" showIcon message={t.aiSettingsTitle} description={t.aiSettingsDescription} />
                         <Form
                           form={aiForm}
                           layout="vertical"
@@ -456,16 +450,28 @@ const AdminPage: React.FC = () => {
                     key: 'ui',
                     label: t.uiTab,
                     children: (
-                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Alert type="info" showIcon message={t.articleUiModeTitle} description={t.articleUiModeDescription} />
-                        <Segmented
-                          value={paragraphUiMode}
-                          onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
-                          options={[
-                            { label: t.uiModeArrows, value: 'arrows' },
-                            { label: t.uiModeNumbers, value: 'numbers' },
-                          ]}
-                        />
+                      <Segmented
+                        value={paragraphUiMode}
+                        onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
+                        options={[
+                          { label: t.uiModeArrows, value: 'arrows' },
+                          { label: t.uiModeNumbers, value: 'numbers' },
+                        ]}
+                      />
+                    ),
+                  },
+                  {
+                    key: 'users',
+                    label: t.usersTab,
+                    children: (
+                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <Text strong>{t.inviteTokenTitle}</Text>
+                        <Space>
+                          <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
+                            {t.generateInviteToken}
+                          </Button>
+                          {inviteToken && <Text code>{inviteToken}</Text>}
+                        </Space>
                       </Space>
                     ),
                   },
