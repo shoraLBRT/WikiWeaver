@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
-import { Typography, Spin, Alert, Empty, Button, Space } from 'antd';
+import { Spin, Alert, Empty, Button, Space, Breadcrumb } from 'antd';
 import MarkdownContent from '../components/MarkdownContent';
 import styles from './ArticlePage.module.css';
 import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
@@ -14,9 +14,31 @@ import {
   isParagraphUiMode,
   type ParagraphUiMode,
 } from '../constants/ArticleUiConstants';
-import type { ParagraphDto } from '../shared/types/ApiTypes';
+import { getNavigationTree } from '../services/Article/navigationService';
+import type { NavigationNodeDto, ParagraphDto } from '../shared/types/ApiTypes';
 
-const { Title } = Typography;
+const findNodePathByArticleId = (
+  nodes: NavigationNodeDto[],
+  targetArticleId: number,
+  parentPath: NavigationNodeDto[] = [],
+): NavigationNodeDto[] => {
+  for (const node of nodes) {
+    const currentPath = [...parentPath, node];
+
+    if (node.article?.id === targetArticleId) {
+      return currentPath;
+    }
+
+    if (node.children && node.children.length > 0) {
+      const nestedPath = findNodePathByArticleId(node.children, targetArticleId, currentPath);
+      if (nestedPath.length > 0) {
+        return nestedPath;
+      }
+    }
+  }
+
+  return [];
+};
 
 const getInitialUiMode = (): ParagraphUiMode => {
   const savedMode = localStorage.getItem(ARTICLE_UI_MODE_STORAGE_KEY);
@@ -34,6 +56,24 @@ const ArticlePage: React.FC = () => {
     queryFn: () => getArticleContentById(articleId),
     enabled: !isNaN(articleId) && articleId > 0,
   });
+
+  const { data: navigationTree } = useQuery({
+    queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE],
+    queryFn: getNavigationTree,
+  });
+
+  const nodePath = useMemo(
+    () => (navigationTree ? findNodePathByArticleId(navigationTree, articleId) : []),
+    [navigationTree, articleId],
+  );
+
+  const breadcrumbItems = useMemo(
+    () =>
+      nodePath.map((node) => ({
+        title: node.article ? <Link to={`/article/${node.article.id}`}>{node.title}</Link> : node.title,
+      })),
+    [nodePath],
+  );
 
   const groupedParagraphs = useMemo(() => {
     const grouped = new Map<number, ParagraphDto[]>();
@@ -95,9 +135,11 @@ const ArticlePage: React.FC = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.title}>
-        <Title level={2}>{articleContent.title}</Title>
-      </div>
+      {breadcrumbItems.length > 0 && (
+        <div className={styles.breadcrumb}>
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+      )}
 
       <div>
         {groupedParagraphs.length > 0 ? (
