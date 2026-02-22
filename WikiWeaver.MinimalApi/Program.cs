@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Text.Json.Serialization;
 using WikiWeaver.Application;
 using WikiWeaver.Application.Configuration;
@@ -16,6 +19,7 @@ builder.Services.AddDbContext<WikiWeaverDbContext>(options =>
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(
@@ -44,6 +48,36 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpClient();
 builder.Services.AddSwaggerGen();
+var authOptions = builder.Configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>() ?? new AuthOptions();
+if (string.IsNullOrWhiteSpace(authOptions.JwtSigningKey))
+{
+    throw new InvalidOperationException("Auth:JwtSigningKey is required.");
+}
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = authOptions.JwtIssuer,
+            ValidAudience = authOptions.JwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtSigningKey)),
+            ClockSkew = TimeSpan.FromMinutes(1),
+        };
+    });
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Admin");
+    });
+
 
 var app = builder.Build();
 
@@ -63,6 +97,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowWikiWeaverReact");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapArticleContentEndpoints();
 app.MapNavigationEndpoints();
@@ -70,5 +106,6 @@ app.MapNodeEndpoints();
 app.MapArticleEndpoints();
 app.MapParagraphEndpoints();
 app.MapAdminEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();

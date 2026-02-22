@@ -25,20 +25,20 @@ namespace WikiWeaver.MinimalApi.Endpoints
             {
                 var createdParagraph = await service.CreateAsync(createDto);
                 return Results.Created($"/paragraph/{createdParagraph.Id}", createdParagraph);
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id}", async (int id, ParagraphUpdateDto updateDto, ParagraphService service) =>
             {
                 var (success, error) = await service.UpdateAsync(id, updateDto);
                 if (!success) return Results.BadRequest(new { error });
                 return Results.NoContent();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id}", async (int id, ParagraphService service) =>
             {
                 var success = await service.DeleteAsync(id);
                 return success ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             return builder;
         }

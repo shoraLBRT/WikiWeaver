@@ -1,10 +1,12 @@
 import React from 'react';
-import { Layout, Menu, Button, Typography } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Layout, Menu, Button, Typography, Tooltip } from 'antd';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LeftOutlined, RightOutlined, SafetyCertificateOutlined, LogoutOutlined } from '@ant-design/icons';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import { clearStoredAdminToken } from '../services/authTokenStorage';
+import { isAdminAuthenticated } from '../services/authService';
 import { locale } from '../localization';
 import styles from './MainLayout.module.css';
 
@@ -23,7 +25,9 @@ const topMenuItems = [
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { collapsed, toggleCollapsed } = useSidebar();
+  const isAdmin = isAdminAuthenticated();
 
   const sidebarSpaceWidth = collapsed
     ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
@@ -55,6 +59,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             items={topMenuItems}
             selectedKeys={[location.pathname]}
           />
+        </div>
+
+        <div className={styles.headerActions}>
+          <Tooltip title="Админ панель">
+            <Button
+              type="text"
+              icon={<SafetyCertificateOutlined />}
+              onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
+            />
+          </Tooltip>
+          {isAdmin && (
+            <Tooltip title="Выйти">
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={() => {
+                  clearStoredAdminToken();
+                  navigate('/');
+                }}
+              />
+            </Tooltip>
+          )}
         </div>
       </Header>
 

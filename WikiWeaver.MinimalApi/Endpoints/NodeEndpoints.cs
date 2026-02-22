@@ -34,20 +34,20 @@ namespace WikiWeaver.MinimalApi.Endpoints
             {
                 var createdNode = await service.CreateNodeAsync(dto);
                 return Results.Created($"/nodes/{createdNode.Id}", createdNode);
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id:int}", async (int id, NodeUpdateDto dto, NodeService service) =>
             {
                 var (success, error) = await service.UpdateNodeAsync(id, dto);
                 if (!success) return Results.BadRequest(new { error });
                 return Results.NoContent();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id:int}", async (int id, NodeService service) =>
             {
                 var deleted = await service.DeleteNodeAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             return builder;
         }

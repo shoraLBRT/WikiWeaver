@@ -25,7 +25,7 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 }
 
                 return Results.Created($"/article/{article.Id}/content", article);
-            });
+            }).RequireAuthorization("AdminOnly");
 
             // group.MapPut("/{id}/content", async (int id, ArticleContentDto dto, ArticleContentService service) =>
             // {
