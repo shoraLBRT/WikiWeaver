@@ -7,6 +7,7 @@ import MarkdownContent from '../components/MarkdownContent';
 import styles from './ArticlePage.module.css';
 import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import { locale } from '../localization';
 import {
   ARTICLE_UI_MODE_STORAGE_KEY,
   DEFAULT_ARTICLE_UI_MODE,
@@ -65,7 +66,7 @@ const ArticlePage: React.FC = () => {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Alert
-          message={APP_CONSTANTS.ERROR_MESSAGES.LOADING_ARTICLE}
+          message={locale.articlePage.loadError}
           description={(error as Error).message}
           type="error"
           showIcon
@@ -77,7 +78,7 @@ const ArticlePage: React.FC = () => {
   if (!articleContent) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <Empty description={APP_CONSTANTS.PLACEHOLDER_TEXT.ARTICLE_NOT_FOUND} />
+        <Empty description={locale.articlePage.articleNotFound} />
       </div>
     );
   }
@@ -112,7 +113,7 @@ const ArticlePage: React.FC = () => {
                       type="text"
                       size="small"
                       icon={<LeftOutlined />}
-                      aria-label="Предыдущая альтернатива"
+                      aria-label={locale.articlePage.previousAlternative}
                       onClick={() => updateSelectedAlternative(order, selectedIndex - 1, paragraphs.length)}
                     />
 
@@ -126,7 +127,7 @@ const ArticlePage: React.FC = () => {
                       type="text"
                       size="small"
                       icon={<RightOutlined />}
-                      aria-label="Следующая альтернатива"
+                      aria-label={locale.articlePage.nextAlternative}
                       onClick={() => updateSelectedAlternative(order, selectedIndex + 1, paragraphs.length)}
                     />
                   </div>
@@ -159,7 +160,7 @@ const ArticlePage: React.FC = () => {
             );
           })
         ) : (
-          <Empty description={APP_CONSTANTS.PLACEHOLDER_TEXT.NO_CONTENT_AVAILABLE} />
+          <Empty description={locale.articlePage.noContent} />
         )}
       </div>
     </div>

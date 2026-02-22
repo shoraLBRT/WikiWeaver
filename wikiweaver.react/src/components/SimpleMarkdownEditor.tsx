@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Button, Space, Typography } from 'antd';
+import { locale } from '../localization';
 
 const { Text } = Typography;
 
@@ -11,7 +12,7 @@ interface SimpleMarkdownEditorProps {
 
 const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onChange, placeholder }) => {
   const insertAroundSelection = (prefix: string, suffix = prefix) => {
-    onChange(`${value}${prefix}текст${suffix}`);
+    onChange(`${value}${prefix}${locale.markdownEditor.insertText}${suffix}`);
   };
 
   const lineCount = useMemo(() => (value ? value.split('\n').length : 0), [value]);
@@ -19,11 +20,11 @@ const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onCh
   return (
     <Space direction="vertical" size="small" style={{ width: '100%' }}>
       <Space wrap>
-        <Button size="small" onClick={() => insertAroundSelection('**')}>Bold</Button>
-        <Button size="small" onClick={() => insertAroundSelection('_')}>Italic</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n## Заголовок`) }>H2</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n- Пункт`) }>List</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n> Цитата`) }>Quote</Button>
+        <Button size="small" onClick={() => insertAroundSelection('**')}>{locale.markdownEditor.bold}</Button>
+        <Button size="small" onClick={() => insertAroundSelection('_')}>{locale.markdownEditor.italic}</Button>
+        <Button size="small" onClick={() => onChange(`${value}\n## ${locale.markdownEditor.headingSnippet}`)}>{locale.markdownEditor.heading}</Button>
+        <Button size="small" onClick={() => onChange(`${value}\n- ${locale.markdownEditor.listSnippet}`)}>{locale.markdownEditor.list}</Button>
+        <Button size="small" onClick={() => onChange(`${value}\n> ${locale.markdownEditor.quoteSnippet}`)}>{locale.markdownEditor.quote}</Button>
       </Space>
       <textarea
         value={value}
@@ -31,7 +32,7 @@ const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onCh
         placeholder={placeholder}
         style={{ width: '100%', minHeight: 160, borderRadius: 8, border: '1px solid #d9d9d9', padding: 12, fontFamily: 'monospace' }}
       />
-      <Text type="secondary">Markdown строк: {lineCount}</Text>
+      <Text type="secondary">{locale.markdownEditor.lineCount}: {lineCount}</Text>
     </Space>
   );
 };
