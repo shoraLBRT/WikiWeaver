@@ -10,6 +10,7 @@ using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
 using WikiWeaver.Infrastructure.UnitOfWork;
 using WikiWeaver.MinimalApi.Endpoints;
+using WikiWeaver.MinimalApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +96,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowWikiWeaverReact");
 app.UseAuthentication();

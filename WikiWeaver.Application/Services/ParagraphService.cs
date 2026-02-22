@@ -1,5 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.Exceptions;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
 
@@ -34,10 +35,14 @@ namespace WikiWeaver.Application.Services
             var maxOrder = existingParagraphs.Count();
 
             if (createDto.Order < 1)
-                throw new ArgumentException("Order must be greater than or equal to 1");
+            {
+                throw new ValidationException("Order must be greater than or equal to 1");
+            }
 
             if (createDto.Order > maxOrder + 1)
-                throw new ArgumentException($"Order cannot be greater than {maxOrder + 1}");
+            {
+                throw new ValidationException($"Order cannot be greater than {maxOrder + 1}");
+            }
 
             var existingAtOrder = existingParagraphs.FirstOrDefault(p => p.Order == createDto.Order);
 
@@ -56,21 +61,20 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<ParagraphReadDto>(paragraph);
         }
 
-        public async Task<(bool success, string? error)> UpdateAsync(int id, ParagraphUpdateDto updateDto)
+        public async Task UpdateAsync(int id, ParagraphUpdateDto updateDto)
         {
             var paragraph = await _repository.GetByIdAsync(id);
-            if (paragraph is null) return (false, "Paragraph not found");
+            if (paragraph is null)
+            {
+                throw new NotFoundException("Paragraph not found");
+            }
 
-            // If updating the order, we need to handle ordering properly
             if (paragraph.Order != updateDto.Order)
             {
-                // Get all paragraphs for the same article
                 var existingParagraphs = await _repository.GetParagraphsByArticleAsync(paragraph.ArticleId);
 
-                // Shift other paragraphs if needed
                 if (updateDto.Order > paragraph.Order)
                 {
-                    // Moving down in order - shift up paragraphs in between
                     foreach (var p in existingParagraphs.Where(p => p.Id != id && p.Order > paragraph.Order && p.Order <= updateDto.Order))
                     {
                         p.Order--;
@@ -78,7 +82,6 @@ namespace WikiWeaver.Application.Services
                 }
                 else if (updateDto.Order < paragraph.Order)
                 {
-                    // Moving up in order - shift down paragraphs in between
                     foreach (var p in existingParagraphs.Where(p => p.Id != id && p.Order < paragraph.Order && p.Order >= updateDto.Order))
                     {
                         p.Order++;
@@ -89,18 +92,18 @@ namespace WikiWeaver.Application.Services
             _mapper.Map(updateDto, paragraph);
             await _repository.UpdateAsync(paragraph);
             await _repository.SaveChangesAsync();
-
-            return (true, null);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var paragraph = await _repository.GetByIdAsync(id);
-            if (paragraph is null) return false;
+            if (paragraph is null)
+            {
+                throw new NotFoundException("Paragraph not found");
+            }
 
             await _repository.DeleteAsync(paragraph);
             await _repository.SaveChangesAsync();
-            return true;
         }
 
         public async Task<IEnumerable<ParagraphReadDto>> GetByArticleIdAsync(int articleId)

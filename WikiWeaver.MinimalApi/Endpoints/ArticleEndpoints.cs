@@ -1,4 +1,4 @@
-﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Services;
 
 namespace WikiWeaver.MinimalApi.Endpoints
@@ -29,15 +29,14 @@ namespace WikiWeaver.MinimalApi.Endpoints
 
             group.MapPut("/{id}", async (int id, ArticleUpdateDto updateDto, ArticleService service) =>
             {
-                var (success, error) = await service.UpdateAsync(id, updateDto);
-                if (!success) return Results.BadRequest(new { error });
+                await service.UpdateAsync(id, updateDto);
                 return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id}", async (int id, ArticleService service) =>
             {
-                var success = await service.DeleteAsync(id);
-                return success ? Results.NoContent() : Results.NotFound();
+                await service.DeleteAsync(id);
+                return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             return builder;

@@ -1,5 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.Exceptions;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
 
@@ -37,26 +38,29 @@ namespace WikiWeaver.Application.Services
             return _mapper.Map<ArticleReadDto>(article);
         }
 
-        public async Task<(bool success, string? error)> UpdateAsync(int id, ArticleUpdateDto updateDto)
+        public async Task UpdateAsync(int id, ArticleUpdateDto updateDto)
         {
             var article = await _articleRepository.GetByIdAsync(id);
-            if (article is null) return (false, "Article not found");
+            if (article is null)
+            {
+                throw new NotFoundException("Article not found");
+            }
 
             _mapper.Map(updateDto, article);
             await _articleRepository.UpdateAsync(article);
             await _articleRepository.SaveChangesAsync();
-
-            return (true, null);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var article = await _articleRepository.GetByIdAsync(id);
-            if (article is null) return false;
+            if (article is null)
+            {
+                throw new NotFoundException("Article not found");
+            }
 
             await _articleRepository.DeleteAsync(article);
             await _articleRepository.SaveChangesAsync();
-            return true;
         }
     }
 }

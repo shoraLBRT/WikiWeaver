@@ -1,4 +1,4 @@
-﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Services;
 
 namespace WikiWeaver.MinimalApi.Endpoints
@@ -24,20 +24,19 @@ namespace WikiWeaver.MinimalApi.Endpoints
             group.MapPost("/", async (ParagraphCreateDto createDto, ParagraphService service) =>
             {
                 var createdParagraph = await service.CreateAsync(createDto);
-                return Results.Created($"/paragraph/{createdParagraph.Id}", createdParagraph);
+                return Results.Created($"/paragraph/{createdParagraph!.Id}", createdParagraph);
             }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id}", async (int id, ParagraphUpdateDto updateDto, ParagraphService service) =>
             {
-                var (success, error) = await service.UpdateAsync(id, updateDto);
-                if (!success) return Results.BadRequest(new { error });
+                await service.UpdateAsync(id, updateDto);
                 return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id}", async (int id, ParagraphService service) =>
             {
-                var success = await service.DeleteAsync(id);
-                return success ? Results.NoContent() : Results.NotFound();
+                await service.DeleteAsync(id);
+                return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
             return builder;
