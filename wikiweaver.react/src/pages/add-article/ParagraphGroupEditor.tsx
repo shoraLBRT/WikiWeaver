@@ -35,6 +35,7 @@ const ParagraphGroupEditor: React.FC<ParagraphGroupEditorProps> = ({
       <Radio.Group
         value={group.alternatives.find((alternative) => alternative.isDefault)?.localId}
         onChange={(event) => onSetDefault(group.order, event.target.value)}
+        style={{ width: '100%' }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {group.alternatives.map((alternative, index) => (
