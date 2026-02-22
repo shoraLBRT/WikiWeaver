@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Data;
 
@@ -8,19 +8,10 @@ namespace WikiWeaver.Infrastructure.Repositories
     {
         public ParagraphRepository(WikiWeaverDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Paragraph>> GetParagraphsByArticleAsync(int articleId)
-        {
-            return await _dbSet
-                .Where(p => p.ArticleId == articleId)
-                .OrderBy(p => p.Order)
-                .ToListAsync();
-        }
+        public Task<int> CountAsync(CancellationToken cancellationToken = default)
+            => _dbSet.CountAsync(cancellationToken);
 
-        public async Task<IEnumerable<Paragraph>> GetAlternativeParagraphsAsync(int articleId, int order)
-        {
-            return await _dbSet
-                .Where(p => p.ArticleId == articleId && p.Order == order)
-                .ToListAsync();
-        }
+        public Task DeleteAllAsync(CancellationToken cancellationToken = default)
+            => _dbSet.ExecuteDeleteAsync(cancellationToken);
     }
 }

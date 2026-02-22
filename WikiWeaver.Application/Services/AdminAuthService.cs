@@ -3,32 +3,36 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WikiWeaver.Application.Configuration;
 using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Resources;
 using WikiWeaver.Domain.Entities;
-using WikiWeaver.Infrastructure.Data;
+using WikiWeaver.Infrastructure.Repositories;
 
 namespace WikiWeaver.Application.Services;
 
 public class AdminAuthService
 {
-    private readonly WikiWeaverDbContext _dbContext;
+    private readonly AdminUserRepository _adminUserRepository;
+    private readonly AdminInviteTokenRepository _adminInviteTokenRepository;
     private readonly AuthOptions _authOptions;
     private readonly PasswordHasher<AdminUser> _passwordHasher = new();
 
-    public AdminAuthService(WikiWeaverDbContext dbContext, IOptions<AuthOptions> authOptions)
+    public AdminAuthService(
+        AdminUserRepository adminUserRepository,
+        AdminInviteTokenRepository adminInviteTokenRepository,
+        IOptions<AuthOptions> authOptions)
     {
-        _dbContext = dbContext;
+        _adminUserRepository = adminUserRepository;
+        _adminInviteTokenRepository = adminInviteTokenRepository;
         _authOptions = authOptions.Value;
     }
 
     public async Task<AdminAuthStatusDto> GetAuthStatusAsync(CancellationToken cancellationToken = default)
     {
-        var hasAdmins = await _dbContext.AdminUsers.AnyAsync(cancellationToken);
+        var hasAdmins = await _adminUserRepository.AnyAsync(cancellationToken);
         return new AdminAuthStatusDto { RequiresBootstrapAdmin = !hasAdmins };
     }
 
@@ -42,13 +46,13 @@ public class AdminAuthService
             return AdminService.ServiceResult<AdminAuthResponseDto>.Failure(AuthMessages.EmailAndPasswordRequired);
         }
 
-        var alreadyExists = await _dbContext.AdminUsers.AnyAsync(admin => admin.Email == normalizedEmail, cancellationToken);
+        var alreadyExists = await _adminUserRepository.ExistsByEmailAsync(normalizedEmail, cancellationToken);
         if (alreadyExists)
         {
             return AdminService.ServiceResult<AdminAuthResponseDto>.Failure(AuthMessages.AdminAlreadyExists);
         }
 
-        var hasAdmins = await _dbContext.AdminUsers.AnyAsync(cancellationToken);
+        var hasAdmins = await _adminUserRepository.AnyAsync(cancellationToken);
         AdminInviteToken? inviteToken = null;
         if (hasAdmins)
         {
@@ -61,7 +65,7 @@ public class AdminAuthService
 
         var admin = new AdminUser { Email = normalizedEmail };
         admin.PasswordHash = _passwordHasher.HashPassword(admin, request.Password);
-        _dbContext.AdminUsers.Add(admin);
+        await _adminUserRepository.AddAsync(admin);
 
         if (inviteToken is not null)
         {
@@ -69,7 +73,7 @@ public class AdminAuthService
             inviteToken.UsedByAdmin = admin;
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _adminUserRepository.SaveChangesAsync();
 
         return AdminService.ServiceResult<AdminAuthResponseDto>.Success(CreateAuthResponse(admin));
     }
@@ -84,7 +88,7 @@ public class AdminAuthService
             return AdminService.ServiceResult<AdminAuthResponseDto>.Failure(AuthMessages.EmailAndPasswordRequired);
         }
 
-        var admin = await _dbContext.AdminUsers.FirstOrDefaultAsync(user => user.Email == normalizedEmail, cancellationToken);
+        var admin = await _adminUserRepository.GetByEmailAsync(normalizedEmail, cancellationToken);
         if (admin is null)
         {
             return AdminService.ServiceResult<AdminAuthResponseDto>.Failure(AuthMessages.InvalidCredentials);
@@ -111,8 +115,8 @@ public class AdminAuthService
             CreatedByAdminId = createdByAdminId,
         };
 
-        _dbContext.AdminInviteTokens.Add(inviteToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _adminInviteTokenRepository.AddAsync(inviteToken);
+        await _adminInviteTokenRepository.SaveChangesAsync();
 
         return AdminService.ServiceResult<AdminInviteTokenCreateResponseDto>.Success(new AdminInviteTokenCreateResponseDto
         {
@@ -131,12 +135,7 @@ public class AdminAuthService
         var tokenHash = HashToken(rawToken.Trim());
         var nowUtc = DateTime.UtcNow;
 
-        return await _dbContext.AdminInviteTokens
-            .FirstOrDefaultAsync(token =>
-                token.TokenHash == tokenHash
-                && token.UsedAtUtc == null
-                && token.ExpiresAtUtc > nowUtc,
-                cancellationToken);
+        return await _adminInviteTokenRepository.GetActiveByHashAsync(tokenHash, nowUtc, cancellationToken);
     }
 
     private AdminAuthResponseDto CreateAuthResponse(AdminUser admin)
