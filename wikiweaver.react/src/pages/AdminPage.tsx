@@ -37,6 +37,7 @@ import {
   isParagraphUiMode,
   type ParagraphUiMode,
 } from '../constants/ArticleUiConstants';
+import { APP_CONSTANTS } from '../constants/AppConstants';
 import { formatMessage, locale } from '../localization';
 
 const { Title, Text } = Typography;
@@ -62,19 +63,19 @@ const AdminPage: React.FC = () => {
   const [aiForm] = Form.useForm<AiSettingsFormValues>();
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
-  const nodesQuery = useQuery({ queryKey: ['admin', 'nodes'], queryFn: getNodes });
-  const articlesQuery = useQuery({ queryKey: ['admin', 'articles'], queryFn: getArticles });
-  const paragraphsQuery = useQuery({ queryKey: ['admin', 'paragraphs'], queryFn: getParagraphs });
-  const aiSettingsQuery = useQuery({ queryKey: ['admin', 'ai-settings'], queryFn: getAiProviderSettings });
+  const nodesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES], queryFn: getNodes });
+  const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
+  const paragraphsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS], queryFn: getParagraphs });
+  const aiSettingsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], queryFn: getAiProviderSettings });
 
   const isAiEnabled = Form.useWatch('isEnabled', aiForm) ?? false;
 
   const refreshAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['admin', 'nodes'] }),
-      queryClient.invalidateQueries({ queryKey: ['admin', 'articles'] }),
-      queryClient.invalidateQueries({ queryKey: ['admin', 'paragraphs'] }),
-      queryClient.invalidateQueries({ queryKey: ['navigationTree'] }),
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES] }),
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES] }),
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS] }),
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] }),
     ]);
   };
 
@@ -126,7 +127,7 @@ const AdminPage: React.FC = () => {
     mutationFn: updateAiProviderSettings,
     onSuccess: async () => {
       messageApi.success(t.aiSettingsUpdated);
-      await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
     },
     onError: (error) => messageApi.error(`${t.aiSettingsUpdateFailed}: ${(error as Error).message}`),
   });
@@ -136,9 +137,9 @@ const AdminPage: React.FC = () => {
     mutationFn: generateInviteToken,
     onSuccess: (result) => {
       setInviteToken(result.token);
-      messageApi.success('Invite token generated');
+      messageApi.success(t.inviteTokenGenerated);
     },
-    onError: (error) => messageApi.error(`Failed to generate invite token: ${(error as Error).message}`),
+    onError: (error) => messageApi.error(`${t.inviteTokenGenerateFailed}: ${(error as Error).message}`),
   });
 
   const aiConnectionCheckMutation = useMutation({
@@ -296,7 +297,7 @@ const AdminPage: React.FC = () => {
       {
         onSuccess: async () => {
           messageApi.success(t.apiKeyDeleted);
-          await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
+          await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
         },
       },
     );
@@ -309,10 +310,10 @@ const AdminPage: React.FC = () => {
       {contextHolder}
       <Title level={2}>{t.title}</Title>
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
-        <Text strong>Invite token для нового администратора</Text>
+        <Text strong>{t.inviteTokenTitle}</Text>
         <Space>
           <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
-            Сгенерировать invite token
+            {t.generateInviteToken}
           </Button>
           {inviteToken && <Text code>{inviteToken}</Text>}
         </Space>

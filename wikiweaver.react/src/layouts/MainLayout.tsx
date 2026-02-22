@@ -61,28 +61,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     />
                 </div>
 
-                <div className={styles.headerActions}>
-                    <Tooltip title="Админ панель">
-                        <Button
-                            type="text"
-                            icon={<SafetyCertificateOutlined />}
-                            onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
-                        />
-                    </Tooltip>
-                    {isAdmin && (
-                        <Tooltip title="Выйти">
-                            <Button
-                                type="text"
-                                icon={<LogoutOutlined />}
-                                onClick={() => {
-                                    clearStoredAdminToken();
-                                    navigate('/');
-                                }}
-                            />
-                        </Tooltip>
-                    )}
-                </div>
-            </Header>
+        <div className={styles.headerActions}>
+          <Tooltip title={locale.layout.actions.adminPanel}>
+            <Button
+              type="text"
+              icon={<SafetyCertificateOutlined />}
+              onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
+            />
+          </Tooltip>
+          {isAdmin && (
+            <Tooltip title={locale.layout.actions.logout}>
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={() => {
+                  clearStoredAdminToken();
+                  navigate('/');
+                }}
+              />
+            </Tooltip>
+          )}
+        </div>
+      </Header>
 
             <Layout className={styles.pageLayout}>
                 <Sidebar collapsed={collapsed} />
