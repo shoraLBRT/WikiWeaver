@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layout, Menu, Button, Typography, Tooltip } from 'antd';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Layout, Button, Typography, Tooltip } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import { LeftOutlined, RightOutlined, SafetyCertificateOutlined, LogoutOutlined } from '@ant-design/icons';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
@@ -17,12 +17,7 @@ interface MainLayoutProps {
     children: React.ReactNode;
 }
 
-const topMenuItems = [
-    { key: '/article/new', label: <Link to="/article/new">{locale.layout.menu.addArticle}</Link> }
-];
-
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-    const location = useLocation();
     const navigate = useNavigate();
     const { collapsed, toggleCollapsed } = useSidebar();
     const isAdmin = isAdminAuthenticated();
@@ -52,21 +47,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     />
                 </div>
 
-                <div className={styles.headerCenter}>
-                    <Menu
-                        mode="horizontal"
-                        className={styles.topMenu}
-                        items={topMenuItems}
-                        selectedKeys={[location.pathname]}
-                    />
-                </div>
-
         <div className={styles.headerActions}>
           <Tooltip title={locale.layout.actions.adminPanel}>
             <Button
               type="text"
               icon={<SafetyCertificateOutlined />}
-              onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
+              onClick={() => navigate('/admin')}
             />
           </Tooltip>
           {isAdmin && (
