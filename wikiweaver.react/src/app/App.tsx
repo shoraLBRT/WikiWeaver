@@ -31,7 +31,7 @@ function App() {
               <Route path="/" element={<WelcomePage />} />
               <Route path="/article/:id" element={<ArticlePage />} />
               <Route path="/admin/login" element={<AdminLoginPage />} />
-              <Route path="/admin" element={<AdminOnlyRoute><AdminPage /></AdminOnlyRoute>} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="/article/new" element={<AdminOnlyRoute><AddArticlePage /></AdminOnlyRoute>} />
             </Routes>
           </MainLayout>

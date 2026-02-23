@@ -52,7 +52,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Button
               type="text"
               icon={<SafetyCertificateOutlined />}
-              onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
+              onClick={() => navigate('/admin')}
             />
           </Tooltip>
           {isAdmin && (
