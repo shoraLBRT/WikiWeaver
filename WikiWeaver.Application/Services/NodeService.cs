@@ -9,10 +9,16 @@ namespace WikiWeaver.Application.Services
     public class NodeService
     {
         private readonly NodeRepository _nodeRepository;
+        private readonly ArticleRepository _articleRepository;
         private readonly IMapper _mapper;
-        public NodeService(NodeRepository nodeRepository, IMapper mapper)
+
+        public NodeService(
+            NodeRepository nodeRepository,
+            ArticleRepository articleRepository,
+            IMapper mapper)
         {
             _nodeRepository = nodeRepository;
+            _articleRepository = articleRepository;
             _mapper = mapper;
         }
 
@@ -63,14 +69,6 @@ namespace WikiWeaver.Application.Services
             await _nodeRepository.SaveChangesAsync();
         }
 
-        private static void ValidateRootNode(bool isRoot, int? parentId)
-        {
-            if (isRoot && parentId.HasValue)
-            {
-                throw new ValidationException("Root node cannot have a parent.");
-            }
-        }
-
         public async Task DeleteNodeAsync(int id)
         {
             var node = await _nodeRepository.GetByIdAsync(id);
@@ -79,6 +77,13 @@ namespace WikiWeaver.Application.Services
                 throw new NotFoundException("Node not found");
             }
 
+            var hasChildren = await _nodeRepository.HasChildrenAsync(id);
+            if (hasChildren)
+            {
+                throw new ValidationException("Cannot delete node with children. Delete child nodes first.");
+            }
+
+            await DeleteLinkedArticleAsync(id);
             await _nodeRepository.DeleteAsync(node);
             await _nodeRepository.SaveChangesAsync();
         }
@@ -105,6 +110,26 @@ namespace WikiWeaver.Application.Services
             }
 
             return roots;
+        }
+
+        private static void ValidateRootNode(bool isRoot, int? parentId)
+        {
+            if (isRoot && parentId.HasValue)
+            {
+                throw new ValidationException("Root node cannot have a parent.");
+            }
+        }
+
+        private async Task DeleteLinkedArticleAsync(int nodeId)
+        {
+            var linkedArticle = await _articleRepository.GetByNodeIdAsync(nodeId);
+            if (linkedArticle is null)
+            {
+                return;
+            }
+
+            await _articleRepository.DeleteAsync(linkedArticle);
+            await _articleRepository.SaveChangesAsync();
         }
     }
 }

@@ -30,6 +30,7 @@ import {
 import type { ParagraphGroupDraft } from './add-article/types';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { getNavigationTree } from '../services/Article/navigationService';
+import { ApiError } from '../shared/api-client/apiError';
 
 const { Title, Text } = Typography;
 
@@ -119,7 +120,15 @@ const AddArticlePage: React.FC = () => {
         return null;
       }
 
-      return getArticleContentById(articleId);
+      try {
+        return await getArticleContentById(articleId);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          return null;
+        }
+
+        throw error;
+      }
     },
     enabled: isEditMode,
     retry: false,
@@ -311,7 +320,7 @@ const AddArticlePage: React.FC = () => {
       <Alert
         type="error"
         showIcon
-        message={t.saveError}
+        message={t.loadError}
         description={(existingNodeArticleQuery.error as Error).message}
       />
     );

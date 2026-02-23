@@ -17,6 +17,9 @@ namespace WikiWeaver.Infrastructure.Repositories
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 
+        public Task<bool> HasChildrenAsync(int nodeId, CancellationToken cancellationToken = default)
+            => _dbSet.AnyAsync(node => node.ParentId == nodeId, cancellationToken);
+
         public Task ResetNodeRelationsAsync(CancellationToken cancellationToken = default)
             => _dbSet
                 .Where(node => node.ParentId.HasValue || node.ArticleId.HasValue)
