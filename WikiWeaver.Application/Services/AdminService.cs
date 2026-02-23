@@ -2,31 +2,43 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WikiWeaver.Application.Configuration;
 using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Resources;
 using WikiWeaver.Domain.Entities;
-using WikiWeaver.Infrastructure.Data;
+using WikiWeaver.Infrastructure.Repositories;
+using WikiWeaver.Infrastructure.UnitOfWork;
 
 namespace WikiWeaver.Application.Services
 {
     public class AdminService
     {
-        private readonly WikiWeaverDbContext _dbContext;
+        private readonly NodeRepository _nodeRepository;
+        private readonly ArticleRepository _articleRepository;
+        private readonly ParagraphRepository _paragraphRepository;
+        private readonly AiProviderSettingsRepository _aiProviderSettingsRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<AdminService> _logger;
         private readonly AdminAiOptions _aiOptions;
 
         public AdminService(
-            WikiWeaverDbContext dbContext,
+            NodeRepository nodeRepository,
+            ArticleRepository articleRepository,
+            ParagraphRepository paragraphRepository,
+            AiProviderSettingsRepository aiProviderSettingsRepository,
+            IUnitOfWork unitOfWork,
             IHttpClientFactory httpClientFactory,
             IOptions<AdminOptions> adminOptions,
             ILogger<AdminService> logger)
         {
-            _dbContext = dbContext;
+            _nodeRepository = nodeRepository;
+            _articleRepository = articleRepository;
+            _paragraphRepository = paragraphRepository;
+            _aiProviderSettingsRepository = aiProviderSettingsRepository;
+            _unitOfWork = unitOfWork;
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _aiOptions = adminOptions.Value.Ai;
@@ -34,25 +46,26 @@ namespace WikiWeaver.Application.Services
 
         public async Task<AdminCleanupResultDto> CleanupDemoDataAsync(CancellationToken cancellationToken = default)
         {
-            var nodeCount = await _dbContext.Nodes.CountAsync(cancellationToken);
-            var articleCount = await _dbContext.Articles.CountAsync(cancellationToken);
-            var paragraphCount = await _dbContext.Paragraphs.CountAsync(cancellationToken);
+            var nodeCount = await _nodeRepository.CountAsync(cancellationToken);
+            var articleCount = await _articleRepository.CountAsync(cancellationToken);
+            var paragraphCount = await _paragraphRepository.CountAsync(cancellationToken);
 
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await _nodeRepository.ResetNodeRelationsAsync(cancellationToken);
 
-            await _dbContext.Nodes
-                .Where(node => node.ParentId.HasValue || node.ArticleId.HasValue)
-                .ExecuteUpdateAsync(
-                    setters => setters
-                        .SetProperty(node => node.ParentId, node => null)
-                        .SetProperty(node => node.ArticleId, node => null),
-                    cancellationToken);
+                await _paragraphRepository.DeleteAllAsync(cancellationToken);
+                await _articleRepository.DeleteAllAsync(cancellationToken);
+                await _nodeRepository.DeleteAllAsync(cancellationToken);
 
-            await _dbContext.Paragraphs.ExecuteDeleteAsync(cancellationToken);
-            await _dbContext.Articles.ExecuteDeleteAsync(cancellationToken);
-            await _dbContext.Nodes.ExecuteDeleteAsync(cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
 
             _logger.LogWarning(
                 "Public admin cleanup executed. Deleted Nodes: {NodeCount}, Articles: {ArticleCount}, Paragraphs: {ParagraphCount}",
@@ -99,7 +112,7 @@ namespace WikiWeaver.Application.Services
                 settings.ApiKey = null;
             }
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _aiProviderSettingsRepository.SaveChangesAsync();
             return ServiceResult<AiProviderSettingsDto>.Success(ToResponse(settings));
         }
 
@@ -203,15 +216,15 @@ namespace WikiWeaver.Application.Services
 
         private async Task<AiProviderSettings> GetOrCreateAiSettingsAsync(CancellationToken cancellationToken)
         {
-            var settings = await _dbContext.AiProviderSettings.FirstOrDefaultAsync(cancellationToken);
+            var settings = await _aiProviderSettingsRepository.GetSettingsAsync(cancellationToken);
             if (settings is not null)
             {
                 return settings;
             }
 
             settings = new AiProviderSettings();
-            _dbContext.AiProviderSettings.Add(settings);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _aiProviderSettingsRepository.AddAsync(settings);
+            await _aiProviderSettingsRepository.SaveChangesAsync();
             return settings;
         }
 

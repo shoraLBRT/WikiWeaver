@@ -10,6 +10,9 @@ namespace WikiWeaver.Infrastructure
             services.AddScoped<ArticleRepository>();
             services.AddScoped<ParagraphRepository>();
             services.AddScoped<NodeRepository>();
+            services.AddScoped<AiProviderSettingsRepository>();
+            services.AddScoped<AdminUserRepository>();
+            services.AddScoped<AdminInviteTokenRepository>();
             return services;
         }
     }

@@ -479,6 +479,18 @@ const AdminPage: React.FC = () => {
               />
             ),
           },
+          {
+            key: 'create-article',
+            label: t.createArticleTab,
+            children: (
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Alert type="info" showIcon message={t.createArticleTitle} description={t.createArticleDescription} />
+                <Button type="primary" onClick={() => navigate('/article/new')}>
+                  {t.createArticleAction}
+                </Button>
+              </Space>
+            ),
+          },
         ]}
       />
 

@@ -141,8 +141,9 @@ export const ru = {
     inviteTokenGenerated: 'Invite token сгенерирован',
     inviteTokenGenerateFailed: 'Не удалось сгенерировать invite token',
     createArticleTab: 'Создание статьи',
+    createArticleTitle: 'Создание новой статьи',
+    createArticleDescription: 'Переход к форме создания статьи вынесен в отдельную вкладку админ-панели.',
     createArticleAction: 'Перейти к созданию статьи',
-    usersTab: 'Пользователи',
   },
   adminLoginPage: {
     loginSuccess: 'Сессия администратора начата',
