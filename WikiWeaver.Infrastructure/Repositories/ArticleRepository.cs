@@ -11,6 +11,9 @@ namespace WikiWeaver.Infrastructure.Repositories
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 
+        public Task<Article?> GetByNodeIdAsync(int nodeId)
+            => _dbSet.FirstOrDefaultAsync(article => article.NodeId == nodeId);
+
         public Task DeleteAllAsync(CancellationToken cancellationToken = default)
             => _dbSet.ExecuteDeleteAsync(cancellationToken);
     }

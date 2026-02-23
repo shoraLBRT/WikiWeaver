@@ -13,11 +13,13 @@
     {
         public string Title { get; set; }
         public int? ParentId { get; set; }
+        public bool IsRoot { get; set; }
     }
 
     public class NodeUpdateDto
     {
         public string Title { get; set; }
         public int? ParentId { get; set; }
+        public bool IsRoot { get; set; }
     }
 }

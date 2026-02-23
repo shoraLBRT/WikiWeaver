@@ -9,6 +9,7 @@ import type {
   ArticleReadDto,
   ParagraphReadDto,
   UpdateAiProviderSettingsDto,
+  NodeCreateDto,
 } from '../shared/types/ApiTypes';
 
 export const getNodes = async (): Promise<AdminNodeDto[]> => {
@@ -23,6 +24,12 @@ export const getArticles = async (): Promise<ArticleReadDto[]> => {
 
 export const getParagraphs = async (): Promise<ParagraphReadDto[]> => {
   const response = await apiClient.get<ParagraphReadDto[]>('/paragraph');
+  return response.data;
+};
+
+
+export const createNode = async (payload: NodeCreateDto): Promise<AdminNodeDto> => {
+  const response = await apiClient.post<AdminNodeDto>('/nodes', payload);
   return response.data;
 };
 

@@ -33,6 +33,7 @@ function App() {
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/article/new" element={<AdminOnlyRoute><AddArticlePage /></AdminOnlyRoute>} />
+              <Route path="/article/edit/node/:nodeId" element={<AdminOnlyRoute><AddArticlePage /></AdminOnlyRoute>} />
             </Routes>
           </MainLayout>
         </Router>

@@ -30,7 +30,14 @@ namespace WikiWeaver.Application.Services
 
         public async Task<NodeReadDto> CreateNodeAsync(NodeCreateDto createNodeDto)
         {
+            ValidateRootNode(createNodeDto.IsRoot, createNodeDto.ParentId);
+
             var node = _mapper.Map<Node>(createNodeDto);
+            if (createNodeDto.IsRoot)
+            {
+                node.ParentId = null;
+            }
+
             await _nodeRepository.AddAsync(node);
             await _nodeRepository.SaveChangesAsync();
             return _mapper.Map<NodeReadDto>(node);
@@ -44,9 +51,24 @@ namespace WikiWeaver.Application.Services
                 throw new NotFoundException("Node not found");
             }
 
+            ValidateRootNode(dto.IsRoot, dto.ParentId);
+
             _mapper.Map(dto, node);
+            if (dto.IsRoot)
+            {
+                node.ParentId = null;
+            }
+
             await _nodeRepository.UpdateAsync(node);
             await _nodeRepository.SaveChangesAsync();
+        }
+
+        private static void ValidateRootNode(bool isRoot, int? parentId)
+        {
+            if (isRoot && parentId.HasValue)
+            {
+                throw new ValidationException("Root node cannot have a parent.");
+            }
         }
 
         public async Task DeleteNodeAsync(int id)

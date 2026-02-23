@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, Card, Input, InputNumber, Modal, Space, Typography, message } from 'antd';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { createArticleContent } from '../services/Article/articleService';
-import { styleMarkdownWithAi } from '../services/adminService';
-import type { ArticleContentCreateDto } from '../shared/types/ApiTypes';
+import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Spin, Typography, message } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createArticleContent, getArticleContentByNodeId, updateArticleContent } from '../services/Article/articleService';
+import { styleMarkdownWithAi, createNode, getNodes } from '../services/adminService';
+import type { ArticleContentCreateDto, ArticleContentDto } from '../shared/types/ApiTypes';
 import { locale } from '../localization';
 import ParagraphGroupEditor from './add-article/ParagraphGroupEditor';
 import {
@@ -19,37 +19,105 @@ import {
   setDefaultAlternativeInGroups,
 } from './add-article/draftHelpers';
 import type { ParagraphGroupDraft } from './add-article/types';
+import { APP_CONSTANTS } from '../constants/AppConstants';
 
 const { Title, Text } = Typography;
 
+const mapArticleToDraftGroups = (article: ArticleContentDto): ParagraphGroupDraft[] => {
+  const groupsMap = new Map<number, ParagraphGroupDraft>();
+
+  article.paragraphs
+    .sort((left, right) => left.order - right.order)
+    .forEach((paragraph) => {
+      const existingGroup = groupsMap.get(paragraph.order);
+      const alternative = {
+        localId: crypto.randomUUID(),
+        content: paragraph.content,
+        isDefault: paragraph.isDefault,
+      };
+
+      if (existingGroup) {
+        existingGroup.alternatives.push(alternative);
+        return;
+      }
+
+      groupsMap.set(paragraph.order, {
+        order: paragraph.order,
+        alternatives: [alternative],
+      });
+    });
+
+  return Array.from(groupsMap.values());
+};
+
 const AddArticlePage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { nodeId: nodeIdParam } = useParams();
+  const editNodeId = nodeIdParam ? Number(nodeIdParam) : null;
+  const isEditMode = Number.isFinite(editNodeId) && editNodeId !== null;
+
   const [messageApi, contextHolder] = message.useMessage();
   const [title, setTitle] = useState('');
-  const [nodeId, setNodeId] = useState<number | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
+  const [isRootNode, setIsRootNode] = useState(false);
   const [groups, setGroups] = useState<ParagraphGroupDraft[]>([createEmptyGroup(1)]);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
 
   const t = locale.addArticlePage;
 
-  const mutation = useMutation({
+  const nodesQuery = useQuery({
+    queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES],
+    queryFn: getNodes,
+  });
+
+  const existingNodeArticleQuery = useQuery({
+    queryKey: ['article-content-by-node', editNodeId],
+    queryFn: () => getArticleContentByNodeId(editNodeId as number),
+    enabled: isEditMode,
+  });
+
+  const createMutation = useMutation({
     mutationFn: (payload: ArticleContentCreateDto) => createArticleContent(payload),
-    onSuccess: (created) => {
+    onSuccess: async (created) => {
       messageApi.success(t.saved);
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] });
       navigate(`/article/${created.id}`);
     },
     onError: (error) => messageApi.error(`${t.saveError}: ${(error as Error).message}`),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ articleId, payload }: { articleId: number; payload: ArticleContentDto }) =>
+      updateArticleContent(articleId, payload),
+    onSuccess: async (updated) => {
+      messageApi.success(t.saved);
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] });
+      navigate(`/article/${updated.id}`);
+    },
+    onError: (error) => messageApi.error(`${t.saveError}: ${(error as Error).message}`),
+  });
+
+  const createNodeMutation = useMutation({
+    mutationFn: createNode,
   });
 
   const styleMutation = useMutation({
     mutationFn: (text: string) => styleMarkdownWithAi({ text }),
   });
 
+  const articleFromNode = existingNodeArticleQuery.data;
+  const resolvedTitle = title || articleFromNode?.title || '';
+  const resolvedGroups = groups.length === 1 && !groups[0].alternatives[0].content.trim() && articleFromNode
+    ? mapArticleToDraftGroups(articleFromNode)
+    : groups;
+
   const totalAlternatives = useMemo(
-    () => groups.reduce((sum, group) => sum + group.alternatives.length, 0),
-    [groups],
+    () => resolvedGroups.reduce((sum, group) => sum + group.alternatives.length, 0),
+    [resolvedGroups],
   );
+
 
   const setAlternativeContent = (groupOrder: number, localId: string, content: string) => {
     setGroups((current) => setAlternativeContentInGroups(current, groupOrder, localId, content));
@@ -72,7 +140,7 @@ const AddArticlePage: React.FC = () => {
   };
 
   const improveSingleAlternativeWithAi = async (groupOrder: number, localId: string) => {
-    const group = groups.find((item) => item.order === groupOrder);
+    const group = resolvedGroups.find((item) => item.order === groupOrder);
     const alternative = group?.alternatives.find((item) => item.localId === localId);
 
     if (!alternative || !alternative.content.trim()) {
@@ -90,7 +158,7 @@ const AddArticlePage: React.FC = () => {
   };
 
   const improveAllWithAi = async () => {
-    const queue = collectAiImprovementQueue(groups);
+    const queue = collectAiImprovementQueue(resolvedGroups);
 
     if (queue.length === 0) {
       messageApi.warning(t.warnings.noParagraphsForAi);
@@ -108,31 +176,69 @@ const AddArticlePage: React.FC = () => {
     }
   };
 
-  const saveArticle = () => {
-    if (!title.trim()) {
+  const saveArticle = async () => {
+    if (!resolvedTitle.trim()) {
       messageApi.warning(t.warnings.titleRequired);
       return;
     }
 
-    const paragraphs = buildParagraphDtos(groups);
+    const paragraphs = buildParagraphDtos(resolvedGroups);
 
     if (paragraphs.length === 0) {
       messageApi.warning(t.warnings.paragraphRequired);
       return;
     }
 
-    const emptyDefaults = hasGroupWithoutFilledDefault(groups);
+    const emptyDefaults = hasGroupWithoutFilledDefault(resolvedGroups);
 
     if (emptyDefaults) {
       messageApi.warning(t.warnings.defaultRequired);
       return;
     }
 
-    mutation.mutate({
-      title: title.trim(),
-      nodeId: nodeId ?? undefined,
-      paragraphs,
-    });
+    if (!isEditMode && !isRootNode && !selectedParentId) {
+      messageApi.warning(t.warnings.parentNodeRequired);
+      return;
+    }
+
+    if (isEditMode) {
+      const existing = existingNodeArticleQuery.data;
+
+      if (existing) {
+        updateMutation.mutate({
+          articleId: existing.id,
+          payload: {
+            id: existing.id,
+            title: resolvedTitle.trim(),
+            paragraphs,
+          },
+        });
+        return;
+      }
+
+      createMutation.mutate({
+        title: resolvedTitle.trim(),
+        nodeId: editNodeId as number,
+        paragraphs,
+      });
+      return;
+    }
+
+    try {
+      const createdNode = await createNodeMutation.mutateAsync({
+        title: resolvedTitle.trim(),
+        parentId: isRootNode ? undefined : selectedParentId ?? undefined,
+        isRoot: isRootNode,
+      });
+
+      createMutation.mutate({
+        title: resolvedTitle.trim(),
+        nodeId: createdNode.id,
+        paragraphs,
+      });
+    } catch (error) {
+      messageApi.error(`${t.saveError}: ${(error as Error).message}`);
+    }
   };
 
   const importMarkdownAsParagraphs = () => {
@@ -149,31 +255,51 @@ const AddArticlePage: React.FC = () => {
     messageApi.success(`${t.importedParagraphs}: ${importedGroups.length}`);
   };
 
+  if (isEditMode && existingNodeArticleQuery.isLoading) {
+    return <Spin />;
+  }
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
-      <Title level={2}>{t.title}</Title>
+      <Title level={2}>{isEditMode ? t.editTitle : t.title}</Title>
       <Alert type="info" showIcon message={t.modelTitle} description={t.modelDescription} />
 
       <Card>
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t.articleTitlePlaceholder} />
-          <InputNumber
-            value={nodeId ?? undefined}
-            onChange={(value) => setNodeId(value ?? null)}
-            placeholder={t.nodeIdPlaceholder}
-            style={{ width: 240 }}
-            min={1}
-          />
+          <Input value={resolvedTitle} onChange={(event) => setTitle(event.target.value)} placeholder={t.articleTitlePlaceholder} />
+
+          {!isEditMode && (
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <label>{t.parentNodeLabel}</label>
+              <Select<number>
+                showSearch
+                placeholder={t.parentNodePlaceholder}
+                disabled={isRootNode}
+                value={selectedParentId ?? undefined}
+                onChange={(value) => setSelectedParentId(value)}
+                allowClear
+                optionFilterProp="label"
+                options={(nodesQuery.data ?? []).map((node) => ({
+                  value: node.id,
+                  label: `${node.title} (#${node.id})`,
+                }))}
+              />
+              <Checkbox checked={isRootNode} onChange={(event) => setIsRootNode(event.target.checked)}>
+                {t.rootNodeLabel}
+              </Checkbox>
+            </Space>
+          )}
+
           <Space>
             <Button onClick={() => setIsImportOpen(true)}>{t.importDraft}</Button>
             <Button loading={styleMutation.isPending} onClick={improveAllWithAi}>{t.improveAllAi}</Button>
           </Space>
-          <Text type="secondary">{t.paragraphStats}: {groups.length} · {t.versionsStats}: {totalAlternatives}</Text>
+          <Text type="secondary">{t.paragraphStats}: {resolvedGroups.length} · {t.versionsStats}: {totalAlternatives}</Text>
         </Space>
       </Card>
 
-      {groups.map((group) => (
+      {resolvedGroups.map((group) => (
         <ParagraphGroupEditor
           key={group.order}
           group={group}
@@ -188,7 +314,13 @@ const AddArticlePage: React.FC = () => {
 
       <Space>
         <Button onClick={addParagraphGroup}>{t.addParagraph}</Button>
-        <Button type="primary" loading={mutation.isPending} onClick={saveArticle}>{t.saveArticle}</Button>
+        <Button
+          type="primary"
+          loading={createMutation.isPending || updateMutation.isPending || createNodeMutation.isPending}
+          onClick={saveArticle}
+        >
+          {isEditMode ? t.saveChanges : t.saveArticle}
+        </Button>
       </Space>
 
       <Modal

@@ -9,15 +9,18 @@ namespace WikiWeaver.Application.Services
     public class ArticleContentService
     {
         private readonly ArticleRepository _articleRepo;
+        private readonly NodeRepository _nodeRepo;
         private readonly ParagraphRepository _paragraphRepo;
         private readonly IUnitOfWork _uow;
 
         public ArticleContentService(
             ArticleRepository articleRepo,
+            NodeRepository nodeRepo,
             ParagraphRepository paragraphRepo,
             IUnitOfWork uow)
         {
             _articleRepo = articleRepo;
+            _nodeRepo = nodeRepo;
             _paragraphRepo = paragraphRepo;
             _uow = uow;
         }
@@ -30,21 +33,19 @@ namespace WikiWeaver.Application.Services
                 throw new NotFoundException("Article not found");
             }
 
-            var paragraphs = await _paragraphRepo.GetParagraphsByArticleAsync(articleId);
-            var paragraphDtos = paragraphs
-                .OrderBy(p => p.Order)
-                .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
-                .ToList();
+            return await BuildArticleContentDtoAsync(article);
+        }
 
-            return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
+        public async Task<ArticleContentDto?> GetContentByNodeIdAsync(int nodeId)
+        {
+            var article = await _articleRepo.GetByNodeIdAsync(nodeId);
+            return article is null ? null : await BuildArticleContentDtoAsync(article);
         }
 
         public async Task<ArticleContentDto> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Title))
-            {
-                throw new ValidationException("Title is required.");
-            }
+            ValidateTitle(dto.Title);
+            await ValidateNodeAsync(dto.NodeId);
 
             var incomingParagraphs = dto.Paragraphs ?? new List<ParagraphDto>();
             var (valid, errorMessage) = ValidateOrder(incomingParagraphs);
@@ -60,7 +61,7 @@ namespace WikiWeaver.Application.Services
                 var article = new Article
                 {
                     Title = dto.Title,
-                    NodeId = dto.NodeId
+                    NodeId = dto.NodeId,
                 };
 
                 await _articleRepo.AddAsync(article);
@@ -73,7 +74,7 @@ namespace WikiWeaver.Application.Services
                         ArticleId = article.Id,
                         Content = incoming.Content,
                         Order = incoming.Order,
-                        IsDefault = incoming.IsDefault
+                        IsDefault = incoming.IsDefault,
                     };
 
                     await _paragraphRepo.AddAsync(paragraph);
@@ -82,12 +83,7 @@ namespace WikiWeaver.Application.Services
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
 
-                var paragraphDtos = (await _paragraphRepo.GetParagraphsByArticleAsync(article.Id))
-                    .OrderBy(p => p.Order)
-                    .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
-                    .ToList();
-
-                return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
+                return await BuildArticleContentDtoAsync(article);
             }
             catch
             {
@@ -96,19 +92,26 @@ namespace WikiWeaver.Application.Services
             }
         }
 
-        public async Task<(bool Success, string? ErrorMessage)> UpdateContentAsync(int articleId, ArticleContentDto dto)
+        public async Task<ArticleContentDto> UpdateContentAsync(int articleId, ArticleContentDto dto)
         {
             if (!await ValidateArticleExistsAsync(articleId, dto.Id))
-                return (false, "Article id mismatch or not found.");
+            {
+                throw new ValidationException("Article id mismatch or not found.");
+            }
 
             var incomingParagraphs = dto.Paragraphs ?? new List<ParagraphDto>();
             var (valid, errorMessage) = ValidateOrder(incomingParagraphs);
-            if (!valid) return (false, errorMessage);
+            if (!valid)
+            {
+                throw new ValidationException(errorMessage ?? "Invalid paragraph order.");
+            }
 
             var existingParagraphs = (await _paragraphRepo.GetParagraphsByArticleAsync(articleId)).ToList();
             var existingIdsSet = existingParagraphs.Select(p => p.Id).ToHashSet();
             if (!ValidateIncomingIds(incomingParagraphs, existingIdsSet))
-                return (false, "Some paragraph ids do not belong to this article.");
+            {
+                throw new ValidationException("Some paragraph ids do not belong to this article.");
+            }
 
             try
             {
@@ -121,13 +124,56 @@ namespace WikiWeaver.Application.Services
 
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
-                return (true, null);
             }
             catch
             {
                 await _uow.RollbackAsync();
-                return (false, "Error occurred while updating content.");
+                throw new ValidationException("Error occurred while updating content.");
             }
+
+            var updatedArticle = await _articleRepo.GetByIdAsync(articleId)
+                ?? throw new NotFoundException("Article not found");
+
+            return await BuildArticleContentDtoAsync(updatedArticle);
+        }
+
+        private static void ValidateTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new ValidationException("Title is required.");
+            }
+        }
+
+        private async Task ValidateNodeAsync(int? nodeId)
+        {
+            if (!nodeId.HasValue)
+            {
+                return;
+            }
+
+            var node = await _nodeRepo.GetByIdAsync(nodeId.Value);
+            if (node is null)
+            {
+                throw new ValidationException("Node not found.");
+            }
+
+            var existingArticle = await _articleRepo.GetByNodeIdAsync(nodeId.Value);
+            if (existingArticle is not null)
+            {
+                throw new ValidationException("Selected node already has an article.");
+            }
+        }
+
+        private async Task<ArticleContentDto> BuildArticleContentDtoAsync(Article article)
+        {
+            var paragraphs = await _paragraphRepo.GetParagraphsByArticleAsync(article.Id);
+            var paragraphDtos = paragraphs
+                .OrderBy(p => p.Order)
+                .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
+                .ToList();
+
+            return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
         }
 
         private async Task<bool> ValidateArticleExistsAsync(int articleId, int dtoId)
@@ -170,11 +216,13 @@ namespace WikiWeaver.Application.Services
         {
             var incomingIds = incomingParagraphs.Where(p => p.Id != 0).Select(p => p.Id).ToHashSet();
             var toDelete = existingParagraphs.Where(p => !incomingIds.Contains(p.Id)).ToList();
-            foreach (var p in toDelete)
-                await _paragraphRepo.DeleteAsync(p);
+            foreach (var paragraph in toDelete)
+            {
+                await _paragraphRepo.DeleteAsync(paragraph);
+            }
         }
 
-        private void UpdateExistingParagraphs(List<Paragraph> existingParagraphs, List<ParagraphDto> incomingParagraphs)
+        private static void UpdateExistingParagraphs(List<Paragraph> existingParagraphs, List<ParagraphDto> incomingParagraphs)
         {
             var existingMap = existingParagraphs.ToDictionary(p => p.Id);
             foreach (var incoming in incomingParagraphs.Where(p => p.Id != 0))
@@ -195,7 +243,7 @@ namespace WikiWeaver.Application.Services
                     Content = incoming.Content,
                     Order = incoming.Order,
                     IsDefault = incoming.IsDefault,
-                    ArticleId = articleId
+                    ArticleId = articleId,
                 };
                 await _paragraphRepo.AddAsync(newParagraph);
             }

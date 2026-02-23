@@ -1,14 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { Layout, Spin, Alert, Input } from 'antd';
+import { Layout, Spin, Alert, Input, message } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { LoadingOutlined } from '@ant-design/icons';
 import { getNavigationTree } from '../services/Article/navigationService';
-import { useQuery } from '@tanstack/react-query';
+import { deleteNode } from '../services/adminService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import NavigationTree from './NavigationTree';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { locale } from '../localization';
 import styles from './Sidebar.module.css';
 import type { NavigationNodeDto } from '../shared/types/ApiTypes';
+import { isAdminAuthenticated } from '../services/authService';
+import { useLocation } from 'react-router-dom';
 
 const { Sider } = Layout;
 
@@ -44,10 +47,29 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const [searchValue, setSearchValue] = useState('');
+  const queryClient = useQueryClient();
+  const location = useLocation();
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const isAdminMode =
+    isAdminAuthenticated()
+    && (location.pathname.startsWith('/admin') || location.pathname.startsWith('/article/edit'));
 
   const { data: navigationTree, isLoading, error } = useQuery({
     queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE],
     queryFn: getNavigationTree,
+  });
+
+  const deleteNodeMutation = useMutation({
+    mutationFn: deleteNode,
+    onSuccess: async () => {
+      messageApi.success(locale.adminPage.nodeDeleted);
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] });
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES] });
+    },
+    onError: (mutationError) => {
+      messageApi.error(`${locale.adminPage.nodeDeleteFailed}: ${(mutationError as Error).message}`);
+    },
   });
 
   const filteredNavigationTree = useMemo(() => {
@@ -67,6 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       collapsible
       collapsed={collapsed}
     >
+      {contextHolder}
       {!collapsed && (
         <div className={styles.sidebarHeader}>
           <Input
@@ -95,7 +118,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               className={styles.errorAlert}
             />
           ) : (
-            <NavigationTree navigationTree={filteredNavigationTree} />
+            <NavigationTree
+              navigationTree={filteredNavigationTree}
+              isAdminMode={isAdminMode}
+              onDeleteNode={(node) => deleteNodeMutation.mutate(node.id)}
+            />
           )}
         </div>
       )}
