@@ -40,34 +40,15 @@ public static class DemoDataSeeder
     {
         var nodeByTitle = new Dictionary<string, Node>(StringComparer.Ordinal);
 
-        foreach (var rootTitle in seedData.Roots)
-        {
-            var rootNode = new Node { Title = rootTitle };
-            dbContext.Nodes.Add(rootNode);
-            nodeByTitle[rootTitle] = rootNode;
-        }
+        AddRootNodes(dbContext, seedData.Roots, nodeByTitle);
 
-        var pendingNodes = seedData.Nodes.ToList();
+        var pendingNodes = new List<DemoNodeSeed>(seedData.Nodes);
         while (pendingNodes.Count > 0)
         {
             var insertedInPass = 0;
 
-            foreach (var nodeSeed in pendingNodes.ToList())
-            {
-                if (!nodeByTitle.TryGetValue(nodeSeed.ParentTitle, out var parentNode))
-                    continue;
-
-                var childNode = new Node
-                {
-                    Title = nodeSeed.Title,
-                    Parent = parentNode
-                };
-
-                dbContext.Nodes.Add(childNode);
-                nodeByTitle[nodeSeed.Title] = childNode;
-                pendingNodes.Remove(nodeSeed);
-                insertedInPass++;
-            }
+            for (var index = pendingNodes.Count - 1; index >= 0; index--)
+                insertedInPass += TryInsertNode(dbContext, pendingNodes, index, nodeByTitle);
 
             if (insertedInPass == 0)
                 throw BuildUnresolvedNodesException(pendingNodes);
@@ -115,10 +96,8 @@ public static class DemoDataSeeder
 
         foreach (var rawParagraph in rawParagraphs)
         {
-            var isAlternative = rawParagraph.StartsWith(AlternativeParagraphPrefix, StringComparison.Ordinal);
-            var content = isAlternative
-                ? rawParagraph[AlternativeParagraphPrefix.Length..].TrimStart()
-                : rawParagraph;
+            var isAlternative = IsAlternativeParagraph(rawParagraph);
+            var content = NormalizeParagraph(rawParagraph, isAlternative);
 
             if (!isAlternative)
                 currentOrder++;
@@ -180,38 +159,7 @@ public static class DemoDataSeeder
     {
         foreach (var article in articles)
         {
-            if (article.Paragraphs.Count == 0)
-                throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");
-
-            var defaultParagraphCount = 0;
-            foreach (var paragraph in article.Paragraphs)
-            {
-                var isAlternative = paragraph.StartsWith(AlternativeParagraphPrefix, StringComparison.Ordinal);
-                var normalizedContent = isAlternative
-                    ? paragraph[AlternativeParagraphPrefix.Length..].TrimStart()
-                    : paragraph;
-
-                if (string.IsNullOrWhiteSpace(normalizedContent))
-                {
-                    throw new InvalidOperationException(
-                        $"Demo seed article '{article.Title}' contains an empty paragraph.");
-                }
-
-                if (isAlternative && defaultParagraphCount == 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Demo seed article '{article.Title}' starts with an alternative paragraph before any default paragraph.");
-                }
-
-                if (!isAlternative)
-                    defaultParagraphCount++;
-            }
-
-            if (defaultParagraphCount == 0)
-            {
-                throw new InvalidOperationException(
-                    $"Demo seed article '{article.Title}' must contain at least one default paragraph.");
-            }
+            ValidateParagraphs(article);
         }
     }
 
@@ -227,23 +175,80 @@ public static class DemoDataSeeder
             throw new InvalidOperationException(string.Format(messageTemplate, string.Join(", ", duplicates)));
     }
 
-    private sealed class DemoSeedData
+    private static void AddRootNodes(
+        WikiWeaverDbContext dbContext,
+        IEnumerable<string> rootTitles,
+        IDictionary<string, Node> nodeByTitle)
     {
-        public List<string> Roots { get; init; } = new();
-        public List<DemoNodeSeed> Nodes { get; init; } = new();
-        public List<DemoArticleSeed> Articles { get; init; } = new();
+        foreach (var rootTitle in rootTitles)
+        {
+            var rootNode = new Node { Title = rootTitle };
+            dbContext.Nodes.Add(rootNode);
+            nodeByTitle[rootTitle] = rootNode;
+        }
     }
 
-    private sealed class DemoNodeSeed
+    private static int TryInsertNode(
+        WikiWeaverDbContext dbContext,
+        IList<DemoNodeSeed> pendingNodes,
+        int index,
+        IDictionary<string, Node> nodeByTitle)
     {
-        public string Title { get; init; } = string.Empty;
-        public string ParentTitle { get; init; } = string.Empty;
+        var nodeSeed = pendingNodes[index];
+        if (!nodeByTitle.TryGetValue(nodeSeed.ParentTitle, out var parentNode))
+            return 0;
+
+        var childNode = new Node
+        {
+            Title = nodeSeed.Title,
+            Parent = parentNode
+        };
+
+        dbContext.Nodes.Add(childNode);
+        nodeByTitle[nodeSeed.Title] = childNode;
+        pendingNodes.RemoveAt(index);
+        return 1;
     }
 
-    private sealed class DemoArticleSeed
+    private static void ValidateParagraphs(DemoArticleSeed article)
     {
-        public string NodeTitle { get; init; } = string.Empty;
-        public string Title { get; init; } = string.Empty;
-        public List<string> Paragraphs { get; init; } = new();
+        if (article.Paragraphs.Count == 0)
+            throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");
+
+        var defaultParagraphCount = 0;
+        foreach (var paragraph in article.Paragraphs)
+        {
+            var isAlternative = IsAlternativeParagraph(paragraph);
+            var normalizedContent = NormalizeParagraph(paragraph, isAlternative);
+
+            if (string.IsNullOrWhiteSpace(normalizedContent))
+            {
+                throw new InvalidOperationException(
+                    $"Demo seed article '{article.Title}' contains an empty paragraph.");
+            }
+
+            if (isAlternative && defaultParagraphCount == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Demo seed article '{article.Title}' starts with an alternative paragraph before any default paragraph.");
+            }
+
+            if (!isAlternative)
+                defaultParagraphCount++;
+        }
+
+        if (defaultParagraphCount == 0)
+        {
+            throw new InvalidOperationException(
+                $"Demo seed article '{article.Title}' must contain at least one default paragraph.");
+        }
     }
+
+    private static bool IsAlternativeParagraph(string paragraph)
+        => paragraph.StartsWith(AlternativeParagraphPrefix, StringComparison.Ordinal);
+
+    private static string NormalizeParagraph(string paragraph, bool isAlternative)
+        => isAlternative
+            ? paragraph[AlternativeParagraphPrefix.Length..].TrimStart()
+            : paragraph;
 }
