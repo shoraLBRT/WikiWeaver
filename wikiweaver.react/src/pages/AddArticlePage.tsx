@@ -2,9 +2,18 @@ import React, { useMemo, useState } from 'react';
 import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Spin, Typography, message } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createArticleContent, getArticleContentByNodeId, updateArticleContent } from '../services/Article/articleService';
+import {
+  createArticleContent,
+  getArticleContentById,
+  getArticleContentByNodeId,
+  updateArticleContent,
+} from '../services/Article/articleService';
 import { styleMarkdownWithAi, createNode, getNodes } from '../services/adminService';
-import type { ArticleContentCreateDto, ArticleContentDto } from '../shared/types/ApiTypes';
+import type {
+  ArticleContentCreateDto,
+  ArticleContentDto,
+  NavigationNodeDto,
+} from '../shared/types/ApiTypes';
 import { locale } from '../localization';
 import ParagraphGroupEditor from './add-article/ParagraphGroupEditor';
 import {
@@ -20,6 +29,7 @@ import {
 } from './add-article/draftHelpers';
 import type { ParagraphGroupDraft } from './add-article/types';
 import { APP_CONSTANTS } from '../constants/AppConstants';
+import { getNavigationTree } from '../services/Article/navigationService';
 
 const { Title, Text } = Typography;
 
@@ -50,6 +60,26 @@ const mapArticleToDraftGroups = (article: ArticleContentDto): ParagraphGroupDraf
   return Array.from(groupsMap.values());
 };
 
+
+const findNodeArticleId = (nodes: NavigationNodeDto[] | undefined, nodeId: number): number | null => {
+  if (!nodes) {
+    return null;
+  }
+
+  for (const node of nodes) {
+    if (node.id === nodeId) {
+      return node.article?.id ?? null;
+    }
+
+    const childArticleId = findNodeArticleId(node.children, nodeId);
+    if (childArticleId) {
+      return childArticleId;
+    }
+  }
+
+  return null;
+};
+
 const AddArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -74,8 +104,25 @@ const AddArticlePage: React.FC = () => {
 
   const existingNodeArticleQuery = useQuery({
     queryKey: ['article-content-by-node', editNodeId],
-    queryFn: () => getArticleContentByNodeId(editNodeId as number),
+    queryFn: async () => {
+      const nodeId = editNodeId as number;
+      const articleByNode = await getArticleContentByNodeId(nodeId);
+
+      if (articleByNode) {
+        return articleByNode;
+      }
+
+      const navigationTree = await getNavigationTree();
+      const articleId = findNodeArticleId(navigationTree, nodeId);
+
+      if (!articleId) {
+        return null;
+      }
+
+      return getArticleContentById(articleId);
+    },
     enabled: isEditMode,
+    retry: false,
   });
 
   const createMutation = useMutation({
@@ -257,6 +304,17 @@ const AddArticlePage: React.FC = () => {
 
   if (isEditMode && existingNodeArticleQuery.isLoading) {
     return <Spin />;
+  }
+
+  if (isEditMode && existingNodeArticleQuery.isError) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        message={t.saveError}
+        description={(existingNodeArticleQuery.error as Error).message}
+      />
+    );
   }
 
   return (

@@ -1,9 +1,11 @@
 import React from 'react';
-import { Button, Popconfirm, Space, Tree, Typography } from 'antd';
+import { Button, Popconfirm, Space, Tree } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import type { NavigationNodeDto } from '../shared/types/ApiTypes';
 import { convertToTreeData } from '../utils/navigationHelper';
 import { useNavigate } from 'react-router-dom';
 import { locale } from '../localization';
+import themeColors from '../theme/themeColors.json';
 import styles from './NavigationTree.module.css';
 
 interface NavigationTreeProps {
@@ -62,27 +64,42 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
 
   const treeData = navigationTree
     ? convertToTreeData(navigationTree, {
-      isAdminMode,
-      renderNodeTitle: isAdminMode
-        ? (node) => (
-            <Space size="small">
-              <span>{node.title}</span>
-              <Typography.Text type="secondary">#{node.id}</Typography.Text>
-              <span onClick={(event) => event.stopPropagation()}>
-              <Popconfirm
-                title={locale.adminPage.deleteNode}
-                description={`${locale.adminPage.deleteNode}: "${node.title}"?`}
-                okText={locale.common.delete}
-                okButtonProps={{ danger: true }}
-                onConfirm={() => onDeleteNode?.(node)}
-              >
-                <Button size="small" danger>{locale.common.delete}</Button>
-              </Popconfirm>
-              </span>
-            </Space>
-          )
-        : undefined,
-    })
+        isAdminMode,
+        renderNodeTitle: isAdminMode
+          ? (node) => {
+              const hasArticleClass = node.article ? styles.adminNodeWithArticle : '';
+
+              return (
+                <Space
+                  size="small"
+                  className={`${styles.adminNodeTitle} ${hasArticleClass}`.trim()}
+                  style={node.article ? { backgroundColor: themeColors.treeArticleAccent } : undefined}
+                >
+                  <span className={styles.nodeId}>#{node.id}</span>
+                  <span>{node.title}</span>
+                  <span onClick={(event) => event.stopPropagation()}>
+                    <Popconfirm
+                      title={locale.adminPage.deleteNode}
+                      description={`${locale.adminPage.deleteNode}: "${node.title}"?`}
+                      okText={locale.common.delete}
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => onDeleteNode?.(node)}
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        className={styles.nodeDeleteButton}
+                        aria-label={locale.adminPage.deleteNode}
+                      />
+                    </Popconfirm>
+                  </span>
+                </Space>
+              );
+            }
+          : undefined,
+      })
     : [];
 
   return (

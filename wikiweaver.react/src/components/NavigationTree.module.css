@@ -8,3 +8,28 @@
 .treeContainer {
   background: #ffffff;
 }
+
+.adminNodeTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.adminNodeWithArticle {
+  background-color: var(--node-article-accent-bg);
+}
+
+.nodeId {
+  min-width: 38px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+.nodeDeleteButton {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+}

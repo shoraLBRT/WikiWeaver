@@ -8,6 +8,12 @@ namespace WikiWeaver.Infrastructure.Repositories
     {
         public NodeRepository(WikiWeaverDbContext context) : base(context) { }
 
+        public Task<List<Node>> GetAllNodesWithArticlesAsync(CancellationToken cancellationToken = default)
+            => _dbSet
+                .Include(node => node.Article)
+                .Include(node => node.Children)
+                .ToListAsync(cancellationToken);
+
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 
