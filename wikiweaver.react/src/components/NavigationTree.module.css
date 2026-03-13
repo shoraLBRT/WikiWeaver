@@ -8,3 +8,16 @@
 .treeContainer {
   background: #ffffff;
 }
+
+.treeTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.articleLink {
+  min-width: 0;
+  flex: 1;
+}

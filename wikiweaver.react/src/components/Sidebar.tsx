@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Layout, Spin, Alert, Input } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import { LoadingOutlined } from '@ant-design/icons';
-import { getNavigationTree } from '../services/Article/navigationService';
+import { LoadingOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import NavigationTree from './NavigationTree';
+import { Alert, Input, Layout, Spin } from 'antd';
+import { useLocation } from 'react-router-dom';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { locale } from '../localization';
-import styles from './Sidebar.module.css';
+import { getNavigationTree } from '../services/Article/navigationService';
 import type { NavigationNodeDto } from '../shared/types/ApiTypes';
+import NavigationTree from './NavigationTree';
+import styles from './Sidebar.module.css';
 
 const { Sider } = Layout;
 
@@ -44,6 +44,9 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const [searchValue, setSearchValue] = useState('');
+  const location = useLocation();
+  const showArticleEditActions =
+    location.pathname.startsWith('/admin') && location.pathname !== '/admin/login';
 
   const { data: navigationTree, isLoading, error } = useQuery({
     queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE],
@@ -67,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       collapsible
       collapsed={collapsed}
     >
-      {!collapsed && (
+      {!collapsed ? (
         <div className={styles.sidebarHeader}>
           <Input
             className={styles.searchInput}
@@ -78,9 +81,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             allowClear
           />
         </div>
-      )}
+      ) : null}
 
-      {!collapsed && (
+      {!collapsed ? (
         <div className={styles.navigationSection}>
           {isLoading ? (
             <div className={styles.loadingContainer}>
@@ -95,10 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               className={styles.errorAlert}
             />
           ) : (
-            <NavigationTree navigationTree={filteredNavigationTree} />
+            <NavigationTree
+              navigationTree={filteredNavigationTree}
+              showArticleEditActions={showArticleEditActions}
+            />
           )}
         </div>
-      )}
+      ) : null}
     </Sider>
   );
 };
