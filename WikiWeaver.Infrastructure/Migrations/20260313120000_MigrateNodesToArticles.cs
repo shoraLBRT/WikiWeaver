@@ -8,74 +8,134 @@ namespace WikiWeaver.Infrastructure.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "ParentArticleId",
+                table: "Articles",
+                type: "INTEGER",
+                nullable: true);
+
             migrationBuilder.Sql(
                 @"
-PRAGMA foreign_keys = OFF;
+UPDATE Articles
+SET ParentArticleId = (
+    SELECT parentNode.ArticleId
+    FROM Nodes AS currentNode
+    LEFT JOIN Nodes AS parentNode ON currentNode.ParentId = parentNode.Id
+    WHERE currentNode.Id = Articles.NodeId
+);");
 
-CREATE TABLE __Paragraphs_backup AS
-SELECT Id, Content, ArticleId, [Order], IsDefault
-FROM Paragraphs;
+            migrationBuilder.CreateIndex(
+                name: "IX_Articles_ParentArticleId",
+                table: "Articles",
+                column: "ParentArticleId");
 
-DROP TABLE Paragraphs;
+            migrationBuilder.AddForeignKey(
+                name: "FK_Articles_Articles_ParentArticleId",
+                table: "Articles",
+                column: "ParentArticleId",
+                principalTable: "Articles",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
 
-CREATE TABLE __Articles_new (
-    Id INTEGER NOT NULL CONSTRAINT PK_Articles PRIMARY KEY AUTOINCREMENT,
-    Title TEXT NOT NULL,
-    ParentArticleId INTEGER NULL,
-    CONSTRAINT FK_Articles_Articles_ParentArticleId FOREIGN KEY (ParentArticleId) REFERENCES Articles (Id) ON DELETE RESTRICT
-);
+            migrationBuilder.DropForeignKey(
+                name: "FK_Articles_Nodes_NodeId",
+                table: "Articles");
 
-INSERT INTO __Articles_new (Id, Title, ParentArticleId)
-SELECT
-    article.Id,
-    article.Title,
-    parentNode.ArticleId
-FROM Articles AS article
-LEFT JOIN Nodes AS currentNode ON article.NodeId = currentNode.Id
-LEFT JOIN Nodes AS parentNode ON currentNode.ParentId = parentNode.Id;
+            migrationBuilder.DropIndex(
+                name: "IX_Articles_NodeId",
+                table: "Articles");
 
-DROP TABLE Articles;
-ALTER TABLE __Articles_new RENAME TO Articles;
-CREATE INDEX IX_Articles_ParentArticleId ON Articles (ParentArticleId);
+            migrationBuilder.DropColumn(
+                name: "NodeId",
+                table: "Articles");
 
-CREATE TABLE Paragraphs (
-    Id INTEGER NOT NULL CONSTRAINT PK_Paragraphs PRIMARY KEY AUTOINCREMENT,
-    Content TEXT NOT NULL,
-    ArticleId INTEGER NOT NULL,
-    [Order] INTEGER NOT NULL,
-    IsDefault INTEGER NOT NULL,
-    CONSTRAINT FK_Paragraphs_Articles_ArticleId FOREIGN KEY (ArticleId) REFERENCES Articles (Id) ON DELETE CASCADE
-);
-
-INSERT INTO Paragraphs (Id, Content, ArticleId, [Order], IsDefault)
-SELECT Id, Content, ArticleId, [Order], IsDefault
-FROM __Paragraphs_backup;
-
-DROP TABLE __Paragraphs_backup;
-DROP TABLE Nodes;
-
-PRAGMA foreign_keys = ON;");
+            migrationBuilder.DropTable(
+                name: "Nodes");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "NodeId",
+                table: "Articles",
+                type: "INTEGER",
+                nullable: true);
+
+            migrationBuilder.CreateTable(
+                name: "Nodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ArticleId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ParentId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Nodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Nodes_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Nodes_Nodes_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Nodes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.Sql(
                 @"
-PRAGMA foreign_keys = OFF;
+INSERT INTO Nodes (Title, ParentId, ArticleId)
+SELECT article.Title, NULL, article.Id
+FROM Articles AS article;
 
-CREATE TABLE Nodes (
-    Id INTEGER NOT NULL CONSTRAINT PK_Nodes PRIMARY KEY AUTOINCREMENT,
-    Title TEXT NOT NULL,
-    ParentId INTEGER NULL,
-    ArticleId INTEGER NULL,
-    CONSTRAINT FK_Nodes_Nodes_ParentId FOREIGN KEY (ParentId) REFERENCES Nodes (Id) ON DELETE RESTRICT,
-    CONSTRAINT FK_Nodes_Articles_ArticleId FOREIGN KEY (ArticleId) REFERENCES Articles (Id)
-);
+UPDATE Articles
+SET NodeId = (
+    SELECT node.Id
+    FROM Nodes AS node
+    WHERE node.ArticleId = Articles.Id
+    LIMIT 1
+);");
 
-ALTER TABLE Articles ADD COLUMN NodeId INTEGER NULL;
-CREATE INDEX IX_Articles_NodeId ON Articles (NodeId);
+            migrationBuilder.CreateIndex(
+                name: "IX_Nodes_ArticleId",
+                table: "Nodes",
+                column: "ArticleId",
+                unique: true);
 
-PRAGMA foreign_keys = ON;");
+            migrationBuilder.CreateIndex(
+                name: "IX_Nodes_ParentId",
+                table: "Nodes",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Articles_NodeId",
+                table: "Articles",
+                column: "NodeId",
+                unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Articles_Nodes_NodeId",
+                table: "Articles",
+                column: "NodeId",
+                principalTable: "Nodes",
+                principalColumn: "Id");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Articles_Articles_ParentArticleId",
+                table: "Articles");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Articles_ParentArticleId",
+                table: "Articles");
+
+            migrationBuilder.DropColumn(
+                name: "ParentArticleId",
+                table: "Articles");
         }
     }
 }
