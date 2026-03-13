@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using WikiWeaver.Application.DTOs;
-using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
 
 namespace WikiWeaver.Application.Services

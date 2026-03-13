@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Alert,
   Button,
   Form,
   Input,
@@ -462,7 +463,7 @@ const AdminPage: React.FC = () => {
                   },
                   {
                     key: 'users',
-                    label: t.usersTab,
+                    label: 'Users',
                     children: (
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
                         <Text strong>{t.inviteTokenTitle}</Text>

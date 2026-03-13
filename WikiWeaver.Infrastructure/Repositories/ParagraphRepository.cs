@@ -8,6 +8,11 @@ namespace WikiWeaver.Infrastructure.Repositories
     {
         public ParagraphRepository(WikiWeaverDbContext context) : base(context) { }
 
+        public Task<List<Paragraph>> GetParagraphsByArticleAsync(int articleId, CancellationToken cancellationToken = default)
+            => _dbSet
+                .Where(paragraph => paragraph.ArticleId == articleId)
+                .ToListAsync(cancellationToken);
+
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 
