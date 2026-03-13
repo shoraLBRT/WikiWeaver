@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WikiWeaver.Domain.Entities;
 
 namespace WikiWeaver.Infrastructure.Data
@@ -11,28 +11,24 @@ namespace WikiWeaver.Infrastructure.Data
 
         public DbSet<Article> Articles { get; set; } = null!;
         public DbSet<Paragraph> Paragraphs { get; set; } = null!;
-        public DbSet<Node> Nodes { get; set; } = null!;
         public DbSet<AiProviderSettings> AiProviderSettings { get; set; } = null!;
         public DbSet<AdminUser> AdminUsers { get; set; } = null!;
         public DbSet<AdminInviteToken> AdminInviteTokens { get; set; } = null!;
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Node self-reference
-            modelBuilder.Entity<Node>()
-                .HasMany(n => n.Children)
-                .WithOne(n => n.Parent)
-                .HasForeignKey(n => n.ParentId)
+            modelBuilder.Entity<Article>()
+                .HasMany(article => article.ChildArticles)
+                .WithOne(article => article.ParentArticle)
+                .HasForeignKey(article => article.ParentArticleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Node -> Article (1-1)
-            modelBuilder.Entity<Node>()
-                .HasOne(n => n.Article)
-                .WithOne(a => a.Node)
-                .HasForeignKey<Article>(a => a.NodeId);
+            modelBuilder.Entity<Article>()
+                .HasMany(article => article.Paragraphs)
+                .WithOne(paragraph => paragraph.Article)
+                .HasForeignKey(paragraph => paragraph.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // AI provider settings
             modelBuilder.Entity<AiProviderSettings>()
                 .Property(settings => settings.BaseUrl)
                 .HasMaxLength(512);
@@ -40,12 +36,6 @@ namespace WikiWeaver.Infrastructure.Data
             modelBuilder.Entity<AiProviderSettings>()
                 .Property(settings => settings.Model)
                 .HasMaxLength(120);
-
-            modelBuilder.Entity<Article>()
-                .HasMany(a => a.Paragraphs)
-                .WithOne(p => p.Article)
-                .HasForeignKey(p => p.ArticleId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<AdminUser>()
                 .HasIndex(admin => admin.Email)

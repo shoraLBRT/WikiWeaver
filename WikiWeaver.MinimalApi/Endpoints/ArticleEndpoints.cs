@@ -7,7 +7,7 @@ namespace WikiWeaver.MinimalApi.Endpoints
     {
         public static IEndpointRouteBuilder MapArticleEndpoints(this IEndpointRouteBuilder builder)
         {
-            var group = builder.MapGroup("/article").WithTags("Article");
+            var group = builder.MapGroup("/articles").WithTags("Articles");
 
             group.MapGet("/", async (ArticleService service) =>
             {
@@ -15,7 +15,7 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 return Results.Ok(articles);
             });
 
-            group.MapGet("/{id}", async (int id, ArticleService service) =>
+            group.MapGet("/{id:int}", async (int id, ArticleService service) =>
             {
                 var article = await service.GetByIdAsync(id);
                 return article is not null ? Results.Ok(article) : Results.NotFound();
@@ -27,13 +27,13 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 return Results.Created($"/articles/{createdArticle.Id}", createdArticle);
             }).RequireAuthorization("AdminOnly");
 
-            group.MapPut("/{id}", async (int id, ArticleUpdateDto updateDto, ArticleService service) =>
+            group.MapPut("/{id:int}", async (int id, ArticleUpdateDto updateDto, ArticleService service) =>
             {
                 await service.UpdateAsync(id, updateDto);
                 return Results.NoContent();
             }).RequireAuthorization("AdminOnly");
 
-            group.MapDelete("/{id}", async (int id, ArticleService service) =>
+            group.MapDelete("/{id:int}", async (int id, ArticleService service) =>
             {
                 await service.DeleteAsync(id);
                 return Results.NoContent();

@@ -8,6 +8,17 @@ namespace WikiWeaver.Infrastructure.Repositories
     {
         public ArticleRepository(WikiWeaverDbContext context) : base(context) { }
 
+        public Task<List<Article>> GetAllWithHierarchyAsync(CancellationToken cancellationToken = default)
+            => _dbSet
+                .Include(article => article.ChildArticles)
+                .Include(article => article.Paragraphs)
+                .ToListAsync(cancellationToken);
+
+        public Task<List<Article>> GetAllWithParagraphsAsync(CancellationToken cancellationToken = default)
+            => _dbSet
+                .Include(article => article.Paragraphs)
+                .ToListAsync(cancellationToken);
+
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 

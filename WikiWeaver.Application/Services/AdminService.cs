@@ -15,7 +15,6 @@ namespace WikiWeaver.Application.Services
 {
     public class AdminService
     {
-        private readonly NodeRepository _nodeRepository;
         private readonly ArticleRepository _articleRepository;
         private readonly ParagraphRepository _paragraphRepository;
         private readonly AiProviderSettingsRepository _aiProviderSettingsRepository;
@@ -25,7 +24,6 @@ namespace WikiWeaver.Application.Services
         private readonly AdminAiOptions _aiOptions;
 
         public AdminService(
-            NodeRepository nodeRepository,
             ArticleRepository articleRepository,
             ParagraphRepository paragraphRepository,
             AiProviderSettingsRepository aiProviderSettingsRepository,
@@ -34,7 +32,6 @@ namespace WikiWeaver.Application.Services
             IOptions<AdminOptions> adminOptions,
             ILogger<AdminService> logger)
         {
-            _nodeRepository = nodeRepository;
             _articleRepository = articleRepository;
             _paragraphRepository = paragraphRepository;
             _aiProviderSettingsRepository = aiProviderSettingsRepository;
@@ -46,18 +43,14 @@ namespace WikiWeaver.Application.Services
 
         public async Task<AdminCleanupResultDto> CleanupDemoDataAsync(CancellationToken cancellationToken = default)
         {
-            var nodeCount = await _nodeRepository.CountAsync(cancellationToken);
             var articleCount = await _articleRepository.CountAsync(cancellationToken);
             var paragraphCount = await _paragraphRepository.CountAsync(cancellationToken);
 
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                await _nodeRepository.ResetNodeRelationsAsync(cancellationToken);
-
                 await _paragraphRepository.DeleteAllAsync(cancellationToken);
                 await _articleRepository.DeleteAllAsync(cancellationToken);
-                await _nodeRepository.DeleteAllAsync(cancellationToken);
 
                 await _unitOfWork.CommitAsync();
             }
@@ -68,14 +61,12 @@ namespace WikiWeaver.Application.Services
             }
 
             _logger.LogWarning(
-                "Public admin cleanup executed. Deleted Nodes: {NodeCount}, Articles: {ArticleCount}, Paragraphs: {ParagraphCount}",
-                nodeCount,
+                "Public admin cleanup executed. Deleted Articles: {ArticleCount}, Paragraphs: {ParagraphCount}",
                 articleCount,
                 paragraphCount);
 
             return new AdminCleanupResultDto
             {
-                DeletedNodes = nodeCount,
                 DeletedArticles = articleCount,
                 DeletedParagraphs = paragraphCount,
                 Message = "Cleanup completed"

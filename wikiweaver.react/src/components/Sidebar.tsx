@@ -6,35 +6,34 @@ import { useLocation } from 'react-router-dom';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { locale } from '../localization';
 import { getNavigationTree } from '../services/Article/navigationService';
-import type { NavigationNodeDto } from '../shared/types/ApiTypes';
+import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 import NavigationTree from './NavigationTree';
 import styles from './Sidebar.module.css';
 
 const { Sider } = Layout;
 
-const filterNavigationTree = (nodes: NavigationNodeDto[], searchValue: string): NavigationNodeDto[] => {
+const filterNavigationTree = (articles: NavigationArticleDto[], searchValue: string): NavigationArticleDto[] => {
   const normalizedSearch = searchValue.trim().toLowerCase();
 
   if (!normalizedSearch) {
-    return nodes;
+    return articles;
   }
 
-  return nodes.reduce<NavigationNodeDto[]>((filteredNodes, node) => {
-    const filteredChildren = node.children
-      ? filterNavigationTree(node.children, normalizedSearch)
+  return articles.reduce<NavigationArticleDto[]>((filteredArticles, article) => {
+    const filteredChildren = article.children
+      ? filterNavigationTree(article.children, normalizedSearch)
       : [];
 
-    const isNodeMatch = node.title.toLowerCase().includes(normalizedSearch);
-    const isArticleMatch = node.article?.title.toLowerCase().includes(normalizedSearch) ?? false;
+    const isArticleMatch = article.title.toLowerCase().includes(normalizedSearch);
 
-    if (isNodeMatch || isArticleMatch || filteredChildren.length > 0) {
-      filteredNodes.push({
-        ...node,
+    if (isArticleMatch || filteredChildren.length > 0) {
+      filteredArticles.push({
+        ...article,
         children: filteredChildren,
       });
     }
 
-    return filteredNodes;
+    return filteredArticles;
   }, []);
 };
 

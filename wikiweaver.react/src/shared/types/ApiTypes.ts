@@ -1,6 +1,5 @@
 // wikiweaver.react/src/types/ApiTypes.ts
 
-// Type for an article paragraph
 export interface ParagraphDto {
   id: number;
   content: string;
@@ -8,7 +7,6 @@ export interface ParagraphDto {
   isDefault: boolean;
 }
 
-// Type for article content
 export interface ArticleContentDto {
   id: number;
   title: string;
@@ -17,15 +15,15 @@ export interface ArticleContentDto {
 
 export interface ArticleContentCreateDto {
   title: string;
-  nodeId?: number;
+  parentArticleId?: number;
   paragraphs: ParagraphDto[];
 }
 
-// Type for an article linked to a navigation node
 export interface ArticleReadDto {
   id: number;
   title: string;
-  nodeId?: number;
+  parentArticleId?: number;
+  hasContent: boolean;
 }
 
 export interface ParagraphReadDto {
@@ -36,14 +34,7 @@ export interface ParagraphReadDto {
   isDefault: boolean;
 }
 
-export interface AdminNodeDto {
-  id: number;
-  title: string;
-  parentId: number | null;
-}
-
 export interface AdminCleanupResultDto {
-  deletedNodes: number;
   deletedArticles: number;
   deletedParagraphs: number;
   message: string;
@@ -77,18 +68,15 @@ export interface AiConnectionCheckResultDto {
   styledText: string;
 }
 
-// Type for a navigation tree node
-export interface NavigationNodeDto {
+export interface NavigationArticleDto {
   id: number;
   title: string;
-  parentId?: number;
-  children?: NavigationNodeDto[];
-  article?: ArticleReadDto;
+  parentArticleId?: number;
+  hasContent: boolean;
+  children?: NavigationArticleDto[];
 }
 
-// Type for the entire navigation tree (list of root nodes)
-export type NavigationTreeDto = NavigationNodeDto[];
-
+export type NavigationTreeDto = NavigationArticleDto[];
 
 export interface AdminAuthStatusDto {
   requiresBootstrapAdmin: boolean;

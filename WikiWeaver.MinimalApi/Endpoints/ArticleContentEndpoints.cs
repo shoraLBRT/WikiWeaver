@@ -7,19 +7,18 @@ namespace WikiWeaver.MinimalApi.Endpoints
     {
         public static IEndpointRouteBuilder MapArticleContentEndpoints(this IEndpointRouteBuilder builder)
         {
-            var group = builder.MapGroup("/article").WithTags("ArticleContent");
+            var group = builder.MapGroup("/articles").WithTags("ArticleContent");
 
-            group.MapGet("/{id}/content", async (int id, ArticleContentService service) =>
+            group.MapGet("/{id:int}/content", async (int id, ArticleContentService service) =>
             {
                 var content = await service.GetContentByArticleIdAsync(id);
                 return Results.Ok(content);
             });
 
-
             group.MapPost("/content", async (ArticleContentCreateDto dto, ArticleContentService service) =>
             {
                 var article = await service.CreateArticleWithContentAsync(dto);
-                return Results.Created($"/article/{article.Id}/content", article);
+                return Results.Created($"/articles/{article.Id}/content", article);
             }).RequireAuthorization("AdminOnly");
 
             return builder;

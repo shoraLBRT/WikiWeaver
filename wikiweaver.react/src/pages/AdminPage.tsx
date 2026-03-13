@@ -6,12 +6,11 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Segmented,
   Space,
   Switch,
   Table,
   Tabs,
-  Tag,
-  Segmented,
   Typography,
   message,
 } from 'antd';
@@ -22,16 +21,14 @@ import {
   checkAiConnection,
   cleanupDemoData,
   deleteArticle,
-  deleteNode,
   deleteParagraph,
   getAiProviderSettings,
   getArticles,
-  getNodes,
   getParagraphs,
   updateAiProviderSettings,
 } from '../services/adminService';
 import { generateInviteToken } from '../services/authService';
-import type { AdminNodeDto, ArticleReadDto, ParagraphReadDto, UpdateAiProviderSettingsDto } from '../shared/types/ApiTypes';
+import type { ArticleReadDto, ParagraphReadDto, UpdateAiProviderSettingsDto } from '../shared/types/ApiTypes';
 import {
   ARTICLE_UI_MODE_STORAGE_KEY,
   DEFAULT_ARTICLE_UI_MODE,
@@ -55,7 +52,6 @@ const getInitialUiMode = (): ParagraphUiMode => {
 const AdminPage: React.FC = () => {
   const t = locale.adminPage;
   const navigate = useNavigate();
-  const confirmationPhrase = t.cleanupConfirmationPhrase;
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,30 +61,19 @@ const AdminPage: React.FC = () => {
   const [aiForm] = Form.useForm<AiSettingsFormValues>();
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
-  const nodesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES], queryFn: getNodes });
+  const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
   const paragraphsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS], queryFn: getParagraphs });
   const aiSettingsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], queryFn: getAiProviderSettings });
-
   const isAiEnabled = Form.useWatch('isEnabled', aiForm) ?? false;
 
   const refreshAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_NODES] }),
       queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES] }),
       queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS] }),
       queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] }),
     ]);
   };
-
-  const nodeDeleteMutation = useMutation({
-    mutationFn: deleteNode,
-    onSuccess: async () => {
-      messageApi.success(t.nodeDeleted);
-      await refreshAll();
-    },
-    onError: (error) => messageApi.error(`${t.nodeDeleteFailed}: ${(error as Error).message}`),
-  });
 
   const articleDeleteMutation = useMutation({
     mutationFn: deleteArticle,
@@ -113,7 +98,6 @@ const AdminPage: React.FC = () => {
     onSuccess: async (result) => {
       messageApi.success(
         formatMessage(t.cleanupDone, {
-          nodes: result.deletedNodes,
           articles: result.deletedArticles,
           paragraphs: result.deletedParagraphs,
         }),
@@ -133,7 +117,6 @@ const AdminPage: React.FC = () => {
     },
     onError: (error) => messageApi.error(`${t.aiSettingsUpdateFailed}: ${(error as Error).message}`),
   });
-
 
   const inviteTokenMutation = useMutation({
     mutationFn: generateInviteToken,
@@ -162,21 +145,10 @@ const AdminPage: React.FC = () => {
     onError: (error) => messageApi.error(`${t.aiCheckFailed}: ${(error as Error).message}`),
   });
 
-  const filteredNodes = useMemo(
-    () =>
-      (nodesQuery.data ?? []).filter((node) =>
-        [node.id.toString(), node.title, node.parentId?.toString() ?? '']
-          .join(' ')
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()),
-      ),
-    [nodesQuery.data, searchTerm],
-  );
-
   const filteredArticles = useMemo(
     () =>
       (articlesQuery.data ?? []).filter((article) =>
-        [article.id.toString(), article.title, article.nodeId?.toString() ?? '']
+        [article.id.toString(), article.title, article.parentArticleId?.toString() ?? '']
           .join(' ')
           .toLowerCase()
           .includes(searchTerm.toLowerCase()),
@@ -195,38 +167,10 @@ const AdminPage: React.FC = () => {
     [paragraphsQuery.data, searchTerm],
   );
 
-  const nodeColumns: ColumnsType<AdminNodeDto> = [
-    { title: locale.common.id, dataIndex: 'id', key: 'id', width: 90 },
-    { title: locale.common.title, dataIndex: 'title', key: 'title' },
-    {
-      title: t.parentId,
-      dataIndex: 'parentId',
-      key: 'parentId',
-      width: 120,
-      render: (parentId: number | null) => parentId ?? <Tag>{t.root}</Tag>,
-    },
-    {
-      title: locale.common.actions,
-      key: 'actions',
-      width: 130,
-      render: (_, record) => (
-        <Popconfirm
-          title={t.deleteNode}
-          description={`${t.deleteNode}: "${record.title}"?`}
-          okText={locale.common.delete}
-          okButtonProps={{ danger: true }}
-          onConfirm={() => nodeDeleteMutation.mutate(record.id)}
-        >
-          <Button danger size="small">{locale.common.delete}</Button>
-        </Popconfirm>
-      ),
-    },
-  ];
-
   const articleColumns: ColumnsType<ArticleReadDto> = [
     { title: locale.common.id, dataIndex: 'id', key: 'id', width: 90 },
     { title: locale.common.title, dataIndex: 'title', key: 'title' },
-    { title: t.parentId, dataIndex: 'nodeId', key: 'nodeId', width: 120 },
+    { title: t.parentId, dataIndex: 'parentArticleId', key: 'parentArticleId', width: 140 },
     {
       title: locale.common.actions,
       key: 'actions',
@@ -284,33 +228,13 @@ const AdminPage: React.FC = () => {
     aiSettingsMutation.mutate({ ...values, clearApiKey: values.clearApiKey ?? false });
   };
 
-  const deleteStoredApiKey = async () => {
-    const values = await aiForm.validateFields(['baseUrl', 'model', 'isEnabled']);
-    aiForm.setFieldValue('apiKey', '');
-    aiForm.setFieldValue('clearApiKey', true);
-
-    aiSettingsMutation.mutate(
-      {
-        baseUrl: values.baseUrl,
-        model: values.model,
-        isEnabled: values.isEnabled,
-        clearApiKey: true,
-      },
-      {
-        onSuccess: async () => {
-          messageApi.success(t.apiKeyDeleted);
-          await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
-        },
-      },
-    );
-  };
-
   const aiSettings = aiSettingsQuery.data;
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {contextHolder}
       <Title level={2} style={{ marginTop: 0 }}>{t.title}</Title>
+      <Input.Search allowClear placeholder={t.searchPlaceholder} value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
 
       <Tabs
         defaultActiveKey="content"
@@ -319,176 +243,68 @@ const AdminPage: React.FC = () => {
             key: 'content',
             label: t.contentTab,
             children: (
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Input.Search
-                  allowClear
-                  placeholder={t.searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                />
-                <Tabs
-                  defaultActiveKey="nodes"
-                  items={[
-                    {
-                      key: 'nodes',
-                      label: `${t.nodesTab} (${filteredNodes.length})`,
-                      children: (
-                        <Table
-                          loading={nodesQuery.isLoading}
-                          columns={nodeColumns}
-                          dataSource={filteredNodes}
-                          rowKey="id"
-                          pagination={{ pageSize: 10 }}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'articles',
-                      label: `${t.articlesTab} (${filteredArticles.length})`,
-                      children: (
-                        <Table
-                          loading={articlesQuery.isLoading}
-                          columns={articleColumns}
-                          dataSource={filteredArticles}
-                          rowKey="id"
-                          pagination={{ pageSize: 10 }}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'paragraphs',
-                      label: `${t.paragraphsTab} (${filteredParagraphs.length})`,
-                      children: (
-                        <Table
-                          loading={paragraphsQuery.isLoading}
-                          columns={paragraphColumns}
-                          dataSource={filteredParagraphs}
-                          rowKey="id"
-                          pagination={{ pageSize: 10 }}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'create-article',
-                      label: t.createArticleTab,
-                      children: (
-                        <Button type="primary" onClick={() => navigate('/article/new')}>
-                          {t.createArticleAction}
-                        </Button>
-                      ),
-                    },
-                    {
-                      key: 'cleanup',
-                      label: t.cleanupTab,
-                      children: (
-                        <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>
-                          {t.deleteAll}
-                        </Button>
-                      ),
-                    },
-                  ]}
-                />
-              </Space>
-            ),
-          },
-          {
-            key: 'settings',
-            label: locale.common.settings,
-            children: (
               <Tabs
-                defaultActiveKey="ai"
+                defaultActiveKey="articles"
                 items={[
                   {
-                    key: 'ai',
-                    label: t.aiTab,
-                    children: (
-                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Form
-                          form={aiForm}
-                          layout="vertical"
-                          initialValues={{
-                            baseUrl: aiSettings?.baseUrl,
-                            model: aiSettings?.model,
-                            isEnabled: aiSettings?.isEnabled,
-                            clearApiKey: false,
-                          }}
-                          key={`${aiSettings?.baseUrl}-${aiSettings?.model}-${aiSettings?.isEnabled}-${aiSettings?.hasApiKey}`}
-                        >
-                          <Form.Item name="isEnabled" valuePropName="checked" extra={t.aiDisabledHint}>
-                            <Switch />
-                          </Form.Item>
-
-                          <Form.Item label={t.baseUrl} name="baseUrl" rules={[{ required: true, message: t.baseUrlRequired }]}>
-                            <Input placeholder={t.baseUrlPlaceholder} disabled={!isAiEnabled} />
-                          </Form.Item>
-                          <Form.Item label={t.model} name="model" rules={[{ required: true, message: t.modelRequired }]}>
-                            <Input placeholder={t.modelPlaceholder} disabled={!isAiEnabled} />
-                          </Form.Item>
-                          <Form.Item label={t.apiKey} name="apiKey" extra={t.apiKeyHint}>
-                            <Input.Password placeholder={aiSettings?.hasApiKey ? t.apiConfigured : t.apiKeyPlaceholder} disabled={!isAiEnabled} />
-                          </Form.Item>
-
-                          <Space wrap>
-                            <Button type="primary" loading={aiSettingsMutation.isPending} onClick={saveAiSettings}>
-                              {t.saveAiSettings}
-                            </Button>
-                            <Button danger onClick={deleteStoredApiKey} loading={aiSettingsMutation.isPending}>
-                              {t.deleteApiKey}
-                            </Button>
-                            <Button
-                              loading={aiConnectionCheckMutation.isPending}
-                              onClick={() => aiConnectionCheckMutation.mutate()}
-                              disabled={!isAiEnabled}
-                            >
-                              {t.checkAiConnection}
-                            </Button>
-                          </Space>
-                        </Form>
-                      </Space>
-                    ),
+                    key: 'articles',
+                    label: `${t.articlesTab} (${filteredArticles.length})`,
+                    children: <Table loading={articlesQuery.isLoading} columns={articleColumns} dataSource={filteredArticles} rowKey="id" />,
                   },
                   {
-                    key: 'ui',
-                    label: t.uiTab,
-                    children: (
-                      <Segmented
-                        value={paragraphUiMode}
-                        onChange={(value) => onParagraphUiModeChange(value as ParagraphUiMode)}
-                        options={[
-                          { label: t.uiModeArrows, value: 'arrows' },
-                          { label: t.uiModeNumbers, value: 'numbers' },
-                        ]}
-                      />
-                    ),
+                    key: 'paragraphs',
+                    label: `${t.paragraphsTab} (${filteredParagraphs.length})`,
+                    children: <Table loading={paragraphsQuery.isLoading} columns={paragraphColumns} dataSource={filteredParagraphs} rowKey="id" />,
                   },
                   {
-                    key: 'users',
-                    label: 'Users',
-                    children: (
-                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <Text strong>{t.inviteTokenTitle}</Text>
-                        <Space>
-                          <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>
-                            {t.generateInviteToken}
-                          </Button>
-                          {inviteToken && <Text code>{inviteToken}</Text>}
-                        </Space>
-                      </Space>
-                    ),
+                    key: 'create-article',
+                    label: t.createArticleTab,
+                    children: <Button type="primary" onClick={() => navigate('/article/new')}>{t.createArticleAction}</Button>,
+                  },
+                  {
+                    key: 'cleanup',
+                    label: t.cleanupTab,
+                    children: <Button danger type="primary" onClick={() => setIsCleanupModalOpen(true)}>{t.deleteAll}</Button>,
                   },
                 ]}
               />
             ),
           },
           {
-            key: 'create-article',
-            label: t.createArticleTab,
+            key: 'settings',
+            label: locale.common.settings,
             children: (
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                <Alert type="info" showIcon message={t.createArticleTitle} description={t.createArticleDescription} />
-                <Button type="primary" onClick={() => navigate('/article/new')}>
-                  {t.createArticleAction}
-                </Button>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Form
+                  form={aiForm}
+                  layout="vertical"
+                  initialValues={{
+                    baseUrl: aiSettings?.baseUrl,
+                    model: aiSettings?.model,
+                    isEnabled: aiSettings?.isEnabled,
+                    clearApiKey: false,
+                  }}
+                >
+                  <Form.Item name="isEnabled" valuePropName="checked" extra={t.aiDisabledHint}><Switch /></Form.Item>
+                  <Form.Item label={t.baseUrl} name="baseUrl" rules={[{ required: true, message: t.baseUrlRequired }]}><Input disabled={!isAiEnabled} /></Form.Item>
+                  <Form.Item label={t.model} name="model" rules={[{ required: true, message: t.modelRequired }]}><Input disabled={!isAiEnabled} /></Form.Item>
+                  <Form.Item label={t.apiKey} name="apiKey"><Input.Password disabled={!isAiEnabled} /></Form.Item>
+                  <Space>
+                    <Button type="primary" onClick={saveAiSettings} loading={aiSettingsMutation.isPending}>{t.saveAiSettings}</Button>
+                    <Button onClick={() => aiConnectionCheckMutation.mutate()} loading={aiConnectionCheckMutation.isPending}>{t.checkAiConnection}</Button>
+                  </Space>
+                </Form>
+
+                <Alert message={t.inviteTokenTitle} type="info" showIcon />
+                <Space>
+                  <Button onClick={() => inviteTokenMutation.mutate()} loading={inviteTokenMutation.isPending}>{t.generateInviteToken}</Button>
+                  {inviteToken ? <Text copyable>{inviteToken}</Text> : null}
+                </Space>
+
+                <Space>
+                  <Text>{locale.articlePage.uiModeUpdated}</Text>
+                  <Segmented value={paragraphUiMode} onChange={onParagraphUiModeChange} options={[{ label: t.uiModeArrows, value: 'arrows' }, { label: t.uiModeNumbers, value: 'numbers' }]} />
+                </Space>
               </Space>
             ),
           },
@@ -502,18 +318,13 @@ const AdminPage: React.FC = () => {
         onOk={() => cleanupMutation.mutate()}
         okButtonProps={{
           danger: true,
-          disabled: cleanupConfirmation !== confirmationPhrase,
           loading: cleanupMutation.isPending,
+          disabled: cleanupConfirmation !== confirmationPhrase,
         }}
-        okText={t.cleanupModalOk}
       >
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Space direction="vertical" style={{ width: '100%' }}>
           <Text>{formatMessage(t.cleanupModalHint, { phrase: confirmationPhrase })}</Text>
-          <Input
-            value={cleanupConfirmation}
-            onChange={(event) => setCleanupConfirmation(event.target.value)}
-            placeholder={confirmationPhrase}
-          />
+          <Input value={cleanupConfirmation} onChange={(event) => setCleanupConfirmation(event.target.value)} />
         </Space>
       </Modal>
     </Space>

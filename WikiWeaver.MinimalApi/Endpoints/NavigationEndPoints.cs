@@ -1,4 +1,4 @@
-﻿using WikiWeaver.Application.Services;
+using WikiWeaver.Application.Services;
 
 namespace WikiWeaver.MinimalApi.Endpoints
 {
@@ -6,13 +6,14 @@ namespace WikiWeaver.MinimalApi.Endpoints
     {
         public static IEndpointRouteBuilder MapNavigationEndpoints(this IEndpointRouteBuilder builder)
         {
-            var group = builder.MapGroup("/navigationTree").WithTags("NavigationTree");
+            var group = builder.MapGroup("/navigationTree").WithTags("Navigation");
 
             group.MapGet("/tree", async (NavigationTreeService service) =>
             {
                 var tree = await service.GetTreeAsync();
                 return Results.Ok(tree);
             });
+
             return builder;
         }
     }

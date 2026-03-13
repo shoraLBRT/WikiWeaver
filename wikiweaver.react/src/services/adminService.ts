@@ -1,7 +1,6 @@
 import apiClient from '../shared/api-client/ApiClient';
 import type {
   AdminCleanupResultDto,
-  AdminNodeDto,
   AiConnectionCheckResultDto,
   AiProviderSettingsDto,
   AiStyleRequestDto,
@@ -11,13 +10,8 @@ import type {
   UpdateAiProviderSettingsDto,
 } from '../shared/types/ApiTypes';
 
-export const getNodes = async (): Promise<AdminNodeDto[]> => {
-  const response = await apiClient.get<AdminNodeDto[]>('/nodes');
-  return response.data;
-};
-
 export const getArticles = async (): Promise<ArticleReadDto[]> => {
-  const response = await apiClient.get<ArticleReadDto[]>('/article');
+  const response = await apiClient.get<ArticleReadDto[]>('/articles');
   return response.data;
 };
 
@@ -26,12 +20,8 @@ export const getParagraphs = async (): Promise<ParagraphReadDto[]> => {
   return response.data;
 };
 
-export const deleteNode = async (id: number): Promise<void> => {
-  await apiClient.delete(`/nodes/${id}`);
-};
-
 export const deleteArticle = async (id: number): Promise<void> => {
-  await apiClient.delete(`/article/${id}`);
+  await apiClient.delete(`/articles/${id}`);
 };
 
 export const deleteParagraph = async (id: number): Promise<void> => {

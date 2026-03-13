@@ -60,7 +60,7 @@ namespace WikiWeaver.Application.Services
                 var article = new Article
                 {
                     Title = dto.Title,
-                    NodeId = dto.NodeId
+                    ParentArticleId = dto.ParentArticleId
                 };
 
                 await _articleRepo.AddAsync(article);

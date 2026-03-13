@@ -19,7 +19,7 @@ namespace WikiWeaver.Application.Services
 
         public async Task<IEnumerable<ArticleReadDto>> GetAllAsync()
         {
-            var articles = await _articleRepository.GetAllAsync();
+            var articles = await _articleRepository.GetAllWithParagraphsAsync();
             return _mapper.Map<IEnumerable<ArticleReadDto>>(articles);
         }
 
