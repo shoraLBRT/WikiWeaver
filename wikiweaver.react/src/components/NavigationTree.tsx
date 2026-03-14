@@ -23,7 +23,7 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
   const handleTreeSelect: TreeProps<TreeNodeData>['onSelect'] = (_, info) => {
     const selectedNode = info.selectedNodes[0] as TreeNodeData | undefined;
 
-    if (!selectedNode?.articleId) {
+    if (!selectedNode?.hasContent) {
       return;
     }
 
@@ -42,15 +42,17 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
         titleRender={(node) => {
           const treeNode = node as TreeNodeData;
 
-          if (!treeNode.articleId) {
-            return treeNode.title;
-          }
+          const articleTitle = treeNode.hasContent ? (
+            <Link className={styles.articleLink} to={`/article/${treeNode.articleId}`}>
+              {treeNode.title}
+            </Link>
+          ) : (
+            treeNode.title
+          );
 
           return (
             <div className={styles.treeTitle}>
-              <Link className={styles.articleLink} to={`/article/${treeNode.articleId}`}>
-                {treeNode.title}
-              </Link>
+              {articleTitle}
               {showArticleEditActions ? (
                 <Button
                   type="text"
