@@ -1,21 +1,26 @@
+using System.Text.Json.Serialization;
+
 namespace WikiWeaver.Infrastructure.Data;
 
 internal sealed class DemoSeedData
 {
     public List<string> Roots { get; init; } = new();
-    public List<DemoNodeSeed> Nodes { get; init; } = new();
-    public List<DemoArticleSeed> Articles { get; init; } = new();
+    [JsonPropertyName("nodes")]
+    public List<DemoSectionSeed> Sections { get; init; } = new();
+    public List<DemoArticleContentSeed> Articles { get; init; } = new();
 }
 
-internal sealed class DemoNodeSeed
+internal sealed class DemoSectionSeed
 {
     public string Title { get; init; } = string.Empty;
     public string ParentTitle { get; init; } = string.Empty;
 }
 
-internal sealed class DemoArticleSeed
+internal sealed class DemoArticleContentSeed
 {
-    public string NodeTitle { get; init; } = string.Empty;
+    [JsonPropertyName("nodeTitle")]
+    public string NavigationTitle { get; init; } = string.Empty;
+
     public string Title { get; init; } = string.Empty;
     public List<string> Paragraphs { get; init; } = new();
 }

@@ -2,16 +2,16 @@ import React from 'react';
 import { EditOutlined } from '@ant-design/icons';
 import { Button, Tree } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import type { NavigationNodeDto } from '../shared/types/ApiTypes';
+import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 import { convertToTreeData, type TreeNodeData } from '../utils/navigationHelper';
 import styles from './NavigationTree.module.css';
 
 interface NavigationTreeProps {
-  navigationTree?: NavigationNodeDto[];
+  navigationTree?: NavigationArticleDto[];
   showArticleEditActions?: boolean;
 }
 
-const editArticleLabel = 'Редактировать статью';
+const editArticleLabel = 'ГђГҐГ¤Г ГЄГІГЁГ°Г®ГўГ ГІГј Г±ГІГ ГІГјГѕ';
 
 const NavigationTree: React.FC<NavigationTreeProps> = ({
   navigationTree,

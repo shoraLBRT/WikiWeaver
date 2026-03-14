@@ -1,8 +1,8 @@
-﻿namespace WikiWeaver.Application.DTOs
+namespace WikiWeaver.Application.DTOs
 {
     public record ArticleContentCreateDto(
         string Title,
-        int? NodeId,
+        int? ParentArticleId,
         List<ParagraphDto> Paragraphs
     );
 

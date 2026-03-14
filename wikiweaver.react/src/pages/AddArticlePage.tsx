@@ -26,7 +26,7 @@ const AddArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
   const [title, setTitle] = useState('');
-  const [nodeId, setNodeId] = useState<number | null>(null);
+  const [parentArticleId, setParentArticleId] = useState<number | null>(null);
   const [groups, setGroups] = useState<ParagraphGroupDraft[]>([createEmptyGroup(1)]);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
@@ -130,7 +130,7 @@ const AddArticlePage: React.FC = () => {
 
     mutation.mutate({
       title: title.trim(),
-      nodeId: nodeId ?? undefined,
+      parentArticleId: parentArticleId ?? undefined,
       paragraphs,
     });
   };
@@ -159,9 +159,9 @@ const AddArticlePage: React.FC = () => {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t.articleTitlePlaceholder} />
           <InputNumber
-            value={nodeId ?? undefined}
-            onChange={(value) => setNodeId(value ?? null)}
-            placeholder={t.nodeIdPlaceholder}
+            value={parentArticleId ?? undefined}
+            onChange={(value) => setParentArticleId(value ?? null)}
+            placeholder={t.parentArticleIdPlaceholder}
             style={{ width: 240 }}
             min={1}
           />

@@ -7,7 +7,6 @@ namespace WikiWeaver.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddScoped<NodeService>();
             services.AddScoped<ArticleService>();
             services.AddScoped<ParagraphService>();
             services.AddScoped<NavigationTreeService>();

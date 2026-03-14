@@ -4,10 +4,6 @@ using WikiWeaver.Domain.Entities;
 
 namespace WikiWeaver.Infrastructure.Data;
 
-/// <summary>
-/// Demonstration-only database seed for showcasing WikiWeaver navigation and article content.
-/// This data is not intended for production usage.
-/// </summary>
 public static class DemoDataSeeder
 {
     private const string DemoSeedFileName = "philosophy-demo-seed.json";
@@ -23,71 +19,64 @@ public static class DemoDataSeeder
         var seedData = await LoadSeedDataAsync(cancellationToken);
         ValidateSeedData(seedData);
 
-        var nodeByTitle = await SeedNodesAsync(dbContext, seedData, cancellationToken);
-        await SeedArticlesAsync(dbContext, seedData, nodeByTitle, cancellationToken);
+        var articleByTitle = await SeedNavigationArticlesAsync(dbContext, seedData, cancellationToken);
+        await SeedArticlesWithContentAsync(dbContext, seedData, articleByTitle, cancellationToken);
     }
 
     private static async Task<bool> HasAnyContentAsync(WikiWeaverDbContext dbContext, CancellationToken cancellationToken)
-    {
-        return await dbContext.Nodes.AnyAsync(cancellationToken)
-            || await dbContext.Articles.AnyAsync(cancellationToken);
-    }
+        => await dbContext.Articles.AnyAsync(cancellationToken);
 
-    private static async Task<Dictionary<string, Node>> SeedNodesAsync(
+    private static async Task<Dictionary<string, Article>> SeedNavigationArticlesAsync(
         WikiWeaverDbContext dbContext,
         DemoSeedData seedData,
         CancellationToken cancellationToken)
     {
-        var nodeByTitle = new Dictionary<string, Node>(StringComparer.Ordinal);
+        var articleByTitle = new Dictionary<string, Article>(StringComparer.Ordinal);
 
-        AddRootNodes(dbContext, seedData.Roots, nodeByTitle);
+        AddRootArticles(dbContext, seedData.Roots, articleByTitle);
 
-        var pendingNodes = new List<DemoNodeSeed>(seedData.Nodes);
-        while (pendingNodes.Count > 0)
+        var pendingSections = new List<DemoSectionSeed>(seedData.Sections);
+        while (pendingSections.Count > 0)
         {
             var insertedInPass = 0;
 
-            for (var index = pendingNodes.Count - 1; index >= 0; index--)
-                insertedInPass += TryInsertNode(dbContext, pendingNodes, index, nodeByTitle);
+            for (var index = pendingSections.Count - 1; index >= 0; index--)
+                insertedInPass += TryInsertSectionArticle(dbContext, pendingSections, index, articleByTitle);
 
             if (insertedInPass == 0)
-                throw BuildUnresolvedNodesException(pendingNodes);
+                throw BuildUnresolvedSectionsException(pendingSections);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return nodeByTitle;
+        return articleByTitle;
     }
 
-    private static async Task SeedArticlesAsync(
+    private static async Task SeedArticlesWithContentAsync(
         WikiWeaverDbContext dbContext,
         DemoSeedData seedData,
-        IReadOnlyDictionary<string, Node> nodeByTitle,
+        IReadOnlyDictionary<string, Article> articleByTitle,
         CancellationToken cancellationToken)
     {
         foreach (var articleSeed in seedData.Articles)
         {
-            if (!nodeByTitle.TryGetValue(articleSeed.NodeTitle, out var node))
+            if (!articleByTitle.TryGetValue(articleSeed.NavigationTitle, out var article))
             {
                 throw new InvalidOperationException(
-                    $"Demo seed article '{articleSeed.Title}' references unknown node title '{articleSeed.NodeTitle}'.");
+                    $"Demo seed article '{articleSeed.Title}' references unknown title '{articleSeed.NavigationTitle}'.");
             }
 
-            dbContext.Articles.Add(new Article
-            {
-                Title = articleSeed.Title,
-                NodeId = node.Id,
-                Paragraphs = BuildParagraphs(articleSeed.Paragraphs).ToList()
-            });
+            article.Title = articleSeed.Title;
+            article.Paragraphs = BuildParagraphs(articleSeed.Paragraphs).ToList();
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static InvalidOperationException BuildUnresolvedNodesException(IEnumerable<DemoNodeSeed> unresolvedNodes)
+    private static InvalidOperationException BuildUnresolvedSectionsException(IEnumerable<DemoSectionSeed> unresolvedSections)
     {
-        var unresolvedTitles = string.Join(", ", unresolvedNodes.Select(node => $"'{node.Title}' (parent: '{node.ParentTitle}')"));
+        var unresolvedTitles = string.Join(", ", unresolvedSections.Select(section => $"'{section.Title}' (parent: '{section.ParentTitle}')"));
         return new InvalidOperationException(
-            $"Demo seed contains nodes with missing parents or cyclic dependencies: {unresolvedTitles}");
+            $"Demo seed contains sections with missing parents or cyclic dependencies: {unresolvedTitles}");
     }
 
     private static IEnumerable<Paragraph> BuildParagraphs(IEnumerable<string> rawParagraphs)
@@ -141,21 +130,21 @@ public static class DemoDataSeeder
     private static void ValidateDuplicates(DemoSeedData seedData)
     {
         EnsureNoDuplicates(seedData.Roots, "Demo seed contains duplicate root titles: {0}");
-        EnsureNoDuplicates(seedData.Nodes.Select(node => node.Title), "Demo seed contains duplicate node titles: {0}");
+        EnsureNoDuplicates(seedData.Sections.Select(section => section.Title), "Demo seed contains duplicate section titles: {0}");
 
         var allTitles = new HashSet<string>(seedData.Roots, StringComparer.Ordinal);
-        foreach (var nodeTitle in seedData.Nodes.Select(node => node.Title))
+        foreach (var sectionTitle in seedData.Sections.Select(section => section.Title))
         {
-            if (!allTitles.Add(nodeTitle))
-                throw new InvalidOperationException($"Demo seed title is duplicated between roots/nodes: '{nodeTitle}'.");
+            if (!allTitles.Add(sectionTitle))
+                throw new InvalidOperationException($"Demo seed title is duplicated between roots/sections: '{sectionTitle}'.");
         }
 
         EnsureNoDuplicates(
-            seedData.Articles.Select(article => article.NodeTitle),
-            "Demo seed contains multiple articles for the same node title: {0}");
+            seedData.Articles.Select(article => article.NavigationTitle),
+            "Demo seed contains multiple articles for the same navigation title: {0}");
     }
 
-    private static void ValidateArticles(IEnumerable<DemoArticleSeed> articles)
+    private static void ValidateArticles(IEnumerable<DemoArticleContentSeed> articles)
     {
         foreach (var article in articles)
         {
@@ -175,42 +164,42 @@ public static class DemoDataSeeder
             throw new InvalidOperationException(string.Format(messageTemplate, string.Join(", ", duplicates)));
     }
 
-    private static void AddRootNodes(
+    private static void AddRootArticles(
         WikiWeaverDbContext dbContext,
         IEnumerable<string> rootTitles,
-        IDictionary<string, Node> nodeByTitle)
+        IDictionary<string, Article> articleByTitle)
     {
         foreach (var rootTitle in rootTitles)
         {
-            var rootNode = new Node { Title = rootTitle };
-            dbContext.Nodes.Add(rootNode);
-            nodeByTitle[rootTitle] = rootNode;
+            var rootArticle = new Article { Title = rootTitle };
+            dbContext.Articles.Add(rootArticle);
+            articleByTitle[rootTitle] = rootArticle;
         }
     }
 
-    private static int TryInsertNode(
+    private static int TryInsertSectionArticle(
         WikiWeaverDbContext dbContext,
-        IList<DemoNodeSeed> pendingNodes,
+        IList<DemoSectionSeed> pendingSections,
         int index,
-        IDictionary<string, Node> nodeByTitle)
+        IDictionary<string, Article> articleByTitle)
     {
-        var nodeSeed = pendingNodes[index];
-        if (!nodeByTitle.TryGetValue(nodeSeed.ParentTitle, out var parentNode))
+        var sectionSeed = pendingSections[index];
+        if (!articleByTitle.TryGetValue(sectionSeed.ParentTitle, out var parentArticle))
             return 0;
 
-        var childNode = new Node
+        var childArticle = new Article
         {
-            Title = nodeSeed.Title,
-            Parent = parentNode
+            Title = sectionSeed.Title,
+            ParentArticle = parentArticle
         };
 
-        dbContext.Nodes.Add(childNode);
-        nodeByTitle[nodeSeed.Title] = childNode;
-        pendingNodes.RemoveAt(index);
+        dbContext.Articles.Add(childArticle);
+        articleByTitle[sectionSeed.Title] = childArticle;
+        pendingSections.RemoveAt(index);
         return 1;
     }
 
-    private static void ValidateParagraphs(DemoArticleSeed article)
+    private static void ValidateParagraphs(DemoArticleContentSeed article)
     {
         if (article.Paragraphs.Count == 0)
             throw new InvalidOperationException($"Demo seed article '{article.Title}' must contain at least one paragraph.");

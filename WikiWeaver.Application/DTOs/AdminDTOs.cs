@@ -2,7 +2,6 @@ namespace WikiWeaver.Application.DTOs
 {
     public class AdminCleanupResultDto
     {
-        public int DeletedNodes { get; set; }
         public int DeletedArticles { get; set; }
         public int DeletedParagraphs { get; set; }
         public string Message { get; set; }

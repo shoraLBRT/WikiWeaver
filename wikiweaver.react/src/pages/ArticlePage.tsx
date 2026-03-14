@@ -15,22 +15,22 @@ import {
   type ParagraphUiMode,
 } from '../constants/ArticleUiConstants';
 import { getNavigationTree } from '../services/Article/navigationService';
-import type { NavigationNodeDto, ParagraphDto } from '../shared/types/ApiTypes';
+import type { NavigationArticleDto, ParagraphDto } from '../shared/types/ApiTypes';
 
-const findNodePathByArticleId = (
-  nodes: NavigationNodeDto[],
+const findArticlePathById = (
+  articles: NavigationArticleDto[],
   targetArticleId: number,
-  parentPath: NavigationNodeDto[] = [],
-): NavigationNodeDto[] => {
-  for (const node of nodes) {
-    const currentPath = [...parentPath, node];
+  parentPath: NavigationArticleDto[] = [],
+): NavigationArticleDto[] => {
+  for (const article of articles) {
+    const currentPath = [...parentPath, article];
 
-    if (node.article?.id === targetArticleId) {
+    if (article.id === targetArticleId && article.hasContent) {
       return currentPath;
     }
 
-    if (node.children && node.children.length > 0) {
-      const nestedPath = findNodePathByArticleId(node.children, targetArticleId, currentPath);
+    if (article.children && article.children.length > 0) {
+      const nestedPath = findArticlePathById(article.children, targetArticleId, currentPath);
       if (nestedPath.length > 0) {
         return nestedPath;
       }
@@ -62,17 +62,17 @@ const ArticlePage: React.FC = () => {
     queryFn: getNavigationTree,
   });
 
-  const nodePath = useMemo(
-    () => (navigationTree ? findNodePathByArticleId(navigationTree, articleId) : []),
+  const articlePath = useMemo(
+    () => (navigationTree ? findArticlePathById(navigationTree, articleId) : []),
     [navigationTree, articleId],
   );
 
   const breadcrumbItems = useMemo(
     () =>
-      nodePath.map((node) => ({
-        title: node.article ? <Link to={`/article/${node.article.id}`}>{node.title}</Link> : node.title,
+      articlePath.map((article) => ({
+        title: article.hasContent ? <Link to={`/article/${article.id}`}>{article.title}</Link> : article.title,
       })),
-    [nodePath],
+    [articlePath],
   );
 
   const groupedParagraphs = useMemo(() => {

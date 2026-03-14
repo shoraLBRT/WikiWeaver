@@ -3,7 +3,6 @@ export const APP_CONSTANTS = {
     NAVIGATION_TREE: 'navigationTree',
     ARTICLE_CONTENT: 'articleContent',
     AUTH_STATUS: 'authStatus',
-    ADMIN_NODES: 'adminNodes',
     ADMIN_ARTICLES: 'adminArticles',
     ADMIN_PARAGRAPHS: 'adminParagraphs',
     ADMIN_AI_SETTINGS: 'adminAiSettings',

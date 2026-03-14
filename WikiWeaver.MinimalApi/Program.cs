@@ -104,7 +104,6 @@ app.UseAuthorization();
 
 app.MapArticleContentEndpoints();
 app.MapNavigationEndpoints();
-app.MapNodeEndpoints();
 app.MapArticleEndpoints();
 app.MapParagraphEndpoints();
 app.MapAdminEndpoints();
