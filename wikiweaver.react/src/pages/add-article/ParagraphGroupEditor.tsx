@@ -1,34 +1,33 @@
 import React from 'react';
 import { Button, Card, Radio, Space, Typography } from 'antd';
-import SimpleMarkdownEditor from '../../components/SimpleMarkdownEditor';
 import { locale } from '../../localization';
 import type { ParagraphGroupDraft } from './types';
+import styles from './ParagraphGroupEditor.module.css';
 
 const { Text } = Typography;
 
 type ParagraphGroupEditorProps = {
   group: ParagraphGroupDraft;
-  isAiBusy: boolean;
   onAddAlternative: (groupOrder: number) => void;
   onSetDefault: (groupOrder: number, localId: string) => void;
-  onImproveWithAi: (groupOrder: number, localId: string) => void;
   onRemoveAlternative: (groupOrder: number, localId: string) => void;
   onContentChange: (groupOrder: number, localId: string, content: string) => void;
+  onActivateEditor: (groupOrder: number, localId: string) => void;
 };
 
 const ParagraphGroupEditor: React.FC<ParagraphGroupEditorProps> = ({
   group,
-  isAiBusy,
   onAddAlternative,
   onSetDefault,
-  onImproveWithAi,
   onRemoveAlternative,
   onContentChange,
+  onActivateEditor,
 }) => {
   const t = locale.addArticlePage;
 
   return (
     <Card
+      className={styles.groupCard}
       title={`${t.paragraphTitle} #${group.order}`}
       extra={<Button onClick={() => onAddAlternative(group.order)}>{t.addAlternative}</Button>}
     >
@@ -42,6 +41,7 @@ const ParagraphGroupEditor: React.FC<ParagraphGroupEditorProps> = ({
             <Card
               key={alternative.localId}
               size="small"
+              className={styles.alternativeCard}
               title={(
                 <Space>
                   <Radio value={alternative.localId}>{t.version} {index + 1}</Radio>
@@ -49,28 +49,21 @@ const ParagraphGroupEditor: React.FC<ParagraphGroupEditorProps> = ({
                 </Space>
               )}
               extra={(
-                <Space>
-                  <Button
-                    size="small"
-                    loading={isAiBusy}
-                    onClick={() => onImproveWithAi(group.order, alternative.localId)}
-                  >
-                    {t.aiStyle}
-                  </Button>
-                  <Button
-                    size="small"
-                    danger
-                    onClick={() => onRemoveAlternative(group.order, alternative.localId)}
-                  >
-                    {t.remove}
-                  </Button>
-                </Space>
+                <Button
+                  size="small"
+                  danger
+                  onClick={() => onRemoveAlternative(group.order, alternative.localId)}
+                >
+                  {t.remove}
+                </Button>
               )}
             >
-              <SimpleMarkdownEditor
+              <textarea
                 value={alternative.content}
-                onChange={(content) => onContentChange(group.order, alternative.localId, content)}
+                onFocus={() => onActivateEditor(group.order, alternative.localId)}
+                onChange={(event) => onContentChange(group.order, alternative.localId, event.target.value)}
                 placeholder={t.editorPlaceholder}
+                className={styles.plainTextArea}
               />
             </Card>
           ))}

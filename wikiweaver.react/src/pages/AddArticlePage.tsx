@@ -22,6 +22,11 @@ import type { ParagraphGroupDraft } from './add-article/types';
 
 const { Title, Text } = Typography;
 
+type ActiveEditor = {
+  groupOrder: number;
+  localId: string;
+};
+
 const AddArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
@@ -30,6 +35,7 @@ const AddArticlePage: React.FC = () => {
   const [groups, setGroups] = useState<ParagraphGroupDraft[]>([createEmptyGroup(1)]);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
+  const [activeEditor, setActiveEditor] = useState<ActiveEditor | null>(null);
 
   const t = locale.addArticlePage;
 
@@ -59,6 +65,23 @@ const AddArticlePage: React.FC = () => {
     setGroups((current) => setDefaultAlternativeInGroups(current, groupOrder, localId));
   };
 
+  const applyMarkdownSnippet = (updater: (content: string) => string) => {
+    if (!activeEditor) {
+      messageApi.warning(t.warnings.selectParagraphForFormatting);
+      return;
+    }
+
+    const group = groups.find((item) => item.order === activeEditor.groupOrder);
+    const alternative = group?.alternatives.find((item) => item.localId === activeEditor.localId);
+
+    if (!alternative) {
+      messageApi.warning(t.warnings.selectParagraphForFormatting);
+      return;
+    }
+
+    setAlternativeContent(activeEditor.groupOrder, activeEditor.localId, updater(alternative.content));
+  };
+
   const addParagraphGroup = () => {
     setGroups((current) => [...current, createEmptyGroup(current.length + 1)]);
   };
@@ -69,23 +92,9 @@ const AddArticlePage: React.FC = () => {
 
   const removeAlternative = (groupOrder: number, localId: string) => {
     setGroups((current) => removeAlternativeFromGroups(current, groupOrder, localId));
-  };
 
-  const improveSingleAlternativeWithAi = async (groupOrder: number, localId: string) => {
-    const group = groups.find((item) => item.order === groupOrder);
-    const alternative = group?.alternatives.find((item) => item.localId === localId);
-
-    if (!alternative || !alternative.content.trim()) {
-      messageApi.warning(t.warnings.fillBeforeAi);
-      return;
-    }
-
-    try {
-      const result = await styleMutation.mutateAsync(alternative.content);
-      setAlternativeContent(groupOrder, localId, result.styledText);
-      messageApi.success(`${t.aiStyledParagraph}: ${groupOrder}`);
-    } catch (error) {
-      messageApi.error(`${t.aiStyleFailed}: ${(error as Error).message}`);
+    if (activeEditor?.groupOrder === groupOrder && activeEditor.localId === localId) {
+      setActiveEditor(null);
     }
   };
 
@@ -144,6 +153,7 @@ const AddArticlePage: React.FC = () => {
     }
 
     setGroups(importedGroups);
+    setActiveEditor(null);
     setIsImportOpen(false);
     setImportText('');
     messageApi.success(`${t.importedParagraphs}: ${importedGroups.length}`);
@@ -165,10 +175,16 @@ const AddArticlePage: React.FC = () => {
             style={{ width: 240 }}
             min={1}
           />
-          <Space>
+          <Space wrap>
             <Button onClick={() => setIsImportOpen(true)}>{t.importDraft}</Button>
+            <Button onClick={() => applyMarkdownSnippet((value) => `${value}**${locale.markdownEditor.insertText}**`)}>{locale.markdownEditor.bold}</Button>
+            <Button onClick={() => applyMarkdownSnippet((value) => `${value}_${locale.markdownEditor.insertText}_`)}>{locale.markdownEditor.italic}</Button>
+            <Button onClick={() => applyMarkdownSnippet((value) => `${value}\n## ${locale.markdownEditor.headingSnippet}`)}>{locale.markdownEditor.heading}</Button>
+            <Button onClick={() => applyMarkdownSnippet((value) => `${value}\n- ${locale.markdownEditor.listSnippet}`)}>{locale.markdownEditor.list}</Button>
+            <Button onClick={() => applyMarkdownSnippet((value) => `${value}\n> ${locale.markdownEditor.quoteSnippet}`)}>{locale.markdownEditor.quote}</Button>
             <Button loading={styleMutation.isPending} onClick={improveAllWithAi}>{t.improveAllAi}</Button>
           </Space>
+          <Text type="secondary">{t.toolbarHint}</Text>
           <Text type="secondary">{t.paragraphStats}: {groups.length} · {t.versionsStats}: {totalAlternatives}</Text>
         </Space>
       </Card>
@@ -177,12 +193,11 @@ const AddArticlePage: React.FC = () => {
         <ParagraphGroupEditor
           key={group.order}
           group={group}
-          isAiBusy={styleMutation.isPending}
           onAddAlternative={addAlternative}
           onSetDefault={setDefaultAlternative}
-          onImproveWithAi={improveSingleAlternativeWithAi}
           onRemoveAlternative={removeAlternative}
           onContentChange={setAlternativeContent}
+          onActivateEditor={(groupOrder, localId) => setActiveEditor({ groupOrder, localId })}
         />
       ))}
 
