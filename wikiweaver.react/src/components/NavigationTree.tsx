@@ -1,6 +1,7 @@
 import React from 'react';
 import { EditOutlined } from '@ant-design/icons';
 import { Button, Tree } from 'antd';
+import type { TreeProps } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 import { convertToTreeData, type TreeNodeData } from '../utils/navigationHelper';
@@ -19,15 +20,14 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleTreeSelect = (selectedKeys: React.Key[]) => {
-    const key = selectedKeys[0] as string | undefined;
+  const handleTreeSelect: TreeProps<TreeNodeData>['onSelect'] = (_, info) => {
+    const selectedNode = info.selectedNodes[0] as TreeNodeData | undefined;
 
-    if (!key?.startsWith('article-')) {
+    if (!selectedNode?.articleId) {
       return;
     }
 
-    const articleId = key.split('article-')[1];
-    navigate(`/article/${articleId}`);
+    navigate(`/article/${selectedNode.articleId}`);
   };
 
   const treeData = navigationTree ? convertToTreeData(navigationTree) : [];
