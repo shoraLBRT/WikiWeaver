@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
-import { Spin, Alert, Empty, Button, Space, Breadcrumb } from 'antd';
+import { ArticleInfoboxPlaceholder } from '../components/article/ArticleInfoboxPlaceholder';
+import { ArticleRightSidebar, type TocItem } from '../components/article/ArticleRightSidebar';
+import { VersionedParagraphBlock } from '../components/article/VersionedParagraphBlock';
 import MarkdownContent from '../components/MarkdownContent';
-import styles from './ArticlePage.module.css';
-import { LoadingOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { locale } from '../localization';
 import {
@@ -45,6 +46,14 @@ const getInitialUiMode = (): ParagraphUiMode => {
   return isParagraphUiMode(savedMode) ? savedMode : DEFAULT_ARTICLE_UI_MODE;
 };
 
+const headingPattern = /^(#{1,6})\s+(.+)$/gm;
+
+const extractHeadingTitle = (content: string): string | null => {
+  const match = headingPattern.exec(content);
+  headingPattern.lastIndex = 0;
+  return match?.[2]?.trim() ?? null;
+};
+
 const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const articleId = parseInt(id || '0', 10);
@@ -70,7 +79,9 @@ const ArticlePage: React.FC = () => {
   const breadcrumbItems = useMemo(
     () =>
       articlePath.map((article) => ({
-        title: article.hasContent ? <Link to={`/article/${article.id}`}>{article.title}</Link> : article.title,
+        id: article.id,
+        title: article.title,
+        hasContent: article.hasContent,
       })),
     [articlePath],
   );
@@ -89,6 +100,39 @@ const ArticlePage: React.FC = () => {
       .map(([order, paragraphs]) => ({ order, paragraphs }));
   }, [articleContent]);
 
+  const renderedParagraphs = useMemo(
+    () =>
+      groupedParagraphs.map(({ order, paragraphs }) => {
+        const defaultIndex = paragraphs.findIndex((paragraph) => paragraph.isDefault);
+        const activeIndex = selectedAlternatives[order] ?? (defaultIndex >= 0 ? defaultIndex : 0);
+        const activeParagraph = paragraphs[activeIndex] ?? paragraphs[0];
+        const title = extractHeadingTitle(activeParagraph.content);
+
+        return {
+          order,
+          paragraphs,
+          activeIndex,
+          activeParagraph,
+          hasAlternatives: paragraphs.length > 1,
+          anchorId: title ? `section-${order}` : `paragraph-${order}`,
+          title,
+        };
+      }),
+    [groupedParagraphs, selectedAlternatives],
+  );
+
+  const tocItems = useMemo<TocItem[]>(() => {
+    const items: TocItem[] = [{ id: 'article-overview', label: 'Общее описание' }];
+
+    renderedParagraphs.forEach((paragraph) => {
+      if (paragraph.title) {
+        items.push({ id: paragraph.anchorId, label: paragraph.title });
+      }
+    });
+
+    return items;
+  }, [renderedParagraphs]);
+
   const normalizeAlternativeIndex = (index: number, total: number) => {
     if (total <= 0) return 0;
     return ((index % total) + total) % total;
@@ -106,115 +150,98 @@ const ArticlePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-border-soft)] border-t-[var(--color-brand-forest)]" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <Alert
-          message={locale.articlePage.loadError}
-          description={(error as Error).message}
-          type="error"
-          showIcon
-        />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="w-full max-w-xl rounded-3xl border border-red-200 bg-red-50 px-6 py-5 text-red-700 shadow-sm">
+          <p className="m-0 text-base font-semibold">{locale.articlePage.loadError}</p>
+          <p className="mb-0 mt-2 text-sm text-red-600">{(error as Error).message}</p>
+        </div>
       </div>
     );
   }
 
   if (!articleContent) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <Empty description={locale.articlePage.articleNotFound} />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="rounded-3xl border border-[var(--color-border-soft)] bg-white px-8 py-10 text-center shadow-sm">
+          <p className="m-0 text-lg font-semibold text-[var(--color-ink-strong)]">{locale.articlePage.articleNotFound}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.page}>
-      {breadcrumbItems.length > 0 && (
-        <div className={styles.breadcrumb}>
-          <Breadcrumb items={breadcrumbItems} />
-        </div>
-      )}
+    <div className="xl:flex xl:gap-0">
+      <main className="min-w-0 flex-1 bg-white xl:border-r xl:border-[var(--color-border-soft)]">
+        <div className="mx-auto max-w-[760px] px-4 py-6 pb-24 sm:px-6 lg:px-8">
+          {breadcrumbItems.length > 0 ? (
+            <nav className="mb-5 flex flex-wrap items-center gap-1 text-[12.5px]">
+              {breadcrumbItems.map((item, index) => (
+                <React.Fragment key={`${item.id}-${index}`}>
+                  <span className={index === breadcrumbItems.length - 1 ? 'text-[var(--color-ink-strong)]' : 'text-[var(--color-brand-forest)]'}>
+                    {item.hasContent ? <Link to={`/article/${item.id}`}>{item.title}</Link> : item.title}
+                  </span>
+                  {index < breadcrumbItems.length - 1 ? (
+                    <ChevronRight size={12} className="shrink-0 text-[#bebdb8]" />
+                  ) : null}
+                </React.Fragment>
+              ))}
+            </nav>
+          ) : null}
 
-      <div>
-        {groupedParagraphs.length > 0 ? (
-          groupedParagraphs.map(({ order, paragraphs }) => {
-            const defaultIndex = paragraphs.findIndex((paragraph) => paragraph.isDefault);
-            const selectedIndex = selectedAlternatives[order] ?? (defaultIndex >= 0 ? defaultIndex : 0);
-            const selectedParagraph = paragraphs[selectedIndex] ?? paragraphs[0];
-            const hasAlternatives = paragraphs.length > 1;
+          <h1 className="mb-4 text-[28px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">
+            {articleContent.title}
+          </h1>
 
-            if (!hasAlternatives) {
-              return (
-                <div key={order} className={`${styles.markdown} ${styles.plainParagraph}`}>
-                  <MarkdownContent content={selectedParagraph.content} />
-                </div>
-              );
-            }
+          <div id="article-overview" className="scroll-mt-24">
+            <ArticleInfoboxPlaceholder />
+          </div>
 
-            if (uiMode === 'arrows') {
-              return (
-                <div key={order} className={styles.arrowsWrapper}>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<LeftOutlined />}
-                    className={`${styles.arrowButton} ${styles.arrowLeft}`}
-                    aria-label={locale.articlePage.previousAlternative}
-                    onClick={() => moveAlternative(order, selectedIndex, -1, paragraphs.length)}
-                  />
-
-                  <div className={`${styles.paragraphContainer} ${styles.carouselParagraphContainer}`}>
-                    <div className={styles.markdown}>
-                      <MarkdownContent content={selectedParagraph.content} />
+          {renderedParagraphs.length > 0 ? (
+            renderedParagraphs.map((paragraph) => {
+              if (!paragraph.hasAlternatives) {
+                return (
+                  <section key={paragraph.order} id={paragraph.anchorId} className="scroll-mt-24 py-0.5">
+                    <div className="article-markdown text-[14.5px] leading-8 text-[var(--color-ink-default)]">
+                      <MarkdownContent content={paragraph.activeParagraph.content} />
                     </div>
-                  </div>
+                  </section>
+                );
+              }
 
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<RightOutlined />}
-                    className={`${styles.arrowButton} ${styles.arrowRight}`}
-                    aria-label={locale.articlePage.nextAlternative}
-                    onClick={() => moveAlternative(order, selectedIndex, 1, paragraphs.length)}
-                  />
+              return (
+                <div key={paragraph.order} id={paragraph.anchorId} className="scroll-mt-24">
+                  <VersionedParagraphBlock
+                    order={paragraph.order}
+                    activeIndex={paragraph.activeIndex}
+                    total={paragraph.paragraphs.length}
+                    mode={uiMode}
+                    onSelect={(index) => selectAlternative(paragraph.order, index, paragraph.paragraphs.length)}
+                    onMove={(direction) => moveAlternative(paragraph.order, paragraph.activeIndex, direction, paragraph.paragraphs.length)}
+                  >
+                    <div className="article-markdown">
+                      <MarkdownContent content={paragraph.activeParagraph.content} />
+                    </div>
+                  </VersionedParagraphBlock>
                 </div>
               );
-            }
+            })
+          ) : (
+            <div className="rounded-3xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-8 py-10 text-center text-[var(--color-ink-muted)] shadow-sm">
+              {locale.articlePage.noContent}
+            </div>
+          )}
+        </div>
+      </main>
 
-            return (
-              <div key={order} className={styles.paragraphContainer}>
-                <div className={styles.markdown}>
-                  <MarkdownContent content={selectedParagraph.content} />
-                </div>
-
-                <div className={styles.controls}>
-                  <Space>
-                    {paragraphs.map((_, index) => (
-                      <Button
-                        key={`${order}-num-${index}`}
-                        shape="circle"
-                        size="small"
-                        type={index === selectedIndex ? 'primary' : 'default'}
-                        onClick={() => selectAlternative(order, index, paragraphs.length)}
-                      >
-                        {index + 1}
-                      </Button>
-                    ))}
-                  </Space>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <Empty description={locale.articlePage.noContent} />
-        )}
-      </div>
+      <ArticleRightSidebar tocItems={tocItems} />
     </div>
   );
 };

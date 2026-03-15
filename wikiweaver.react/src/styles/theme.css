@@ -1,0 +1,76 @@
+:root {
+  --font-size: 16px;
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Amiri', serif;
+  --color-page-bg: #fafaf8;
+  --color-page-panel: #f4f3ee;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafaf8;
+  --color-ink-strong: #1c1b18;
+  --color-ink-default: #2c2b26;
+  --color-ink-muted: #6b6a65;
+  --color-ink-subtle: #9b9a95;
+  --color-brand-forest: #2d6a4f;
+  --color-brand-forest-strong: #1f513a;
+  --color-brand-forest-soft: #eef7f2;
+  --color-border-soft: #e2e1dc;
+  --color-border-mute: #eeede8;
+  --color-focus-ring: rgba(45, 106, 79, 0.2);
+  --shadow-soft: 0 20px 70px rgba(28, 27, 24, 0.08);
+  --radius-card: 18px;
+  --radius-pill: 999px;
+  --layout-header-height: 48px;
+  --layout-sidebar-width: 240px;
+  --layout-right-sidebar-width: 220px;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --color-page-bg: var(--color-page-bg);
+  --color-page-panel: var(--color-page-panel);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-ink-strong: var(--color-ink-strong);
+  --color-ink-default: var(--color-ink-default);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-subtle: var(--color-ink-subtle);
+  --color-brand-forest: var(--color-brand-forest);
+  --color-brand-forest-strong: var(--color-brand-forest-strong);
+  --color-brand-forest-soft: var(--color-brand-forest-soft);
+  --color-border-soft: var(--color-border-soft);
+  --color-border-mute: var(--color-border-mute);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-ink-strong);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  p,
+  li,
+  label,
+  input,
+  textarea,
+  button {
+    color: var(--color-ink-default);
+    line-height: 1.5;
+  }
+}
+
+@utility surface-card {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility panel-muted {
+  background: var(--color-page-panel);
+  border: 1px solid var(--color-border-soft);
+}

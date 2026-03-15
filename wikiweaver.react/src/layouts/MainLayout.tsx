@@ -1,83 +1,154 @@
 import React from 'react';
-import { Layout, Button, Typography, Tooltip } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
-import { LeftOutlined, RightOutlined, SafetyCertificateOutlined, LogoutOutlined } from '@ant-design/icons';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  Shield,
+} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
-import { APP_CONSTANTS } from '../constants/AppConstants';
-import { clearStoredAdminToken } from '../services/authTokenStorage';
-import { isAdminAuthenticated } from '../services/authService';
 import { locale } from '../localization';
-import styles from './MainLayout.module.css';
-
-const { Header, Content } = Layout;
-const { Title } = Typography;
+import { isAdminAuthenticated } from '../services/authService';
+import { clearStoredAdminToken } from '../services/authTokenStorage';
+import { Button } from '../shared/ui/Button';
 
 interface MainLayoutProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-    const navigate = useNavigate();
-    const { collapsed, toggleCollapsed } = useSidebar();
-    const isAdmin = isAdminAuthenticated();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { collapsed, toggleCollapsed } = useSidebar();
+  const isAdmin = isAdminAuthenticated();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isCreateRoute = location.pathname === '/article/new';
 
-    const sidebarSpaceWidth = collapsed
-        ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
-        : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH;
+  const logoWidthClass = collapsed ? 'lg:w-[88px]' : 'lg:w-[240px]';
 
-    return (
-        <Layout className={styles.mainLayout}>
-            <Header className={styles.header}>
-                <div className={styles.sidebarSpacer} style={{ width: sidebarSpaceWidth }}>
-                    <Link to="/" className={styles.headerTitleLink}>
-                        <Title level={4} className={`${styles.headerTitle} ${collapsed ? styles.headerTitleCollapsed : ''}`}>
-                            {locale.app.name}
-                        </Title>
-                    </Link>
-                </div>
+  return (
+    <div className="min-h-screen bg-page-bg text-ink-default">
+      <header className="sticky top-0 z-40 flex h-[var(--layout-header-height)] items-stretch border-b border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md">
+        <div className={`hidden items-center border-r border-[var(--color-border-soft)] px-4 transition-[width] duration-200 lg:flex ${logoWidthClass}`}>
+          <Link to="/" className="flex min-w-0 flex-col leading-none">
+            <span className="truncate text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">
+              {collapsed ? 'WW' : locale.app.name}
+            </span>
+            {!collapsed ? (
+              <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--color-brand-forest)]">
+                knowledge system
+              </span>
+            ) : null}
+          </Link>
+        </div>
 
-                <div className={styles.headerMainStart}>
-                    <Button
-                        type="text"
-                        aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
-                        icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-                        onClick={toggleCollapsed}
-                        className={styles.navToggleButton}
-                    />
-                </div>
+        <div className="flex min-w-0 flex-1 items-stretch">
+          <div className="flex items-center border-r border-[var(--color-border-soft)] px-2 sm:px-3">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)]"
+              title="Назад"
+              aria-label="Назад"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-        <div className={styles.headerActions}>
-          <Tooltip title={locale.layout.actions.adminPanel}>
-            <Button
-              type="text"
-              icon={<SafetyCertificateOutlined />}
-              onClick={() => navigate('/admin')}
-            />
-          </Tooltip>
-          {isAdmin && (
-            <Tooltip title={locale.layout.actions.logout}>
+            <Link
+              to="/"
+              className="ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-brand-forest)]"
+              title={locale.layout.menu.home}
+              aria-label={locale.layout.menu.home}
+            >
+              <Home size={16} />
+            </Link>
+
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              className="ml-1 hidden h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:flex"
+              title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+              aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+            >
+              {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            </button>
+          </div>
+
+          <div className="hidden min-w-0 items-stretch md:flex">
+            <div className="flex items-center border-r border-[var(--color-border-soft)] px-4">
+              <div className="flex items-center gap-2 text-sm text-[var(--color-ink-muted)]">
+                <span className="rounded-full bg-[var(--color-brand-forest-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-brand-forest)]">
+                  lib
+                </span>
+                <span className="truncate">
+                  {isAdminRoute
+                    ? locale.layout.actions.adminPanel
+                    : isCreateRoute
+                      ? locale.layout.menu.addArticle
+                      : locale.app.description}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="ml-auto flex items-center gap-2 px-3 sm:px-4">
+            {isAdmin ? (
               <Button
-                type="text"
-                icon={<LogoutOutlined />}
+                variant={isCreateRoute ? 'primary' : 'secondary'}
+                className="hidden sm:inline-flex"
+                onClick={() => navigate('/article/new')}
+              >
+                <Plus size={14} />
+                {locale.layout.menu.addArticle}
+              </Button>
+            ) : null}
+
+            <Button
+              variant={isAdminRoute ? 'primary' : 'secondary'}
+              onClick={() => navigate('/admin')}
+            >
+              <Shield size={14} />
+              <span className="hidden sm:inline">{locale.layout.actions.adminPanel}</span>
+            </Button>
+
+            {isAdmin ? (
+              <Button
+                variant="ghost"
                 onClick={() => {
                   clearStoredAdminToken();
                   navigate('/');
                 }}
-              />
-            </Tooltip>
-          )}
-        </div>
-      </Header>
+                aria-label={locale.layout.actions.logout}
+                title={locale.layout.actions.logout}
+              >
+                <LogOut size={15} />
+              </Button>
+            ) : null}
 
-            <Layout className={styles.pageLayout}>
-                <Sidebar collapsed={collapsed} />
-                <Content className={styles.content}>
-                    {children}
-                </Content>
-            </Layout>
-        </Layout>
-    );
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:hidden"
+              title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+              aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+            >
+              {collapsed ? <ChevronRight size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex min-h-[calc(100vh-var(--layout-header-height))]">
+        <Sidebar collapsed={collapsed} />
+        <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-6">{children}</main>
+      </div>
+    </div>
+  );
 };
 
 export default MainLayout;

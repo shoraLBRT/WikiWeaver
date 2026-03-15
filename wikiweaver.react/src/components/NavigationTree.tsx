@@ -1,73 +1,125 @@
-import React from 'react';
-import { EditOutlined } from '@ant-design/icons';
-import { Button, Tree } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, FilePenLine } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { NavigationArticleDto } from '../shared/types/ApiTypes';
-import { convertToTreeData, type TreeNodeData } from '../utils/navigationHelper';
-import styles from './NavigationTree.module.css';
 
 interface NavigationTreeProps {
   navigationTree?: NavigationArticleDto[];
   showArticleEditActions?: boolean;
 }
 
-const editArticleLabel = 'Ðåäàêòèðîâàòü ñòàòüþ';
+type NavigationItemProps = {
+  article: NavigationArticleDto;
+  depth: number;
+  activeArticleId?: number;
+  showArticleEditActions: boolean;
+};
+
+const editArticleLabel = 'Редактировать статью';
+
+const NavigationItem: React.FC<NavigationItemProps> = ({
+  article,
+  depth,
+  activeArticleId,
+  showArticleEditActions,
+}) => {
+  const navigate = useNavigate();
+  const hasChildren = (article.children?.length ?? 0) > 0;
+  const [expanded, setExpanded] = useState(true);
+  const isActive = article.id === activeArticleId;
+  const isClickable = article.hasContent;
+
+  return (
+    <div>
+      <div
+        className={[
+          'group flex items-center gap-1 rounded-xl px-2 py-1.5 transition-colors',
+          isActive
+            ? 'bg-[var(--color-brand-forest-soft)] text-[var(--color-brand-forest)]'
+            : 'text-[var(--color-ink-default)] hover:bg-[rgba(255,255,255,0.75)] hover:text-[var(--color-ink-strong)]',
+        ].join(' ')}
+        style={{ paddingLeft: `${8 + depth * 14}px` }}
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => setExpanded((current) => !current)}
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-ink-default)]"
+            aria-label={expanded ? 'Свернуть раздел' : 'Развернуть раздел'}
+          >
+            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+        ) : (
+          <span className="block h-5 w-5 shrink-0" />
+        )}
+
+        {isClickable ? (
+          <Link
+            to={`/article/${article.id}`}
+            className={`min-w-0 flex-1 truncate text-[13px] ${isActive ? 'font-medium' : ''}`}
+          >
+            {article.title}
+          </Link>
+        ) : (
+          <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink-muted)]">{article.title}</span>
+        )}
+
+        {showArticleEditActions && article.hasContent ? (
+          <button
+            type="button"
+            aria-label={editArticleLabel}
+            title={editArticleLabel}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              navigate(`/admin/articles/${article.id}/edit`);
+            }}
+            className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-brand-forest)] group-hover:flex"
+          >
+            <FilePenLine size={13} />
+          </button>
+        ) : null}
+      </div>
+
+      {hasChildren && expanded ? (
+        <div className="mt-0.5 space-y-0.5">
+          {article.children?.map((child) => (
+            <NavigationItem
+              key={child.id}
+              article={child}
+              depth={depth + 1}
+              activeArticleId={activeArticleId}
+              showArticleEditActions={showArticleEditActions}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 const NavigationTree: React.FC<NavigationTreeProps> = ({
   navigationTree,
   showArticleEditActions = false,
 }) => {
-  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleTreeSelect = (selectedKeys: React.Key[]) => {
-    const key = selectedKeys[0] as string | undefined;
-
-    if (!key?.startsWith('article-')) {
-      return;
-    }
-
-    const articleId = key.split('article-')[1];
-    navigate(`/article/${articleId}`);
-  };
-
-  const treeData = navigationTree ? convertToTreeData(navigationTree) : [];
+  const activeArticleId = useMemo(() => {
+    const match = location.pathname.match(/^\/article\/(\d+)$/);
+    return match ? Number(match[1]) : undefined;
+  }, [location.pathname]);
 
   return (
-    <div className={styles.navigationTreeContainer}>
-      <Tree
-        className={styles.treeContainer}
-        treeData={treeData}
-        onSelect={handleTreeSelect}
-        defaultExpandAll
-        titleRender={(node) => {
-          const treeNode = node as TreeNodeData;
-
-          if (!treeNode.articleId) {
-            return treeNode.title;
-          }
-
-          return (
-            <div className={styles.treeTitle}>
-              <Link className={styles.articleLink} to={`/article/${treeNode.articleId}`}>
-                {treeNode.title}
-              </Link>
-              {showArticleEditActions ? (
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  aria-label={editArticleLabel}
-                  title={editArticleLabel}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    navigate(`/admin/articles/${treeNode.articleId}/edit`);
-                  }}
-                />
-              ) : null}
-            </div>
-          );
-        }}
-      />
+    <div className="space-y-0.5">
+      {navigationTree?.map((article) => (
+        <NavigationItem
+          key={article.id}
+          article={article}
+          depth={0}
+          activeArticleId={activeArticleId}
+          showArticleEditActions={showArticleEditActions}
+        />
+      ))}
     </div>
   );
 };

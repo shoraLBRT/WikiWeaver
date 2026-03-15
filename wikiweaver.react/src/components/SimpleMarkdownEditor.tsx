@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { Button, Space, Typography } from 'antd';
 import { locale } from '../localization';
-
-const { Text } = Typography;
+import { Button } from '../shared/ui/Button';
+import { Textarea } from '../shared/ui/Textarea';
 
 interface SimpleMarkdownEditorProps {
   value: string;
@@ -18,22 +17,22 @@ const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onCh
   const lineCount = useMemo(() => (value ? value.split('\n').length : 0), [value]);
 
   return (
-    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-      <Space wrap>
-        <Button size="small" onClick={() => insertAroundSelection('**')}>{locale.markdownEditor.bold}</Button>
-        <Button size="small" onClick={() => insertAroundSelection('_')}>{locale.markdownEditor.italic}</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n## ${locale.markdownEditor.headingSnippet}`)}>{locale.markdownEditor.heading}</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n- ${locale.markdownEditor.listSnippet}`)}>{locale.markdownEditor.list}</Button>
-        <Button size="small" onClick={() => onChange(`${value}\n> ${locale.markdownEditor.quoteSnippet}`)}>{locale.markdownEditor.quote}</Button>
-      </Space>
-      <textarea
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('**')}>{locale.markdownEditor.bold}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('_')}>{locale.markdownEditor.italic}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n## ${locale.markdownEditor.headingSnippet}`)}>{locale.markdownEditor.heading}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n- ${locale.markdownEditor.listSnippet}`)}>{locale.markdownEditor.list}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n> ${locale.markdownEditor.quoteSnippet}`)}>{locale.markdownEditor.quote}</Button>
+      </div>
+      <Textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        style={{ width: '100%', minHeight: 160, borderRadius: 8, border: '1px solid #d9d9d9', padding: 12, fontFamily: 'monospace' }}
+        className="min-h-48 rounded-2xl border-[var(--color-border-soft)] bg-white/90 px-4 py-3 font-mono text-[13px] leading-6"
       />
-      <Text type="secondary">{locale.markdownEditor.lineCount}: {lineCount}</Text>
-    </Space>
+      <p className="m-0 text-xs text-[var(--color-ink-subtle)]">{locale.markdownEditor.lineCount}: {lineCount}</p>
+    </div>
   );
 };
 
