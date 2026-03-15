@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,6 +28,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAdmin = isAdminAuthenticated();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isCreateRoute = location.pathname === '/article/new';
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   const logoWidthClass = collapsed ? 'lg:w-[88px]' : 'lg:w-[240px]';
 
@@ -132,20 +137,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
             <button
               type="button"
-              onClick={toggleCollapsed}
+              onClick={() => setIsMobileSidebarOpen((current) => !current)}
               className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:hidden"
               title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
               aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
             >
-              {collapsed ? <ChevronRight size={18} /> : <PanelLeftClose size={18} />}
+              {isMobileSidebarOpen ? <PanelLeftClose size={18} /> : <ChevronRight size={18} />}
             </button>
           </div>
         </div>
       </header>
 
       <div className="flex min-h-[calc(100vh-var(--layout-header-height))]">
-        <Sidebar collapsed={collapsed} />
-        <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-6">{children}</main>
+        <Sidebar
+          collapsed={collapsed}
+          mobileOpen={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        />
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );

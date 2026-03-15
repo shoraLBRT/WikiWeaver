@@ -179,8 +179,8 @@ const ArticlePage: React.FC = () => {
 
   return (
     <div className="xl:flex xl:gap-0">
-      <main className="min-w-0 flex-1 bg-white xl:border-r xl:border-[var(--color-border-soft)]">
-        <div className="mx-auto max-w-[760px] px-4 py-6 pb-24 sm:px-6 lg:px-8">
+      <main className="min-w-0 flex-1 overflow-hidden border-right border-[var(--color-border-soft)] bg-white shadow-[0_24px_80px_rgba(28,27,24,0.05)] xl:rounded-r-none xl:border-r xl:border-[var(--color-border-soft)]">
+        <div className="mx-auto max-w-[760px] px-4 py-6 pb-24 sm:px-6 lg:px-8 xl:px-10">
           {breadcrumbItems.length > 0 ? (
             <nav className="mb-5 flex flex-wrap items-center gap-1 text-[12.5px]">
               {breadcrumbItems.map((item, index) => (

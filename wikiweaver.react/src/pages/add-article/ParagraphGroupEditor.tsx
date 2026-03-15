@@ -45,10 +45,7 @@ const ParagraphGroupEditor: React.FC<ParagraphGroupEditorProps> = ({
 
       <div className="space-y-4 p-5">
         {group.alternatives.map((alternative, index) => (
-          <div
-            key={alternative.localId}
-            className="rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4"
-          >
+          <div key={alternative.localId} className="rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">
             <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap items-center gap-2">
                 <button

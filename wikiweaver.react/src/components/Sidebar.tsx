@@ -36,9 +36,15 @@ const filterNavigationTree = (articles: NavigationArticleDto[], searchValue: str
 
 interface SidebarProps {
   collapsed: boolean;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  collapsed,
+  mobileOpen = false,
+  onCloseMobile,
+}) => {
   const [searchValue, setSearchValue] = useState('');
   const location = useLocation();
   const showArticleEditActions =
@@ -57,67 +63,92 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     return filterNavigationTree(navigationTree, searchValue);
   }, [navigationTree, searchValue]);
 
-  return (
-    <aside
-      className="sticky top-[var(--layout-header-height)] hidden h-[calc(100vh-var(--layout-header-height))] shrink-0 border-r border-[var(--color-border-soft)] bg-[var(--color-page-panel)] transition-[width] duration-200 lg:flex lg:flex-col"
-      style={{ width: collapsed ? 88 : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH }}
-    >
-      {collapsed ? (
-        <div className="flex h-full flex-col items-center justify-between px-3 py-4">
-          <div className="flex w-full justify-center">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border-soft)] bg-white text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
-              WW
-            </div>
-          </div>
-
-          <div className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--color-ink-subtle)]">
-            Navigation
-          </div>
-
-          <div className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
-            Lib
-          </div>
+  const expandedContent = (
+    <>
+      <div className="border-b border-[var(--color-border-soft)] p-3">
+        <div className="relative">
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
+          <Input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder={locale.layout.navigation.searchPlaceholder}
+            className="bg-white pl-9"
+          />
         </div>
-      ) : (
-        <>
-          <div className="border-b border-[var(--color-border-soft)] p-3">
-            <div className="relative">
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
-              <Input
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder={locale.layout.navigation.searchPlaceholder}
-                className="bg-white pl-9"
-              />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+        {isLoading ? (
+          <div className="flex h-40 items-center justify-center">
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-border-soft)] border-t-[var(--color-brand-forest)]" />
+          </div>
+        ) : error ? (
+          <div className="mx-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p className="m-0 font-semibold">{locale.sidebar.loadError}</p>
+            <p className="mb-0 mt-1 text-xs text-red-600">{(error as Error).message}</p>
+          </div>
+        ) : (
+          <NavigationTree
+            navigationTree={filteredNavigationTree}
+            showArticleEditActions={showArticleEditActions}
+            onNavigate={onCloseMobile}
+          />
+        )}
+      </div>
+
+      <div className="border-t border-[var(--color-border-soft)] px-4 py-3">
+        <p className="m-0 text-[11px] text-[var(--color-ink-subtle)]">
+          {locale.app.name} - knowledge workspace
+        </p>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <aside
+        className="sticky top-[var(--layout-header-height)] hidden h-[calc(100vh-var(--layout-header-height))] shrink-0 border-r border-[var(--color-border-soft)] bg-[var(--color-page-panel)] transition-[width] duration-200 lg:flex lg:flex-col"
+        style={{ width: collapsed ? 88 : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH }}
+      >
+        {collapsed ? (
+          <div className="flex h-full flex-col items-center justify-between px-3 py-4">
+            <div className="flex w-full justify-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border-soft)] bg-white text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
+                WW
+              </div>
+            </div>
+
+            <div className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--color-ink-subtle)]">
+              Navigation
+            </div>
+
+            <div className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
+              Lib
             </div>
           </div>
+        ) : expandedContent}
+      </aside>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-            {isLoading ? (
-              <div className="flex h-40 items-center justify-center">
-                <div className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-border-soft)] border-t-[var(--color-brand-forest)]" />
-              </div>
-            ) : error ? (
-              <div className="mx-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <p className="m-0 font-semibold">{locale.sidebar.loadError}</p>
-                <p className="mb-0 mt-1 text-xs text-red-600">{(error as Error).message}</p>
-              </div>
-            ) : (
-              <NavigationTree
-                navigationTree={filteredNavigationTree}
-                showArticleEditActions={showArticleEditActions}
-              />
-            )}
+      <div className={`fixed inset-0 z-50 lg:hidden ${mobileOpen ? '' : 'pointer-events-none'}`}>
+        <button
+          type="button"
+          aria-label="Закрыть навигацию"
+          onClick={onCloseMobile}
+          className={`absolute inset-0 bg-[rgba(20,20,18,0.35)] backdrop-blur-sm transition-opacity duration-200 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+        />
+        <aside
+          className={`absolute left-0 top-0 h-full w-[min(86vw,320px)] border-r border-[var(--color-border-soft)] bg-[var(--color-page-panel)] shadow-[0_24px_80px_rgba(28,27,24,0.16)] transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        >
+          <div className="flex h-[var(--layout-header-height)] items-center border-b border-[var(--color-border-soft)] px-4">
+            <div>
+              <p className="m-0 text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{locale.app.name}</p>
+              <p className="mb-0 mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-forest)]">navigation</p>
+            </div>
           </div>
-
-          <div className="border-t border-[var(--color-border-soft)] px-4 py-3">
-            <p className="m-0 text-[11px] text-[var(--color-ink-subtle)]">
-              {locale.app.name} - knowledge workspace
-            </p>
-          </div>
-        </>
-      )}
-    </aside>
+          <div className="flex h-[calc(100%-var(--layout-header-height))] flex-col">{expandedContent}</div>
+        </aside>
+      </div>
+    </>
   );
 };
 

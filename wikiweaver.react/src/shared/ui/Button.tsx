@@ -9,7 +9,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border border-[var(--color-brand-forest)] bg-[var(--color-brand-forest)] text-white hover:bg-[var(--color-brand-forest-strong)] hover:border-[var(--color-brand-forest-strong)]',
+    'border border-[var(--color-brand-forest)] bg-[var(--color-brand-forest)] text-white shadow-[0_10px_24px_rgba(45,106,79,0.18)] hover:bg-[var(--color-brand-forest-strong)] hover:border-[var(--color-brand-forest-strong)]',
   secondary:
     'border border-[var(--color-border-soft)] bg-white text-[var(--color-ink-default)] hover:bg-[var(--color-surface-muted)]',
   ghost:
@@ -20,7 +20,7 @@ export const Button = ({ className, variant = 'secondary', type = 'button', ...p
   <button
     type={type}
     className={cn(
-      'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-4 focus:ring-[var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60',
+      'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-200 focus:outline-none focus:ring-4 focus:ring-[var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60 active:translate-y-px',
       variantClasses[variant],
       className,
     )}

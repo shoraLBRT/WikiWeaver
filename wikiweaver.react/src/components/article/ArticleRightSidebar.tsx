@@ -45,7 +45,7 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
 
   return (
     <aside className="hidden xl:block xl:w-[220px] xl:shrink-0">
-      <div className="sticky top-[calc(var(--layout-header-height)+24px)] max-h-[calc(100vh-var(--layout-header-height)-48px)] overflow-y-auto border-l border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.92)] px-4 py-4 backdrop-blur-sm">
+      <div className="flex-1 overflow-y-auto py-4 px-4">
         <div className="mb-6">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             На этой странице

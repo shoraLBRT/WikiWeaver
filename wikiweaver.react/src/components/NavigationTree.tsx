@@ -6,6 +6,7 @@ import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 interface NavigationTreeProps {
   navigationTree?: NavigationArticleDto[];
   showArticleEditActions?: boolean;
+  onNavigate?: () => void;
 }
 
 type NavigationItemProps = {
@@ -13,6 +14,7 @@ type NavigationItemProps = {
   depth: number;
   activeArticleId?: number;
   showArticleEditActions: boolean;
+  onNavigate?: () => void;
 };
 
 const editArticleLabel = 'Редактировать статью';
@@ -22,6 +24,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
   depth,
   activeArticleId,
   showArticleEditActions,
+  onNavigate,
 }) => {
   const navigate = useNavigate();
   const hasChildren = (article.children?.length ?? 0) > 0;
@@ -57,6 +60,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
           <Link
             to={`/article/${article.id}`}
             className={`min-w-0 flex-1 truncate text-[13px] ${isActive ? 'font-medium' : ''}`}
+            onClick={onNavigate}
           >
             {article.title}
           </Link>
@@ -73,6 +77,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
               event.preventDefault();
               event.stopPropagation();
               navigate(`/admin/articles/${article.id}/edit`);
+              onNavigate?.();
             }}
             className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-brand-forest)] group-hover:flex"
           >
@@ -90,6 +95,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
               depth={depth + 1}
               activeArticleId={activeArticleId}
               showArticleEditActions={showArticleEditActions}
+              onNavigate={onNavigate}
             />
           ))}
         </div>
@@ -101,6 +107,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
 const NavigationTree: React.FC<NavigationTreeProps> = ({
   navigationTree,
   showArticleEditActions = false,
+  onNavigate,
 }) => {
   const location = useLocation();
 
@@ -118,6 +125,7 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
           depth={0}
           activeArticleId={activeArticleId}
           showArticleEditActions={showArticleEditActions}
+          onNavigate={onNavigate}
         />
       ))}
     </div>

@@ -243,7 +243,7 @@ const AddArticlePage: React.FC = () => {
 
           <div className="rounded-[24px] border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">
             <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">Quick actions</p>
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
               <Button onClick={() => setIsImportOpen(true)}>
                 <Upload size={14} />
                 {t.importDraft}
@@ -276,7 +276,7 @@ const AddArticlePage: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="sticky bottom-4 z-10 flex flex-wrap gap-3 rounded-2xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.9)] p-3 shadow-[0_18px_48px_rgba(28,27,24,0.08)] backdrop-blur-sm">
         <Button onClick={addParagraphGroup}>
           <Plus size={14} />
           {t.addParagraph}

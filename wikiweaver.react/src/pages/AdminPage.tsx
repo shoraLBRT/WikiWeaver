@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bot,
   Check,
+  Copy,
   Database,
   FileText,
   KeyRound,
@@ -11,6 +12,7 @@ import {
   Sparkles,
   Trash2,
   WandSparkles,
+  X,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -229,8 +231,8 @@ const AdminPage: React.FC = () => {
     }
 
     return (
-      <div className="overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-white">
-        <table className="w-full border-collapse text-left text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--color-border-soft)] bg-white">
+        <table className="min-w-[640px] w-full border-collapse text-left text-sm">
           <thead className="bg-[var(--color-page-panel)] text-[var(--color-ink-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">{locale.common.id}</th>
@@ -273,8 +275,8 @@ const AdminPage: React.FC = () => {
     }
 
     return (
-      <div className="overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-white">
-        <table className="w-full border-collapse text-left text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--color-border-soft)] bg-white">
+        <table className="min-w-[760px] w-full border-collapse text-left text-sm">
           <thead className="bg-[var(--color-page-panel)] text-[var(--color-ink-muted)]">
             <tr>
               <th className="px-4 py-3 font-medium">{locale.common.id}</th>
@@ -336,7 +338,12 @@ const AdminPage: React.FC = () => {
 
       {notice ? (
         <div className={`rounded-2xl border px-4 py-3 text-sm shadow-sm ${noticeClasses[notice.tone]}`}>
-          {notice.message}
+          <div className="flex items-start justify-between gap-3">
+            <p className="m-0">{notice.message}</p>
+            <button type="button" onClick={() => setNotice(null)} className="rounded-md p-1 opacity-70 transition-opacity hover:opacity-100">
+              <X size={14} />
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -534,7 +541,19 @@ const AdminPage: React.FC = () => {
               {inviteToken ? (
                 <div className="mt-4 rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">Token</p>
-                  <code className="break-all text-sm text-[var(--color-ink-strong)]">{inviteToken}</code>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <code className="break-all text-sm text-[var(--color-ink-strong)]">{inviteToken}</code>
+                    <Button
+                      className="px-3 py-1.5 text-xs"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(inviteToken);
+                        showNotice('success', t.inviteTokenGenerated);
+                      }}
+                    >
+                      <Copy size={13} />
+                      Copy
+                    </Button>
+                  </div>
                 </div>
               ) : null}
             </Card>
