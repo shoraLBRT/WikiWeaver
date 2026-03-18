@@ -4,7 +4,18 @@ export type AlternativeDraft = {
   isDefault: boolean;
 };
 
-export type ParagraphGroupDraft = {
-  order: number;
-  alternatives: AlternativeDraft[];
+export type PlainBlockKind = 'heading2' | 'heading3' | 'paragraph';
+
+export type PlainEditorBlock = {
+  id: string;
+  kind: PlainBlockKind;
+  content: string;
 };
+
+export type VersionedEditorBlock = {
+  id: string;
+  kind: 'versioned';
+  variants: AlternativeDraft[];
+};
+
+export type EditorBlock = PlainEditorBlock | VersionedEditorBlock;
