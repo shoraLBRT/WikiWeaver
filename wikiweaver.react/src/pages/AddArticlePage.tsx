@@ -14,6 +14,7 @@ import { Input } from '../shared/ui/Input';
 import { Textarea } from '../shared/ui/Textarea';
 import type { ArticleContentCreateDto, NavigationArticleDto } from '../shared/types/ApiTypes';
 import { DocumentBlockEditor } from './add-article/DocumentBlockEditor';
+import { EditorBottomToolbar, type FormatAction } from './add-article/EditorBottomToolbar';
 import { EditorHelpRail } from './add-article/EditorHelpRail';
 import { EditorOutlineRail } from './add-article/EditorOutlineRail';
 import { EditorToolbar } from './add-article/EditorToolbar';
@@ -201,7 +202,7 @@ const AddArticlePage: React.FC = () => {
     });
   };
 
-  const applyFormat = (action: 'bold' | 'italic' | 'link' | 'bulletList' | 'orderedList' | 'quote') => {
+  const applyFormat = (action: FormatAction) => {
     if (!activeTarget || isLocked) {
       return;
     }
@@ -342,8 +343,6 @@ const AddArticlePage: React.FC = () => {
         canImproveWithAi={canUseAi}
         isAiRunning={isAiRunning}
         isSaving={mutation.isPending}
-        onFormat={applyFormat}
-        onAddBlock={(kind) => setBlocks((current) => insertBlockAfter(current, activeTarget?.blockId ?? null, kind))}
         onTogglePreview={() => setIsPreview((current) => !current)}
         onImport={() => setIsImportOpen(true)}
         onImproveAll={improveWholeArticleWithAi}
@@ -435,6 +434,12 @@ const AddArticlePage: React.FC = () => {
             </div>
 
           </div>
+
+          <EditorBottomToolbar
+            disabled={isLocked || mutation.isPending}
+            onFormat={applyFormat}
+            onAddBlock={(kind) => setBlocks((current) => insertBlockAfter(current, activeTarget?.blockId ?? null, kind))}
+          />
         </main>
 
         <EditorHelpRail
