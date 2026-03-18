@@ -119,7 +119,17 @@ export const DocumentBlockEditor = ({
                   <button
                     type="button"
                     disabled={disabled || block.variants.length <= 1}
-                    onClick={() => onRemoveVersion(block.id, selectedVariant.localId)}
+                    onClick={() => {
+                      const currentIndex = block.variants.findIndex((variant) => variant.localId === selectedVariant.localId);
+                      const nextVariant =
+                        block.variants[currentIndex + 1] ?? block.variants[currentIndex - 1] ?? getDefaultVariant(block.variants);
+
+                      if (nextVariant && nextVariant.localId !== selectedVariant.localId) {
+                        onFocusTarget({ blockId: block.id, localId: nextVariant.localId });
+                      }
+
+                      onRemoveVersion(block.id, selectedVariant.localId);
+                    }}
                     className="rounded-lg p-2 text-[var(--color-ink-muted)] hover:bg-white hover:text-red-600 disabled:opacity-30"
                   >
                     <Trash2 size={13} />
