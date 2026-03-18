@@ -359,7 +359,6 @@ const AddArticlePage: React.FC = () => {
 
             <div className="overflow-hidden rounded-[30px] border border-[var(--color-border-soft)] bg-white shadow-[0_28px_90px_rgba(28,27,24,0.07)]">
               <div className="border-b border-[var(--color-border-soft)] px-6 py-5 sm:px-8">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-forest)]">Editor workspace</p>
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-subtle)]">
