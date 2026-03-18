@@ -36,36 +36,36 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
     <div>
       <div
         className={[
-          'group flex items-center gap-1 rounded-xl px-2 py-1.5 transition-colors',
+          'group flex items-center gap-0.5 rounded-lg px-1.5 py-1 transition-colors',
           isActive
             ? 'bg-[var(--color-brand-forest-soft)] text-[var(--color-brand-forest)]'
             : 'text-[var(--color-ink-default)] hover:bg-[rgba(255,255,255,0.75)] hover:text-[var(--color-ink-strong)]',
         ].join(' ')}
-        style={{ paddingLeft: `${8 + depth * 14}px` }}
+        style={{ paddingLeft: `${6 + depth * 12}px` }}
       >
         {hasChildren ? (
           <button
             type="button"
             onClick={() => setExpanded((current) => !current)}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-ink-default)]"
+            className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-ink-default)]"
             aria-label={expanded ? 'Свернуть раздел' : 'Развернуть раздел'}
           >
-            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
           </button>
         ) : (
-          <span className="block h-5 w-5 shrink-0" />
+          <span className="block h-[18px] w-[18px] shrink-0" />
         )}
 
         {isClickable ? (
           <Link
             to={`/article/${article.id}`}
-            className={`min-w-0 flex-1 truncate text-[13px] ${isActive ? 'font-medium' : ''}`}
+            className={`min-w-0 flex-1 truncate text-[12px] leading-5 ${isActive ? 'font-medium' : ''}`}
             onClick={onNavigate}
           >
             {article.title}
           </Link>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink-muted)]">{article.title}</span>
+          <span className="min-w-0 flex-1 truncate text-[12px] leading-5 text-[var(--color-ink-muted)]">{article.title}</span>
         )}
 
         {showArticleEditActions && article.hasContent ? (
@@ -79,15 +79,15 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
               navigate(`/admin/articles/${article.id}/edit`);
               onNavigate?.();
             }}
-            className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-brand-forest)] group-hover:flex"
+            className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-brand-forest)] group-hover:flex"
           >
-            <FilePenLine size={13} />
+            <FilePenLine size={12} />
           </button>
         ) : null}
       </div>
 
       {hasChildren && expanded ? (
-        <div className="mt-0.5 space-y-0.5">
+        <div className="mt-0.5 space-y-px">
           {article.children?.map((child) => (
             <NavigationItem
               key={child.id}
@@ -117,7 +117,7 @@ const NavigationTree: React.FC<NavigationTreeProps> = ({
   }, [location.pathname]);
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-px">
       {navigationTree?.map((article) => (
         <NavigationItem
           key={article.id}

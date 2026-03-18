@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ChevronLeft,
   ChevronRight,
   Home,
   LogOut,
@@ -10,6 +9,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { APP_CONSTANTS } from '../constants/AppConstants';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
 import { locale } from '../localization';
@@ -34,21 +34,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
 
-  const logoWidthClass = collapsed ? 'lg:w-[88px]' : 'lg:w-[240px]';
+  const logoWidth = collapsed
+    ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
+    : APP_CONSTANTS.DIMENSIONS.SIDEBAR_WIDTH;
 
   return (
     <div className="min-h-screen bg-page-bg text-ink-default">
       <header className="sticky top-0 z-40 flex h-[var(--layout-header-height)] items-stretch border-b border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.94)] backdrop-blur-md">
-        <div className={`hidden items-center border-r border-[var(--color-border-soft)] px-4 transition-[width] duration-200 lg:flex ${logoWidthClass}`}>
+        <div
+          className="hidden items-center border-r border-[var(--color-border-soft)] px-4 transition-[width] duration-200 lg:flex"
+          style={{ width: logoWidth }}
+        >
           <Link to="/" className="flex min-w-0 flex-col leading-none">
             <span className="truncate text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">
               {collapsed ? 'WW' : locale.app.name}
             </span>
-            {!collapsed ? (
-              <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--color-brand-forest)]">
-                knowledge system
-              </span>
-            ) : null}
           </Link>
         </div>
 
@@ -56,12 +56,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="flex items-center border-r border-[var(--color-border-soft)] px-2 sm:px-3">
             <button
               type="button"
-              onClick={() => window.history.back()}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)]"
-              title="Назад"
-              aria-label="Назад"
+              onClick={toggleCollapsed}
+              className="hidden h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:flex"
+              title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
+              aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
             >
-              <ChevronLeft size={18} />
+              {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
 
             <Link
@@ -72,16 +72,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
               <Home size={16} />
             </Link>
-
-            <button
-              type="button"
-              onClick={toggleCollapsed}
-              className="ml-1 hidden h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:flex"
-              title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
-              aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
-            >
-              {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-            </button>
           </div>
 
           <div className="hidden min-w-0 items-stretch md:flex">
