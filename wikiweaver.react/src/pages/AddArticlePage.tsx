@@ -401,7 +401,7 @@ const AddArticlePage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mx-auto max-w-[720px] space-y-2">
+                  <div className="mx-auto max-w-[720px] space-y-0.5">
                     {blocks.map((block, index) => (
                       <DocumentBlockEditor
                         key={block.id}

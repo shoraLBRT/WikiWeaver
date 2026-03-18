@@ -1,4 +1,6 @@
+import { useLayoutEffect, useRef, type TextareaHTMLAttributes } from 'react';
 import { ArrowDown, ArrowUp, GitBranch, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
+import { cn } from '../../shared/lib/cn';
 import { Textarea } from '../../shared/ui/Textarea';
 import type { AlternativeDraft, EditorBlock } from './types';
 
@@ -32,6 +34,37 @@ const targetKey = (blockId: string, localId: string | null) => `${blockId}:${loc
 const getDefaultVariant = (variants: AlternativeDraft[]) =>
   variants.find((variant) => variant.isDefault) ?? variants[0];
 
+type AutoResizingTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  textareaRef: (node: HTMLTextAreaElement | null) => void;
+};
+
+const AutoResizingTextarea = ({ textareaRef, className, value, ...props }: AutoResizingTextareaProps) => {
+  const localRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useLayoutEffect(() => {
+    const textarea = localRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = '0px';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <Textarea
+      {...props}
+      ref={(node) => {
+        localRef.current = node;
+        textareaRef(node);
+      }}
+      rows={1}
+      value={value}
+      className={cn('resize-none overflow-hidden', className)}
+    />
+  );
+};
+
 export const DocumentBlockEditor = ({
   block,
   index,
@@ -53,10 +86,10 @@ export const DocumentBlockEditor = ({
 }: DocumentBlockEditorProps) => {
   const headingClasses =
     block.kind === 'heading2'
-      ? 'min-h-[52px] text-[24px] font-bold tracking-[-0.03em]'
+      ? 'min-h-[36px] text-[24px] font-bold tracking-[-0.03em]'
       : block.kind === 'heading3'
-        ? 'min-h-[44px] text-[18px] font-semibold'
-        : 'min-h-[90px] text-[15px] leading-8';
+        ? 'min-h-[30px] text-[18px] font-semibold'
+        : 'min-h-[32px] text-[15px] leading-8';
 
   const blockKindLabel =
     block.kind === 'heading2'
@@ -70,14 +103,14 @@ export const DocumentBlockEditor = ({
   return (
     <section
       ref={(node) => blockRef(block.id, node)}
-      className="group rounded-[24px] border border-transparent px-5 py-4 transition-colors hover:border-[var(--color-border-soft)] hover:bg-[rgba(250,250,248,0.65)]"
+      className="group rounded-[24px] border border-transparent px-5 py-2.5 transition-colors hover:border-[var(--color-border-soft)] hover:bg-[rgba(250,250,248,0.65)]"
     >
-      <div className="mb-1.5 flex min-h-0 items-start justify-between gap-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-        <div className="flex min-h-0 items-center gap-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-subtle)]">
+      <div className="mb-0.5 flex min-h-0 items-start justify-between gap-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex min-h-0 items-center gap-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-subtle)]">
           {block.kind === 'versioned' ? <GitBranch size={12} /> : null}
           <span>{blockKindLabel}</span>
         </div>
-        <div className="flex items-center gap-1 py-0.5">
+        <div className="flex items-center gap-1 py-0">
           {block.kind === 'paragraph' ? (
             <button
               type="button"
@@ -159,13 +192,13 @@ export const DocumentBlockEditor = ({
                   </button>
                 </div>
 
-                <Textarea
-                  ref={(node) => editorRef(targetKey(block.id, selectedVariant.localId), node)}
+                <AutoResizingTextarea
+                  textareaRef={(node) => editorRef(targetKey(block.id, selectedVariant.localId), node)}
                   value={selectedVariant.content}
                   disabled={disabled}
                   onFocus={() => onFocusTarget({ blockId: block.id, localId: selectedVariant.localId })}
                   onChange={(event) => onChangeVersion(block.id, selectedVariant.localId, event.target.value)}
-                  className="min-h-[120px] border-0 bg-transparent px-0 py-1 text-[14px] leading-8 shadow-none focus:ring-0"
+                  className="min-h-[32px] border-0 bg-transparent px-0 py-1 text-[14px] leading-8 shadow-none focus:ring-0"
                   placeholder={`Текст версии ${selectedIndex + 1}...`}
                 />
               </>
@@ -215,8 +248,8 @@ export const DocumentBlockEditor = ({
           </div>
         </div>
       ) : (
-        <Textarea
-          ref={(node) => editorRef(targetKey(block.id, null), node)}
+        <AutoResizingTextarea
+          textareaRef={(node) => editorRef(targetKey(block.id, null), node)}
           value={block.content}
           disabled={disabled}
           onFocus={() => onFocusTarget({ blockId: block.id, localId: null })}
