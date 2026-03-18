@@ -150,6 +150,21 @@ export const convertParagraphToVersioned = (blocks: EditorBlock[], blockId: stri
     };
   });
 
+export const convertVersionedToParagraph = (blocks: EditorBlock[], blockId: string): EditorBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== blockId || block.kind !== 'versioned') {
+      return block;
+    }
+
+    const defaultVariant = block.variants.find((variant) => variant.isDefault) ?? block.variants[0];
+
+    return {
+      id: block.id,
+      kind: 'paragraph',
+      content: defaultVariant?.content ?? '',
+    };
+  });
+
 const toStoredMarkdown = (block: EditorBlock): string[] => {
   if (block.kind === 'versioned') {
     return block.variants

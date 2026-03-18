@@ -1,24 +1,30 @@
 import {
   Bold,
-  GitBranch,
   Heading2,
   Heading3,
   Italic,
   Link as LinkIcon,
   List,
   ListOrdered,
+  Pilcrow,
   Quote,
-  Type,
 } from 'lucide-react';
 import { Button } from '../../shared/ui/Button';
+import type { PlainBlockKind } from './types';
 
 export type FormatAction = 'bold' | 'italic' | 'link' | 'bulletList' | 'orderedList' | 'quote';
 
 type EditorBottomToolbarProps = {
   disabled: boolean;
   onFormat: (action: FormatAction) => void;
-  onAddBlock: (kind: 'paragraph' | 'heading2' | 'heading3' | 'versioned') => void;
+  onAddBlock: (kind: PlainBlockKind) => void;
 };
+
+const addActions: Array<{ kind: PlainBlockKind; label: string; icon: typeof Pilcrow }> = [
+  { kind: 'paragraph', label: 'Текст', icon: Pilcrow },
+  { kind: 'heading2', label: 'H2', icon: Heading2 },
+  { kind: 'heading3', label: 'H3', icon: Heading3 },
+];
 
 const ToolbarIconButton = ({
   icon: Icon,
@@ -55,23 +61,18 @@ export const EditorBottomToolbar = ({ disabled, onFormat, onAddBlock }: EditorBo
         <ToolbarIconButton icon={Quote} label="Цитата" onClick={() => onFormat('quote')} disabled={disabled} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.94)] px-2 py-1 shadow-[0_18px_48px_rgba(28,27,24,0.08)] backdrop-blur-sm">
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddBlock('paragraph')} disabled={disabled}>
-          <Type size={13} />
-          Параграф
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddBlock('heading2')} disabled={disabled}>
-          <Heading2 size={13} />
-          H2
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddBlock('heading3')} disabled={disabled}>
-          <Heading3 size={13} />
-          H3
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddBlock('versioned')} disabled={disabled}>
-          <GitBranch size={13} />
-          Версионный блок
-        </Button>
+      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.94)] px-1.5 py-1 shadow-[0_18px_48px_rgba(28,27,24,0.08)] backdrop-blur-sm">
+        {addActions.map(({ kind, label, icon: Icon }) => (
+          <Button
+            key={kind}
+            className="gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-[var(--color-ink-muted)] shadow-none hover:text-[var(--color-ink-strong)]"
+            onClick={() => onAddBlock(kind)}
+            disabled={disabled}
+          >
+            <Icon size={12} />
+            {label}
+          </Button>
+        ))}
       </div>
     </div>
   </div>

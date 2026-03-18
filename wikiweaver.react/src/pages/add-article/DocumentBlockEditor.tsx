@@ -1,7 +1,7 @@
-import { ArrowDown, ArrowUp, GitBranch, Plus, Star, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, GitBranch, Heading2, Heading3, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
 import { Button } from '../../shared/ui/Button';
 import { Textarea } from '../../shared/ui/Textarea';
-import type { AlternativeDraft, EditorBlock } from './types';
+import type { AlternativeDraft, EditorBlock, PlainBlockKind } from './types';
 
 type EditorTarget = {
   blockId: string;
@@ -25,7 +25,8 @@ type DocumentBlockEditorProps = {
   onDeleteBlock: (blockId: string) => void;
   onMoveBlock: (blockId: string, direction: -1 | 1) => void;
   onConvertToVersioned: (blockId: string) => void;
-  onAddAfter: (blockId: string, kind: 'paragraph' | 'heading2' | 'heading3' | 'versioned') => void;
+  onConvertToParagraph: (blockId: string) => void;
+  onAddAfter: (blockId: string, kind: PlainBlockKind) => void;
 };
 
 const targetKey = (blockId: string, localId: string | null) => `${blockId}:${localId ?? 'plain'}`;
@@ -50,42 +51,73 @@ export const DocumentBlockEditor = ({
   onDeleteBlock,
   onMoveBlock,
   onConvertToVersioned,
+  onConvertToParagraph,
   onAddAfter,
 }: DocumentBlockEditorProps) => {
-  const blockKindLabel =
-    block.kind === 'heading2' ? 'Heading H2' : block.kind === 'heading3' ? 'Heading H3' : block.kind === 'versioned' ? 'Versioned block' : 'Paragraph';
-
   const headingClasses =
     block.kind === 'heading2'
       ? 'min-h-[52px] text-[24px] font-bold tracking-[-0.03em]'
       : block.kind === 'heading3'
         ? 'min-h-[44px] text-[18px] font-semibold'
-        : 'min-h-[90px] text-[14px] leading-8';
+        : 'min-h-[90px] text-[15px] leading-8';
+
+  const blockKindLabel =
+    block.kind === 'heading2'
+      ? 'Heading H2'
+      : block.kind === 'heading3'
+        ? 'Heading H3'
+        : block.kind === 'versioned'
+          ? 'Versioned block'
+          : 'Paragraph';
+
+  const addActions: Array<{ kind: PlainBlockKind; label: string; icon: typeof Pilcrow }> = [
+    { kind: 'paragraph', label: 'Текст', icon: Pilcrow },
+    { kind: 'heading2', label: 'H2', icon: Heading2 },
+    { kind: 'heading3', label: 'H3', icon: Heading3 },
+  ];
 
   return (
     <section
       ref={(node) => blockRef(block.id, node)}
       className="group rounded-[24px] border border-transparent px-5 py-4 transition-colors hover:border-[var(--color-border-soft)] hover:bg-[rgba(250,250,248,0.65)]"
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-subtle)]">
+      <div className="mb-1.5 flex min-h-0 items-start justify-between gap-3 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex min-h-0 items-center gap-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-subtle)]">
           {block.kind === 'versioned' ? <GitBranch size={12} /> : null}
           <span>{blockKindLabel}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <button type="button" disabled={disabled || index === 0} onClick={() => onMoveBlock(block.id, -1)} className="rounded-lg p-2 text-[var(--color-ink-muted)] hover:bg-white disabled:opacity-30">
+        <div className="flex items-center gap-1 py-0.5">
+          {block.kind === 'paragraph' ? (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onConvertToVersioned(block.id)}
+              className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white hover:text-[var(--color-ink-strong)] disabled:opacity-30"
+              title="Преобразовать в версионный блок"
+              aria-label="Преобразовать в версионный блок"
+            >
+              <GitBranch size={14} />
+            </button>
+          ) : null}
+          {block.kind === 'versioned' ? (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onConvertToParagraph(block.id)}
+              className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white hover:text-[var(--color-ink-strong)] disabled:opacity-30"
+              title="Преобразовать в обычный параграф"
+              aria-label="Преобразовать в обычный параграф"
+            >
+              <Pilcrow size={14} />
+            </button>
+          ) : null}
+          <button type="button" disabled={disabled || index === 0} onClick={() => onMoveBlock(block.id, -1)} className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white disabled:opacity-30">
             <ArrowUp size={14} />
           </button>
-          <button type="button" disabled={disabled || index === total - 1} onClick={() => onMoveBlock(block.id, 1)} className="rounded-lg p-2 text-[var(--color-ink-muted)] hover:bg-white disabled:opacity-30">
+          <button type="button" disabled={disabled || index === total - 1} onClick={() => onMoveBlock(block.id, 1)} className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white disabled:opacity-30">
             <ArrowDown size={14} />
           </button>
-          {block.kind === 'paragraph' ? (
-            <Button className="px-3 py-1.5 text-xs" onClick={() => onConvertToVersioned(block.id)} disabled={disabled}>
-              <GitBranch size={13} />
-              Версионный
-            </Button>
-          ) : null}
-          <button type="button" disabled={disabled} onClick={() => onDeleteBlock(block.id)} className="rounded-lg p-2 text-[var(--color-ink-muted)] hover:bg-white hover:text-red-600 disabled:opacity-30">
+          <button type="button" disabled={disabled} onClick={() => onDeleteBlock(block.id)} className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white hover:text-red-600 disabled:opacity-30">
             <Trash2 size={14} />
           </button>
         </div>
@@ -209,19 +241,19 @@ export const DocumentBlockEditor = ({
         />
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddAfter(block.id, 'paragraph')} disabled={disabled}>
-          <Plus size={12} /> Параграф
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddAfter(block.id, 'heading2')} disabled={disabled}>
-          <Plus size={12} /> H2
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddAfter(block.id, 'heading3')} disabled={disabled}>
-          <Plus size={12} /> H3
-        </Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onAddAfter(block.id, 'versioned')} disabled={disabled}>
-          <Plus size={12} /> Версионный
-        </Button>
+      <div className="mt-3 flex flex-wrap gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        {addActions.map(({ kind, label, icon: Icon }) => (
+          <Button
+            key={kind}
+            className="gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-[var(--color-ink-muted)] shadow-none hover:text-[var(--color-ink-strong)]"
+            onClick={() => onAddAfter(block.id, kind)}
+            disabled={disabled}
+          >
+            <Plus size={10} />
+            <Icon size={11} />
+            {label}
+          </Button>
+        ))}
       </div>
     </section>
   );

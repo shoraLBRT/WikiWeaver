@@ -24,6 +24,7 @@ import {
   buildParagraphDtosFromBlocks,
   collectWholeArticleAiTargets,
   convertParagraphToVersioned,
+  convertVersionedToParagraph,
   createEmptyBlock,
   deleteBlock,
   hasAnyFilledContent,
@@ -424,6 +425,7 @@ const AddArticlePage: React.FC = () => {
                         onDeleteBlock={(blockId) => setBlocks((current) => (current.length > 1 ? deleteBlock(current, blockId) : current))}
                         onMoveBlock={(blockId, direction) => setBlocks((current) => moveBlock(current, blockId, direction))}
                         onConvertToVersioned={(blockId) => setBlocks((current) => convertParagraphToVersioned(current, blockId))}
+                        onConvertToParagraph={(blockId) => setBlocks((current) => convertVersionedToParagraph(current, blockId))}
                         onAddAfter={(blockId, kind) => setBlocks((current) => insertBlockAfter(current, blockId, kind))}
                       />
                     ))}
