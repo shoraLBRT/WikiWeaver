@@ -5,6 +5,7 @@ import {
   GitBranch,
   Heading2,
   Heading3,
+  Import,
   Italic,
   Link as LinkIcon,
   List,
@@ -27,6 +28,7 @@ type EditorToolbarProps = {
   onFormat: (action: FormatAction) => void;
   onAddBlock: (kind: 'paragraph' | 'heading2' | 'heading3' | 'versioned') => void;
   onTogglePreview: () => void;
+  onImport: () => void;
   onImproveAll: () => void;
   onSave: () => void;
 };
@@ -63,6 +65,7 @@ export const EditorToolbar = ({
   onFormat,
   onAddBlock,
   onTogglePreview,
+  onImport,
   onImproveAll,
   onSave,
 }: EditorToolbarProps) => (
@@ -100,6 +103,10 @@ export const EditorToolbar = ({
         <Button onClick={onTogglePreview} disabled={disabled && !isPreview}>
           {isPreview ? <EyeOff size={14} /> : <Eye size={14} />}
           {isPreview ? 'Редактирование' : 'Предпросмотр'}
+        </Button>
+        <Button onClick={onImport} disabled={disabled}>
+          <Import size={14} />
+          Импорт Markdown
         </Button>
         <Button onClick={onImproveAll} disabled={disabled || !canImproveWithAi}>
           <Sparkles size={14} />

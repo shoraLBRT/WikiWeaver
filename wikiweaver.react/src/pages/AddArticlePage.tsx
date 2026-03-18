@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, FileText, FolderTree, Info, Save, Search, X } from 'lucide-react';
+import { Check, ChevronDown, FileText, FolderTree, Info, Search, X } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import MarkdownContent from '../components/MarkdownContent';
@@ -345,6 +345,7 @@ const AddArticlePage: React.FC = () => {
         onFormat={applyFormat}
         onAddBlock={(kind) => setBlocks((current) => insertBlockAfter(current, activeTarget?.blockId ?? null, kind))}
         onTogglePreview={() => setIsPreview((current) => !current)}
+        onImport={() => setIsImportOpen(true)}
         onImproveAll={improveWholeArticleWithAi}
         onSave={saveArticle}
       />
@@ -533,25 +534,6 @@ const AddArticlePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-4 z-10 mt-6 rounded-2xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.92)] p-4 shadow-[0_18px_48px_rgba(28,27,24,0.08)] backdrop-blur-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">Готово к сохранению?</p>
-                  <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">
-                    Пока сохраняются только title, parentArticleId и контент блоков. Infobox и metadata останутся placeholder-элементами.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => setIsImportOpen(true)} disabled={isLocked || mutation.isPending}>
-                    Импорт Markdown
-                  </Button>
-                  <Button variant="primary" onClick={saveArticle} disabled={isLocked || mutation.isPending}>
-                    <Save size={14} />
-                    {mutation.isPending ? 'Сохранение...' : 'Сохранить статью'}
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
         </main>
 
