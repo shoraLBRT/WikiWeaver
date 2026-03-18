@@ -71,6 +71,7 @@ The API applies migrations and seeds demo data on startup. Swagger is available 
 * [x] Add admin panel for moderating content
 * [x] Add AI style-supporter for authors
 * [x] Add markdown support style articles
+* [x] Update design system. Migrate from AntD to Tailwind
 
 ## Agent Collaboration
 
