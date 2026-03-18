@@ -1,17 +1,12 @@
-import { FileText, Hash, Info, Link2 } from 'lucide-react';
+import { Hash } from 'lucide-react';
 import type { EditorBlock, PlainEditorBlock } from './types';
 
 type EditorOutlineRailProps = {
   blocks: EditorBlock[];
-  parentArticleId: number | null;
   onJumpToBlock: (blockId: string) => void;
 };
 
-export const EditorOutlineRail = ({
-  blocks,
-  parentArticleId,
-  onJumpToBlock,
-}: EditorOutlineRailProps) => {
+export const EditorOutlineRail = ({ blocks, onJumpToBlock }: EditorOutlineRailProps) => {
   const outlineItems = blocks.filter(
     (block): block is PlainEditorBlock => block.kind === 'heading2' || block.kind === 'heading3',
   );
@@ -35,37 +30,11 @@ export const EditorOutlineRail = ({
                 </button>
               ))
             ) : (
-              <p className="m-0 px-2 py-2 text-[12px] text-[var(--color-ink-subtle)]">Добавьте H2 или H3, чтобы структура появилась здесь.</p>
+              <p className="m-0 px-2 py-2 text-[12px] text-[var(--color-ink-subtle)]">
+                Добавьте H2 или H3, чтобы структура появилась здесь.
+              </p>
             )}
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
-          <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            <FileText size={12} />
-            Статья
-          </p>
-          <p className="m-0 text-[12px] text-[var(--color-ink-muted)]">Parent article id: {parentArticleId ?? 'не задан'}</p>
-        </div>
-
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
-          <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            <Info size={12} />
-            Инфобокс
-          </p>
-          <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-            В первой итерации это placeholder. Реализация описана в `docs/todo/frontend-infobox.md`.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
-          <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            <Link2 size={12} />
-            Метаданные
-          </p>
-          <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-            Здесь останутся заглушки под metadata и related links до следующей итерации.
-          </p>
         </div>
       </div>
     </aside>

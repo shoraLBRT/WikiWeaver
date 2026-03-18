@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, FileText, FolderTree, Info, Search, X } from 'lucide-react';
+import { FileText, X } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import MarkdownContent from '../components/MarkdownContent';
@@ -353,7 +353,6 @@ const AddArticlePage: React.FC = () => {
       <div className="mx-auto flex max-w-[1420px] gap-0 px-4 py-6 sm:px-6 lg:px-8">
         <EditorOutlineRail
           blocks={blocks}
-          parentArticleId={parentArticleId}
           onJumpToBlock={(blockId) => blockRefs.current[blockId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
         />
 
@@ -385,83 +384,6 @@ const AddArticlePage: React.FC = () => {
                       placeholder="Название статьи..."
                       className="h-auto border-0 bg-transparent px-0 py-0 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)] shadow-none focus:ring-0"
                     />
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_320px]">
-                    <div />
-                    <div className="rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">
-                      <label className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-subtle)]">
-                        <FolderTree size={12} />
-                        Родительская статья
-                      </label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          disabled={isLocked || navigationTreeQuery.isLoading}
-                          onClick={() => {
-                            setActiveTarget(null);
-                            setIsParentDropdownOpen((current) => !current);
-                            setParentSearch(selectedParent?.path ?? '');
-                          }}
-                          className="flex w-full items-center justify-between rounded-xl border border-[var(--color-border-soft)] bg-white px-3 py-2 text-left text-sm text-[var(--color-ink-strong)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <span className="truncate">
-                            {selectedParent?.path ?? 'Выберите родительскую статью...'}
-                          </span>
-                          <ChevronDown size={16} className="shrink-0 text-[var(--color-ink-subtle)]" />
-                        </button>
-
-                        {isParentDropdownOpen ? (
-                          <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-white shadow-[0_20px_50px_rgba(28,27,24,0.12)]">
-                            <div className="border-b border-[var(--color-border-soft)] p-3">
-                              <div className="relative">
-                                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
-                                <Input
-                                  value={parentSearch}
-                                  disabled={isLocked}
-                                  onChange={(event) => setParentSearch(event.target.value)}
-                                  placeholder="Поиск статьи..."
-                                  className="pl-9"
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => selectParentArticle(null)}
-                                className="mt-3 text-xs font-medium text-[var(--color-brand-forest)] transition-colors hover:text-[var(--color-brand-forest-strong)]"
-                              >
-                                Очистить выбор
-                              </button>
-                            </div>
-
-                            <div className="max-h-72 overflow-y-auto p-2">
-                              {filteredParentOptions.length > 0 ? (
-                                filteredParentOptions.map((option) => {
-                                  const isSelected = option.id === parentArticleId;
-
-                                  return (
-                                    <button
-                                      key={option.id}
-                                      type="button"
-                                      onClick={() => selectParentArticle(option)}
-                                      className={`flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left transition-colors ${isSelected ? 'bg-[var(--color-brand-forest-soft)]' : 'hover:bg-[var(--color-page-panel)]'}`}
-                                    >
-                                      <span className="mt-0.5 shrink-0 text-[var(--color-brand-forest)]">
-                                        {isSelected ? <Check size={14} /> : <FolderTree size={14} />}
-                                      </span>
-                                      <span className="min-w-0 flex-1">
-                                        <span className="block truncate text-sm font-medium text-[var(--color-ink-strong)]">{option.title}</span>
-                                        <span className="mt-0.5 block truncate text-xs text-[var(--color-ink-subtle)]">{option.path}</span>
-                                      </span>
-                                    </button>
-                                  );
-                                })
-                              ) : (
-                                <p className="m-0 px-3 py-4 text-sm text-[var(--color-ink-subtle)]">Ничего не найдено.</p>
-                              )}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -510,28 +432,6 @@ const AddArticlePage: React.FC = () => {
                 )}
               </div>
 
-              <div className="border-t border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-6 py-6 sm:px-8">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-4">
-                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-                      <Info size={12} />
-                      Инфобокс
-                    </p>
-                    <p className="m-0 text-sm leading-6 text-[var(--color-ink-muted)]">
-                      Placeholder в стиле `react2`. Реальные поля появятся после реализации `docs/todo/frontend-infobox.md`.
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-4">
-                    <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-                      <FolderTree size={12} />
-                      Метаданные и связанные статьи
-                    </p>
-                    <p className="m-0 text-sm leading-6 text-[var(--color-ink-muted)]">
-                      На этой итерации сохраняется только основной контент статьи. Metadata и related links остаются заглушками.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
 
           </div>
@@ -541,6 +441,19 @@ const AddArticlePage: React.FC = () => {
           blockCount={blocks.length}
           totalTextParts={totalVersions}
           characterCount={characterCount}
+          isLocked={isLocked}
+          isLoadingParents={navigationTreeQuery.isLoading}
+          selectedParent={selectedParent}
+          parentSearch={parentSearch}
+          filteredParentOptions={filteredParentOptions}
+          isParentDropdownOpen={isParentDropdownOpen}
+          onToggleParentDropdown={() => {
+            setActiveTarget(null);
+            setIsParentDropdownOpen((current) => !current);
+            setParentSearch(selectedParent?.path ?? '');
+          }}
+          onParentSearchChange={setParentSearch}
+          onSelectParent={selectParentArticle}
         />
       </div>
 
