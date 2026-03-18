@@ -14,6 +14,7 @@ import { Input } from '../shared/ui/Input';
 import { Textarea } from '../shared/ui/Textarea';
 import type { ArticleContentCreateDto, NavigationArticleDto } from '../shared/types/ApiTypes';
 import { DocumentBlockEditor } from './add-article/DocumentBlockEditor';
+import { EditorHelpRail } from './add-article/EditorHelpRail';
 import { EditorOutlineRail } from './add-article/EditorOutlineRail';
 import { EditorToolbar } from './add-article/EditorToolbar';
 import {
@@ -167,6 +168,17 @@ const AddArticlePage: React.FC = () => {
         (sum, block) => sum + (block.kind === 'versioned' ? block.variants.length : block.content.trim() ? 1 : 0),
         0,
       ),
+    [blocks],
+  );
+  const characterCount = useMemo(
+    () =>
+      blocks.reduce((sum, block) => {
+        if (block.kind === 'versioned') {
+          return sum + block.variants.reduce((variantSum, variant) => variantSum + variant.content.length, 0);
+        }
+
+        return sum + block.content.length;
+      }, 0),
     [blocks],
   );
 
@@ -337,7 +349,7 @@ const AddArticlePage: React.FC = () => {
         onSave={saveArticle}
       />
 
-      <div className="mx-auto flex max-w-[1180px] gap-0 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1420px] gap-0 px-4 py-6 sm:px-6 lg:px-8">
         <EditorOutlineRail
           blocks={blocks}
           parentArticleId={parentArticleId}
@@ -453,25 +465,6 @@ const AddArticlePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border-b border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-6 py-4 sm:px-8">
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-3">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">Блоков</p>
-                    <p className="m-0 text-lg font-semibold text-[var(--color-ink-strong)]">{blocks.length}</p>
-                  </div>
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-3">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">Текстовых частей</p>
-                    <p className="m-0 text-lg font-semibold text-[var(--color-ink-strong)]">{totalVersions}</p>
-                  </div>
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-3">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">ИИ</p>
-                    <p className="m-0 text-lg font-semibold text-[var(--color-ink-strong)]">
-                      {isAiRunning ? 'обработка...' : canUseAi ? 'готов' : 'выключен'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               <div className="px-4 py-6 sm:px-6 lg:px-8">
                 {isPreview ? (
                   <div className="mx-auto max-w-[720px] rounded-[26px] border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-6 py-8 shadow-sm">
@@ -561,6 +554,12 @@ const AddArticlePage: React.FC = () => {
             </div>
           </div>
         </main>
+
+        <EditorHelpRail
+          blockCount={blocks.length}
+          totalTextParts={totalVersions}
+          characterCount={characterCount}
+        />
       </div>
 
       {isImportOpen ? (

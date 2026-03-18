@@ -7,7 +7,11 @@ type EditorOutlineRailProps = {
   onJumpToBlock: (blockId: string) => void;
 };
 
-export const EditorOutlineRail = ({ blocks, parentArticleId, onJumpToBlock }: EditorOutlineRailProps) => {
+export const EditorOutlineRail = ({
+  blocks,
+  parentArticleId,
+  onJumpToBlock,
+}: EditorOutlineRailProps) => {
   const outlineItems = blocks.filter(
     (block): block is PlainEditorBlock => block.kind === 'heading2' || block.kind === 'heading3',
   );
