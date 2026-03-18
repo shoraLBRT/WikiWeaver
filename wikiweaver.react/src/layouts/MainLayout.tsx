@@ -29,10 +29,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isCreateRoute = location.pathname === '/article/new';
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [searchFocusRequest, setSearchFocusRequest] = useState(0);
 
   useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  const handleExpandSidebarSearch = () => {
+    if (!collapsed) {
+      setSearchFocusRequest((current) => current + 1);
+      return;
+    }
+
+    toggleCollapsed();
+    setSearchFocusRequest((current) => current + 1);
+  };
 
   const logoWidth = collapsed
     ? APP_CONSTANTS.DIMENSIONS.SIDEBAR_COLLAPSED_WIDTH
@@ -126,6 +137,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           collapsed={collapsed}
           mobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          searchFocusRequest={searchFocusRequest}
+          onExpandSidebarSearch={handleExpandSidebarSearch}
         />
         <main className="flex-1">{children}</main>
       </div>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
@@ -38,14 +38,19 @@ interface SidebarProps {
   collapsed: boolean;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  searchFocusRequest?: number;
+  onExpandSidebarSearch?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   mobileOpen = false,
   onCloseMobile,
+  searchFocusRequest = 0,
+  onExpandSidebarSearch,
 }) => {
   const [searchValue, setSearchValue] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const showArticleEditActions =
     location.pathname.startsWith('/admin') && location.pathname !== '/admin/login';
@@ -63,12 +68,25 @@ const Sidebar: React.FC<SidebarProps> = ({
     return filterNavigationTree(navigationTree, searchValue);
   }, [navigationTree, searchValue]);
 
+  useEffect(() => {
+    if (collapsed) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 220);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [collapsed, searchFocusRequest]);
+
   const expandedContent = (
     <>
       <div className="border-b border-[var(--color-border-soft)] p-2.5">
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
           <Input
+            ref={searchInputRef}
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
             placeholder={locale.layout.navigation.searchPlaceholder}
@@ -117,18 +135,22 @@ const Sidebar: React.FC<SidebarProps> = ({
         {collapsed ? (
           <div className="flex h-full flex-col items-center justify-between px-3 py-4">
             <div className="flex w-full justify-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border-soft)] bg-white text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
-                WW
-              </div>
+              <button
+                type="button"
+                onClick={onExpandSidebarSearch}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--color-border-soft)] bg-white text-[var(--color-brand-forest)] shadow-sm transition-colors hover:bg-[var(--color-brand-forest-soft)]"
+                title={locale.layout.navigation.searchPlaceholder}
+                aria-label={locale.layout.navigation.searchPlaceholder}
+              >
+                <Search size={15} />
+              </button>
             </div>
 
             <div className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--color-ink-subtle)]">
               Navigation
             </div>
 
-            <div className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-forest)] shadow-sm">
-              Lib
-            </div>
+            <div className="h-10 w-10" />
           </div>
         ) : expandedContent}
       </aside>
