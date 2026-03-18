@@ -1,7 +1,6 @@
-import { ArrowDown, ArrowUp, GitBranch, Heading2, Heading3, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
-import { Button } from '../../shared/ui/Button';
+import { ArrowDown, ArrowUp, GitBranch, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
 import { Textarea } from '../../shared/ui/Textarea';
-import type { AlternativeDraft, EditorBlock, PlainBlockKind } from './types';
+import type { AlternativeDraft, EditorBlock } from './types';
 
 type EditorTarget = {
   blockId: string;
@@ -26,7 +25,6 @@ type DocumentBlockEditorProps = {
   onMoveBlock: (blockId: string, direction: -1 | 1) => void;
   onConvertToVersioned: (blockId: string) => void;
   onConvertToParagraph: (blockId: string) => void;
-  onAddAfter: (blockId: string, kind: PlainBlockKind) => void;
 };
 
 const targetKey = (blockId: string, localId: string | null) => `${blockId}:${localId ?? 'plain'}`;
@@ -52,7 +50,6 @@ export const DocumentBlockEditor = ({
   onMoveBlock,
   onConvertToVersioned,
   onConvertToParagraph,
-  onAddAfter,
 }: DocumentBlockEditorProps) => {
   const headingClasses =
     block.kind === 'heading2'
@@ -69,12 +66,6 @@ export const DocumentBlockEditor = ({
         : block.kind === 'versioned'
           ? 'Versioned block'
           : 'Paragraph';
-
-  const addActions: Array<{ kind: PlainBlockKind; label: string; icon: typeof Pilcrow }> = [
-    { kind: 'paragraph', label: 'Текст', icon: Pilcrow },
-    { kind: 'heading2', label: 'H2', icon: Heading2 },
-    { kind: 'heading3', label: 'H3', icon: Heading3 },
-  ];
 
   return (
     <section
@@ -241,20 +232,6 @@ export const DocumentBlockEditor = ({
         />
       )}
 
-      <div className="mt-3 flex flex-wrap gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-        {addActions.map(({ kind, label, icon: Icon }) => (
-          <Button
-            key={kind}
-            className="gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-[var(--color-ink-muted)] shadow-none hover:text-[var(--color-ink-strong)]"
-            onClick={() => onAddAfter(block.id, kind)}
-            disabled={disabled}
-          >
-            <Plus size={10} />
-            <Icon size={11} />
-            {label}
-          </Button>
-        ))}
-      </div>
     </section>
   );
 };
