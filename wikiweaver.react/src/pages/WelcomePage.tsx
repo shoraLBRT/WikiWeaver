@@ -17,7 +17,9 @@ const WelcomePage: React.FC = () => {
 
         <div className="px-6 py-8 sm:px-8">
           <p className="m-0 max-w-2xl text-base leading-8 text-[var(--color-ink-muted)] sm:text-lg">
-          {locale.welcomePage.selectArticleMessage} {locale.app.name} — {locale.app.description}.
+            <span>{locale.app.name} — {locale.app.description}.</span>
+            <br />
+            <span>{locale.welcomePage.selectArticleMessage}</span>
           </p>
         </div>
       </Card>
