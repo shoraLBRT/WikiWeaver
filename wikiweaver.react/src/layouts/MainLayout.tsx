@@ -74,23 +74,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Link>
           </div>
 
-          <div className="hidden min-w-0 items-stretch md:flex">
-            <div className="flex items-center border-r border-[var(--color-border-soft)] px-4">
-              <div className="flex items-center gap-2 text-sm text-[var(--color-ink-muted)]">
-                <span className="rounded-full bg-[var(--color-brand-forest-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-brand-forest)]">
-                  lib
-                </span>
-                <span className="truncate">
-                  {isAdminRoute
-                    ? locale.layout.actions.adminPanel
-                    : isCreateRoute
-                      ? locale.layout.menu.addArticle
-                      : locale.app.description}
-                </span>
-              </div>
-            </div>
-          </div>
-
           <div className="ml-auto flex items-center gap-2 px-3 sm:px-4">
             {isAdmin ? (
               <Button
