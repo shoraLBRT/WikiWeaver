@@ -1,4 +1,4 @@
-import { Check, ChevronDown, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search } from 'lucide-react';
+import { Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
 import { Input } from '../../shared/ui/Input';
 
 type ParentOption = {
@@ -9,8 +9,10 @@ type ParentOption = {
 
 type EditorHelpRailProps = {
   blockCount: number;
-  totalTextParts: number;
+  paragraphCount: number;
+  wordCount: number;
   characterCount: number;
+  readingTimeMinutes: number;
   isLocked: boolean;
   isLoadingParents: boolean;
   selectedParent: ParentOption | null;
@@ -24,8 +26,10 @@ type EditorHelpRailProps = {
 
 export const EditorHelpRail = ({
   blockCount,
-  totalTextParts,
+  paragraphCount,
+  wordCount,
   characterCount,
+  readingTimeMinutes,
   isLocked,
   isLoadingParents,
   selectedParent,
@@ -129,9 +133,16 @@ export const EditorHelpRail = ({
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <FileText size={12} className="text-[var(--color-ink-subtle)]" />
-                Текстовых частей
+                Абзацев
               </span>
-              <strong className="text-[var(--color-ink-strong)]">{totalTextParts}</strong>
+              <strong className="text-[var(--color-ink-strong)]">{paragraphCount}</strong>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Type size={12} className="text-[var(--color-ink-subtle)]" />
+                Слов
+              </span>
+              <strong className="text-[var(--color-ink-strong)]">{wordCount}</strong>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
@@ -139,6 +150,13 @@ export const EditorHelpRail = ({
                 Символов
               </span>
               <strong className="text-[var(--color-ink-strong)]">{characterCount}</strong>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Clock3 size={12} className="text-[var(--color-ink-subtle)]" />
+                Время чтения
+              </span>
+              <strong className="text-[var(--color-ink-strong)]">{readingTimeMinutes > 0 ? `~${readingTimeMinutes} мин` : '-'}</strong>
             </div>
           </div>
         </div>

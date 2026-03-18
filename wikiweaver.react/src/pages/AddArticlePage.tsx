@@ -164,12 +164,15 @@ const AddArticlePage: React.FC = () => {
   });
 
   const previewMarkdown = useMemo(() => buildDocumentPreviewMarkdown(blocks), [blocks]);
-  const totalVersions = useMemo(
+  const paragraphCount = useMemo(
     () =>
-      blocks.reduce(
-        (sum, block) => sum + (block.kind === 'versioned' ? block.variants.length : block.content.trim() ? 1 : 0),
-        0,
-      ),
+      blocks.reduce((sum, block) => {
+        if (block.kind === 'versioned') {
+          return sum + (block.variants.some((variant) => variant.content.trim()) ? 1 : 0);
+        }
+
+        return sum + (block.kind === 'paragraph' && block.content.trim() ? 1 : 0);
+      }, 0),
     [blocks],
   );
   const characterCount = useMemo(
@@ -183,6 +186,24 @@ const AddArticlePage: React.FC = () => {
       }, 0),
     [blocks],
   );
+  const wordCount = useMemo(() => {
+    const normalized = previewMarkdown
+      .replace(/[#>*_`~[\]()!-]+/g, ' ')
+      .trim();
+
+    if (!normalized) {
+      return 0;
+    }
+
+    return normalized.split(/\s+/).length;
+  }, [previewMarkdown]);
+  const readingTimeMinutes = useMemo(() => {
+    if (wordCount === 0) {
+      return 0;
+    }
+
+    return Math.max(1, Math.ceil(wordCount / 180));
+  }, [wordCount]);
 
   const updateSelection = (
     target: EditorTarget,
@@ -445,8 +466,10 @@ const AddArticlePage: React.FC = () => {
 
         <EditorHelpRail
           blockCount={blocks.length}
-          totalTextParts={totalVersions}
+          paragraphCount={paragraphCount}
+          wordCount={wordCount}
           characterCount={characterCount}
+          readingTimeMinutes={readingTimeMinutes}
           isLocked={isLocked}
           isLoadingParents={navigationTreeQuery.isLoading}
           selectedParent={selectedParent}
