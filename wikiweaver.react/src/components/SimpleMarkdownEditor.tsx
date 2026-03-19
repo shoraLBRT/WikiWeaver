@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { Button } from '../shared/ui/Button';
 import { Textarea } from '../shared/ui/Textarea';
 
@@ -10,6 +10,7 @@ interface SimpleMarkdownEditorProps {
 }
 
 const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onChange, placeholder }) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor.bottomToolbar.formatting;
   const markdown = locale.addArticleEditor.markdown;
 

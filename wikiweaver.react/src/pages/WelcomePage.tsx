@@ -1,8 +1,10 @@
 import React from 'react';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { Card } from '../shared/ui/Card';
 
 const WelcomePage: React.FC = () => {
+  const locale = useLocale();
+
   return (
     <div className="flex min-h-[calc(100vh-7rem)] items-center justify-center px-6 py-12 sm:px-8 lg:px-12">
       <Card className="w-full max-w-3xl overflow-hidden border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.9)] shadow-[0_24px_80px_rgba(28,27,24,0.08)] backdrop-blur-sm">

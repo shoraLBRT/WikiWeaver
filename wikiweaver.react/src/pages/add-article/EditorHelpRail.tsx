@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BarChart3, Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
-import { formatMessage, locale } from '../../localization';
+import { formatMessage } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 import { Input } from '../../shared/ui/Input';
 
 type ParentOption = {
@@ -44,6 +45,7 @@ export const EditorHelpRail = ({
   onParentSearchChange,
   onSelectParent,
 }: EditorHelpRailProps) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor;
 
   return (

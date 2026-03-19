@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { APP_CONSTANTS } from '../constants/AppConstants';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { getNavigationTree } from '../services/Article/navigationService';
 import { Input } from '../shared/ui/Input';
 import type { NavigationArticleDto } from '../shared/types/ApiTypes';
@@ -49,6 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   searchFocusRequest = 0,
   onExpandSidebarSearch,
 }) => {
+  const locale = useLocale();
   const [searchValue, setSearchValue] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();

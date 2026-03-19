@@ -1,5 +1,5 @@
 import { Eye, EyeOff, Import, Save, Sparkles } from 'lucide-react';
-import { locale } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 import { Button } from '../../shared/ui/Button';
 
 type EditorToolbarProps = {
@@ -25,6 +25,7 @@ export const EditorToolbar = ({
   onImproveAll,
   onSave,
 }: EditorToolbarProps) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor.topToolbar;
 
   return (

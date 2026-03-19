@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import MarkdownContent from '../components/MarkdownContent';
 import { APP_CONSTANTS } from '../constants/AppConstants';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { createArticleContent } from '../services/Article/articleService';
 import { getNavigationTree } from '../services/Article/navigationService';
 import { getAiProviderSettings, styleMarkdownWithAi } from '../services/adminService';
@@ -99,6 +99,7 @@ const flattenNavigationTree = (
   });
 
 const AddArticlePage: React.FC = () => {
+  const locale = useLocale();
   const navigate = useNavigate();
   const t = locale.addArticlePage;
   const editorText = locale.addArticleEditor;

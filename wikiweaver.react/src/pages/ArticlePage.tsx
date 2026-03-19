@@ -8,7 +8,7 @@ import { ArticleRightSidebar, type TocItem } from '../components/article/Article
 import { VersionedParagraphBlock } from '../components/article/VersionedParagraphBlock';
 import MarkdownContent from '../components/MarkdownContent';
 import { APP_CONSTANTS } from '../constants/AppConstants';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import {
   ARTICLE_UI_MODE_STORAGE_KEY,
   DEFAULT_ARTICLE_UI_MODE,
@@ -55,6 +55,7 @@ const extractHeadingTitle = (content: string): string | null => {
 };
 
 const ArticlePage: React.FC = () => {
+  const locale = useLocale();
   const { id } = useParams<{ id: string }>();
   const articleId = parseInt(id || '0', 10);
   const [uiMode] = useState<ParagraphUiMode>(getInitialUiMode);
@@ -131,7 +132,7 @@ const ArticlePage: React.FC = () => {
     });
 
     return items;
-  }, [renderedParagraphs]);
+  }, [locale.articlePage.overview, renderedParagraphs]);
 
   const normalizeAlternativeIndex = (index: number, total: number) => {
     if (total <= 0) return 0;

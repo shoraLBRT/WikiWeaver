@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type TextareaHTMLAttributes } from 'react';
 import { ArrowDown, ArrowUp, GitBranch, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
-import { formatMessage, locale } from '../../localization';
+import { formatMessage } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 import { cn } from '../../shared/lib/cn';
 import { Textarea } from '../../shared/ui/Textarea';
 import type { AlternativeDraft, EditorBlock } from './types';
@@ -85,6 +86,7 @@ export const DocumentBlockEditor = ({
   onConvertToVersioned,
   onConvertToParagraph,
 }: DocumentBlockEditorProps) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor;
   const headingClasses =
     block.kind === 'heading2'

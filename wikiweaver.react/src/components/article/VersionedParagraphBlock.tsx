@@ -1,6 +1,7 @@
 import { GitBranch, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { formatMessage, locale } from '../../localization';
+import { formatMessage } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 
 type VersionedParagraphBlockProps = {
   order: number;
@@ -21,6 +22,7 @@ export const VersionedParagraphBlock = ({
   onMove,
   children,
 }: VersionedParagraphBlockProps) => {
+  const locale = useLocale();
   const t = locale.versionedParagraph;
 
   return (

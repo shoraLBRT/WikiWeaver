@@ -7,7 +7,8 @@
     },
     "actions": {
       "adminPanel": "Админ панель",
-      "logout": "Выйти"
+      "logout": "Выйти",
+      "language": "Язык"
     },
     "navigation": {
       "open": "Открыть панель навигации",

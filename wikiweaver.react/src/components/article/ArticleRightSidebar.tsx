@@ -1,6 +1,6 @@
 import { Link as LinkIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { locale } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 
 export type TocItem = {
   id: string;
@@ -12,6 +12,7 @@ type ArticleRightSidebarProps = {
 };
 
 export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
+  const locale = useLocale();
   const t = locale.articleRightSidebar;
   const metadataItems = t.metadataItems as Array<[string, string]>;
   const [activeId, setActiveId] = useState<string>(tocItems[0]?.id ?? 'intro');

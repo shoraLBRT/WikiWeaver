@@ -1,11 +1,12 @@
 import React from 'react';
 import { FilePenLine, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 
 const EditArticlePage: React.FC = () => {
+  const locale = useLocale();
   const navigate = useNavigate();
   const { articleId } = useParams<{ articleId: string }>();
   const t = locale.editArticlePage;

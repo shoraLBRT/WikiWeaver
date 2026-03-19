@@ -9,7 +9,7 @@ import {
   Pilcrow,
   Quote,
 } from 'lucide-react';
-import { locale } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 import { Button } from '../../shared/ui/Button';
 import type { PlainBlockKind } from './types';
 
@@ -45,6 +45,7 @@ const ToolbarIconButton = ({
 );
 
 export const EditorBottomToolbar = ({ disabled, onFormat, onAddBlock }: EditorBottomToolbarProps) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor.bottomToolbar;
   const addActions: Array<{ kind: PlainBlockKind; label: string; icon: typeof Pilcrow }> = [
     { kind: 'paragraph', label: t.addBlock.paragraph, icon: Pilcrow },

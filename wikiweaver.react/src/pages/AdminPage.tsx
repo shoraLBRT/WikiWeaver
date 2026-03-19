@@ -35,7 +35,8 @@ import {
   type ParagraphUiMode,
 } from '../constants/ArticleUiConstants';
 import { APP_CONSTANTS } from '../constants/AppConstants';
-import { formatMessage, locale } from '../localization';
+import { formatMessage } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { Input } from '../shared/ui/Input';
@@ -64,6 +65,7 @@ const getInitialUiMode = (): ParagraphUiMode => {
 };
 
 const AdminPage: React.FC = () => {
+  const locale = useLocale();
   const t = locale.adminPage;
   const navigate = useNavigate();
   const queryClient = useQueryClient();

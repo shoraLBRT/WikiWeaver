@@ -1,8 +1,9 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { locale } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 
 export const ArticleInfoboxPlaceholder = () => {
+  const locale = useLocale();
   const t = locale.articleInfobox;
   const [expanded, setExpanded] = useState(false);
   const visibleRows = (expanded ? t.rows : t.rows.slice(0, 4)) as Array<[string, string]>;

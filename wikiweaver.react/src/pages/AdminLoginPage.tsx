@@ -3,7 +3,7 @@ import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { APP_CONSTANTS } from '../constants/AppConstants';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import { adminLogin, adminRegister, getAuthStatus } from '../services/authService';
 import { setStoredAdminToken } from '../services/authTokenStorage';
 import { Button } from '../shared/ui/Button';
@@ -17,6 +17,7 @@ type FormValues = {
 };
 
 const AdminLoginPage: React.FC = () => {
+  const locale = useLocale();
   const t = locale.adminLoginPage;
   const featureCards = t.featureCards as Array<[string, string]>;
   const navigate = useNavigate();

@@ -12,7 +12,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import Sidebar from '../components/Sidebar';
 import { useSidebar } from '../hooks/useSidebar';
-import { locale } from '../localization';
+import { useLocalization } from '../localization/hooks';
 import { isAdminAuthenticated } from '../services/authService';
 import { clearStoredAdminToken } from '../services/authTokenStorage';
 import { Button } from '../shared/ui/Button';
@@ -22,6 +22,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { language, locale, setLanguage, supportedLocales } = useLocalization();
   const navigate = useNavigate();
   const location = useLocation();
   const { collapsed, toggleCollapsed } = useSidebar();
@@ -102,6 +103,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Shield size={14} />
               <span className="hidden sm:inline">{locale.layout.actions.adminPanel}</span>
             </Button>
+
+            <label className="flex items-center gap-2 rounded-xl border border-[var(--color-border-soft)] bg-white px-2.5 py-2 text-sm text-[var(--color-ink-muted)]">
+              <span className="hidden sm:inline">{locale.layout.actions.language}</span>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as typeof language)}
+                aria-label={locale.layout.actions.language}
+                className="bg-transparent text-sm font-medium text-[var(--color-ink-strong)] outline-none"
+              >
+                {supportedLocales.map((supportedLocale) => (
+                  <option key={supportedLocale} value={supportedLocale}>
+                    {supportedLocale.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             {isAdmin ? (
               <Button

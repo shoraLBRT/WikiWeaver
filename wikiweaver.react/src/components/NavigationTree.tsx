@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, FilePenLine } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { locale } from '../localization';
+import { useLocale } from '../localization/hooks';
 import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 
 interface NavigationTreeProps {
@@ -25,6 +25,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
   showArticleEditActions,
   onNavigate,
 }) => {
+  const locale = useLocale();
   const navigate = useNavigate();
   const editArticleLabel = locale.navigationTree.editArticle;
   const hasChildren = (article.children?.length ?? 0) > 0;

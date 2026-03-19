@@ -1,5 +1,5 @@
 import { Hash } from 'lucide-react';
-import { locale } from '../../localization';
+import { useLocale } from '../../localization/hooks';
 import type { EditorBlock, PlainEditorBlock } from './types';
 
 type EditorOutlineRailProps = {
@@ -8,6 +8,7 @@ type EditorOutlineRailProps = {
 };
 
 export const EditorOutlineRail = ({ blocks, onJumpToBlock }: EditorOutlineRailProps) => {
+  const locale = useLocale();
   const t = locale.addArticleEditor;
   const outlineItems = blocks.filter(
     (block): block is PlainEditorBlock => block.kind === 'heading2' || block.kind === 'heading3',
