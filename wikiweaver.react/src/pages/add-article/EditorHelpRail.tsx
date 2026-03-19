@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
+import { BarChart3, Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
 import { Input } from '../../shared/ui/Input';
 
 type ParentOption = {
@@ -119,7 +119,7 @@ export const EditorHelpRail = ({
 
         <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
           <p className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            <Layers3 size={12} />
+            <BarChart3 size={12} />
             Сводка
           </p>
           <div className="space-y-3 text-[12px] text-[var(--color-ink-muted)]">
