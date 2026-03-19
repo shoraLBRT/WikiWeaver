@@ -13,7 +13,7 @@ export const EditorOutlineRail = ({ blocks, onJumpToBlock }: EditorOutlineRailPr
 
   return (
     <aside className="hidden xl:block xl:w-[240px] xl:shrink-0">
-      <div className="sticky top-[calc(var(--layout-header-height)+64px)] space-y-6 px-4 py-6">
+      <div className="sticky top-[calc(var(--layout-header-height)+24px)] space-y-6 px-4 pb-6">
         <div>
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">Структура</p>
           <div className="space-y-1 rounded-2xl border border-[var(--color-border-soft)] bg-white p-2 shadow-sm">

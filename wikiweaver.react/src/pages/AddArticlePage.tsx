@@ -359,19 +359,8 @@ const AddArticlePage: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-var(--layout-header-height))] bg-[linear-gradient(180deg,#f9f8f5_0%,#f3f2ed_100%)]">
-      <EditorToolbar
-        disabled={isLocked || mutation.isPending}
-        isPreview={isPreview}
-        canImproveWithAi={canUseAi}
-        isAiRunning={isAiRunning}
-        isSaving={mutation.isPending}
-        onTogglePreview={() => setIsPreview((current) => !current)}
-        onImport={() => setIsImportOpen(true)}
-        onImproveAll={improveWholeArticleWithAi}
-        onSave={saveArticle}
-      />
-
-      <div className="mx-auto flex max-w-[1420px] gap-0 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1420px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex gap-0">
         <EditorOutlineRail
           blocks={blocks}
           onJumpToBlock={(blockId) => blockRefs.current[blockId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
@@ -470,6 +459,19 @@ const AddArticlePage: React.FC = () => {
           wordCount={wordCount}
           characterCount={characterCount}
           readingTimeMinutes={readingTimeMinutes}
+          actions={(
+            <EditorToolbar
+              disabled={isLocked || mutation.isPending}
+              isPreview={isPreview}
+              canImproveWithAi={canUseAi}
+              isAiRunning={isAiRunning}
+              isSaving={mutation.isPending}
+              onTogglePreview={() => setIsPreview((current) => !current)}
+              onImport={() => setIsImportOpen(true)}
+              onImproveAll={improveWholeArticleWithAi}
+              onSave={saveArticle}
+            />
+          )}
           isLocked={isLocked}
           isLoadingParents={navigationTreeQuery.isLoading}
           selectedParent={selectedParent}
@@ -484,6 +486,7 @@ const AddArticlePage: React.FC = () => {
           onParentSearchChange={setParentSearch}
           onSelectParent={selectParentArticle}
         />
+        </div>
       </div>
 
       {isImportOpen ? (

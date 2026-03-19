@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { BarChart3, Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
 import { Input } from '../../shared/ui/Input';
 
@@ -13,6 +14,7 @@ type EditorHelpRailProps = {
   wordCount: number;
   characterCount: number;
   readingTimeMinutes: number;
+  actions?: ReactNode;
   isLocked: boolean;
   isLoadingParents: boolean;
   selectedParent: ParentOption | null;
@@ -30,6 +32,7 @@ export const EditorHelpRail = ({
   wordCount,
   characterCount,
   readingTimeMinutes,
+  actions,
   isLocked,
   isLoadingParents,
   selectedParent,
@@ -42,7 +45,8 @@ export const EditorHelpRail = ({
 }: EditorHelpRailProps) => {
   return (
     <aside className="hidden xl:block xl:w-[280px] xl:shrink-0">
-      <div className="sticky top-[calc(var(--layout-header-height)+64px)] space-y-6 px-4 py-6">
+      <div className="sticky top-[calc(var(--layout-header-height)+24px)] space-y-6 px-4 pb-6">
+        {actions ? <div>{actions}</div> : null}
         <div>
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">Свойства статьи</p>
           <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">

@@ -24,24 +24,22 @@ export const EditorToolbar = ({
   onImproveAll,
   onSave,
 }: EditorToolbarProps) => (
-  <div className="sticky top-[var(--layout-header-height)] z-20 border-b border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.95)] px-4 py-2 backdrop-blur-md sm:px-6 lg:px-8">
-    <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-end gap-2">
-      <Button onClick={onTogglePreview} disabled={disabled && !isPreview}>
-        {isPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-        {isPreview ? 'Редактирование' : 'Предпросмотр'}
+  <div className="grid grid-cols-2 gap-1.5">
+      <Button className="min-h-8 rounded-lg px-2 py-1 text-[11px] whitespace-nowrap" onClick={onTogglePreview} disabled={disabled && !isPreview} title={isPreview ? 'Вернуться к редактированию' : 'Открыть предпросмотр'}>
+        {isPreview ? <EyeOff size={13} /> : <Eye size={13} />}
+        {isPreview ? 'Редакт.' : 'Просмотр'}
       </Button>
-      <Button onClick={onImport} disabled={disabled}>
-        <Import size={14} />
-        Импорт Markdown
+      <Button className="min-h-8 rounded-lg px-2.5 py-1 text-[11px] whitespace-nowrap" variant="primary" onClick={onSave} disabled={disabled || isSaving} title="Сохранить статью">
+        <Save size={13} />
+        {isSaving ? '...' : 'Сохранить'}
       </Button>
-      <Button onClick={onImproveAll} disabled={disabled || !canImproveWithAi}>
-        <Sparkles size={14} />
-        {isAiRunning ? 'ИИ обрабатывает...' : 'Улучшить статью с ИИ'}
+      <Button className="min-h-8 rounded-lg px-2 py-1 text-[11px] whitespace-nowrap" onClick={onImport} disabled={disabled} title="Импортировать Markdown">
+        <Import size={13} />
+        Импорт MD
       </Button>
-      <Button variant="primary" onClick={onSave} disabled={disabled || isSaving}>
-        <Save size={14} />
-        {isSaving ? 'Сохранение...' : 'Сохранить статью'}
+      <Button className="min-h-8 rounded-lg px-2 py-1 text-[11px] whitespace-nowrap" onClick={onImproveAll} disabled={disabled || !canImproveWithAi} title="Улучшить статью с помощью ИИ">
+        <Sparkles size={13} />
+        {isAiRunning ? '...' : 'ИИ'}
       </Button>
-    </div>
   </div>
 );
