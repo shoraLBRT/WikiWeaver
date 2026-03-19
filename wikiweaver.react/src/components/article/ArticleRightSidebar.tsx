@@ -13,6 +13,7 @@ type ArticleRightSidebarProps = {
 
 export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
   const t = locale.articleRightSidebar;
+  const metadataItems = t.metadataItems as Array<[string, string]>;
   const [activeId, setActiveId] = useState<string>(tocItems[0]?.id ?? 'intro');
 
   useEffect(() => {
@@ -84,7 +85,7 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
             {t.information}
           </p>
           <div className="space-y-1">
-            {t.metadataItems.map(([label, value]) => (
+            {metadataItems.map(([label, value]) => (
               <div key={label}>
                 <span className="text-[11px] text-[var(--color-ink-subtle)]">{label}: </span>
                 <span className="text-[11px] text-[var(--color-ink-default)]">{value}</span>

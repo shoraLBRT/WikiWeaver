@@ -18,6 +18,7 @@ type FormValues = {
 
 const AdminLoginPage: React.FC = () => {
   const t = locale.adminLoginPage;
+  const featureCards = t.featureCards as Array<[string, string]>;
   const navigate = useNavigate();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [formValues, setFormValues] = useState<FormValues>({ email: '', password: '', inviteToken: '' });
@@ -92,7 +93,7 @@ const AdminLoginPage: React.FC = () => {
             </p>
 
             <div className="mt-8 space-y-3">
-              {t.featureCards.map(([title, description]) => (
+              {featureCards.map(([title, description]) => (
                 <div key={title} className="rounded-2xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.78)] px-4 py-3">
                   <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{title}</p>
                   <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{description}</p>

@@ -5,7 +5,7 @@ import { locale } from '../../localization';
 export const ArticleInfoboxPlaceholder = () => {
   const t = locale.articleInfobox;
   const [expanded, setExpanded] = useState(false);
-  const visibleRows = expanded ? t.rows : t.rows.slice(0, 4);
+  const visibleRows = (expanded ? t.rows : t.rows.slice(0, 4)) as Array<[string, string]>;
 
   return (
     <aside className="mb-6 w-full overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] text-sm shadow-sm lg:float-right lg:mb-4 lg:ml-6 lg:w-[280px]">
