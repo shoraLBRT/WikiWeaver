@@ -84,33 +84,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Link>
           </div>
 
-          <div className="ml-auto flex items-center gap-2 px-3 sm:px-4">
+          <div className="ml-auto flex items-center gap-1.5 px-3 sm:px-4">
             {isAdmin ? (
               <Button
                 variant={isCreateRoute ? 'primary' : 'secondary'}
-                className="hidden sm:inline-flex"
+                className="hidden min-h-8 rounded-lg px-3 py-1.5 text-xs sm:inline-flex"
                 onClick={() => navigate('/article/new')}
               >
-                <Plus size={14} />
+                <Plus size={13} />
                 {locale.layout.menu.addArticle}
               </Button>
             ) : null}
 
             <Button
               variant={isAdminRoute ? 'primary' : 'secondary'}
+              className="min-h-8 rounded-lg px-2.5 py-1.5 text-xs sm:px-3"
               onClick={() => navigate('/admin')}
             >
-              <Shield size={14} />
+              <Shield size={13} />
               <span className="hidden sm:inline">{locale.layout.actions.adminPanel}</span>
             </Button>
 
-            <label className="flex items-center gap-2 rounded-xl border border-[var(--color-border-soft)] bg-white px-2.5 py-2 text-sm text-[var(--color-ink-muted)]">
-              <span className="hidden sm:inline">{locale.layout.actions.language}</span>
+            <label className="flex min-h-8 items-center gap-1.5 rounded-lg border border-[var(--color-border-soft)] bg-white px-2 py-1.5 text-xs text-[var(--color-ink-muted)]">
+              <span className="hidden md:inline">{locale.layout.actions.language}</span>
               <select
                 value={language}
                 onChange={(event) => setLanguage(event.target.value as typeof language)}
                 aria-label={locale.layout.actions.language}
-                className="bg-transparent text-sm font-medium text-[var(--color-ink-strong)] outline-none"
+                className="bg-transparent text-xs font-semibold uppercase text-[var(--color-ink-strong)] outline-none"
               >
                 {supportedLocales.map((supportedLocale) => (
                   <option key={supportedLocale} value={supportedLocale}>
@@ -123,6 +124,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {isAdmin ? (
               <Button
                 variant="ghost"
+                className="min-h-8 rounded-lg px-2 py-1.5 text-xs"
                 onClick={() => {
                   clearStoredAdminToken();
                   navigate('/');
@@ -130,7 +132,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 aria-label={locale.layout.actions.logout}
                 title={locale.layout.actions.logout}
               >
-                <LogOut size={15} />
+                <LogOut size={14} />
               </Button>
             ) : null}
 
