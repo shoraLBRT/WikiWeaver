@@ -105,21 +105,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <span className="hidden sm:inline">{locale.layout.actions.adminPanel}</span>
             </Button>
 
-            <label className="flex min-h-8 items-center gap-1.5 rounded-lg border border-[var(--color-border-soft)] bg-white px-2 py-1.5 text-xs text-[var(--color-ink-muted)]">
-              <span className="hidden md:inline">{locale.layout.actions.language}</span>
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value as typeof language)}
-                aria-label={locale.layout.actions.language}
-                className="bg-transparent text-xs font-semibold uppercase text-[var(--color-ink-strong)] outline-none"
-              >
-                {supportedLocales.map((supportedLocale) => (
-                  <option key={supportedLocale} value={supportedLocale}>
+            <div
+              className="flex min-h-8 items-center gap-1 rounded-lg border border-[var(--color-border-soft)] bg-white p-1"
+              aria-label={locale.layout.actions.language}
+              role="group"
+            >
+              {supportedLocales.map((supportedLocale) => {
+                const isActive = supportedLocale === language;
+
+                return (
+                  <button
+                    key={supportedLocale}
+                    type="button"
+                    onClick={() => setLanguage(supportedLocale)}
+                    aria-pressed={isActive}
+                    className={[
+                      'inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[11px] font-semibold uppercase transition-colors',
+                      isActive
+                        ? 'bg-[var(--color-brand-forest)] text-white shadow-[0_6px_16px_rgba(45,106,79,0.18)]'
+                        : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink-strong)]',
+                    ].join(' ')}
+                    title={supportedLocale.toUpperCase()}
+                  >
                     {supportedLocale.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </label>
+                  </button>
+                );
+              })}
+            </div>
 
             {isAdmin ? (
               <Button
