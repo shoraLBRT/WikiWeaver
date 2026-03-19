@@ -12,7 +12,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => (
     remarkPlugins={[remarkGfm]}
     rehypePlugins={[rehypeSanitize]}
     components={{
-      a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />, 
+      a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
     }}
   >
     {content}

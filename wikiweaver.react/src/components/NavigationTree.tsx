@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, FilePenLine } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { locale } from '../localization';
 import type { NavigationArticleDto } from '../shared/types/ApiTypes';
 
 interface NavigationTreeProps {
@@ -17,8 +18,6 @@ type NavigationItemProps = {
   onNavigate?: () => void;
 };
 
-const editArticleLabel = 'Редактировать статью';
-
 const NavigationItem: React.FC<NavigationItemProps> = ({
   article,
   depth,
@@ -27,6 +26,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
   onNavigate,
 }) => {
   const navigate = useNavigate();
+  const editArticleLabel = locale.navigationTree.editArticle;
   const hasChildren = (article.children?.length ?? 0) > 0;
   const [expanded, setExpanded] = useState(true);
   const isActive = article.id === activeArticleId;
@@ -48,7 +48,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
             type="button"
             onClick={() => setExpanded((current) => !current)}
             className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md text-[var(--color-ink-subtle)] transition-colors hover:bg-white hover:text-[var(--color-ink-default)]"
-            aria-label={expanded ? 'Свернуть раздел' : 'Развернуть раздел'}
+            aria-label={expanded ? locale.navigationTree.collapseSection : locale.navigationTree.expandSection}
           >
             {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
           </button>

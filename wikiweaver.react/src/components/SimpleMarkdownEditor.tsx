@@ -10,8 +10,11 @@ interface SimpleMarkdownEditorProps {
 }
 
 const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onChange, placeholder }) => {
+  const t = locale.addArticleEditor.bottomToolbar.formatting;
+  const markdown = locale.addArticleEditor.markdown;
+
   const insertAroundSelection = (prefix: string, suffix = prefix) => {
-    onChange(`${value}${prefix}${locale.markdownEditor.insertText}${suffix}`);
+    onChange(`${value}${prefix}${markdown.insertText}${suffix}`);
   };
 
   const lineCount = useMemo(() => (value ? value.split('\n').length : 0), [value]);
@@ -19,11 +22,11 @@ const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onCh
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('**')}>{locale.markdownEditor.bold}</Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('_')}>{locale.markdownEditor.italic}</Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n## ${locale.markdownEditor.headingSnippet}`)}>{locale.markdownEditor.heading}</Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n- ${locale.markdownEditor.listSnippet}`)}>{locale.markdownEditor.list}</Button>
-        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n> ${locale.markdownEditor.quoteSnippet}`)}>{locale.markdownEditor.quote}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('**')}>{t.bold}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => insertAroundSelection('_')}>{t.italic}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n## ${markdown.headingSnippet}`)}>{locale.addArticleEditor.bottomToolbar.addBlock.heading2}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n- ${markdown.listSnippet}`)}>{t.bulletList}</Button>
+        <Button className="px-3 py-1.5 text-xs" onClick={() => onChange(`${value}\n> ${markdown.quoteSnippet}`)}>{t.quote}</Button>
       </div>
       <Textarea
         value={value}
@@ -31,7 +34,7 @@ const SimpleMarkdownEditor: React.FC<SimpleMarkdownEditorProps> = ({ value, onCh
         placeholder={placeholder}
         className="min-h-48 rounded-2xl border-[var(--color-border-soft)] bg-white/90 px-4 py-3 font-mono text-[13px] leading-6"
       />
-      <p className="m-0 text-xs text-[var(--color-ink-subtle)]">{locale.markdownEditor.lineCount}: {lineCount}</p>
+      <p className="m-0 text-xs text-[var(--color-ink-subtle)]">{markdown.lineCount}: {lineCount}</p>
     </div>
   );
 };

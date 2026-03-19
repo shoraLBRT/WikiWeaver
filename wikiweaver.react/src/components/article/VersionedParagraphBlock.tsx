@@ -1,5 +1,6 @@
 import { GitBranch, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { formatMessage, locale } from '../../localization';
 
 type VersionedParagraphBlockProps = {
   order: number;
@@ -20,13 +21,15 @@ export const VersionedParagraphBlock = ({
   onMove,
   children,
 }: VersionedParagraphBlockProps) => {
+  const t = locale.versionedParagraph;
+
   return (
     <section className="my-4 rounded-2xl border border-[#d9ecdf] bg-[#f7fcf9] transition-colors duration-200">
       <div className="px-4 pt-3 pb-2">
         <div className="mb-2 flex items-center gap-1.5">
           <GitBranch size={11} className="text-[var(--color-brand-forest)]" />
           <span className="text-[10.5px] font-semibold tracking-[0.03em] text-[var(--color-brand-forest)]">
-            Версионный блок: набор {order}
+            {formatMessage(t.label, { order })}
           </span>
         </div>
 
@@ -34,14 +37,14 @@ export const VersionedParagraphBlock = ({
       </div>
 
       <div className="flex items-center justify-end gap-1.5 px-3 pb-3 pt-1">
-        <span className="mr-1 text-[10px] text-[var(--color-ink-subtle)]">Версии:</span>
+        <span className="mr-1 text-[10px] text-[var(--color-ink-subtle)]">{t.versions}</span>
         {mode === 'arrows' ? (
           <>
             <button
               type="button"
               onClick={() => onMove(-1)}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#cfe3d6] bg-white text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)]"
-              aria-label="Предыдущая версия"
+              aria-label={t.previous}
             >
               <ChevronLeft size={14} />
             </button>
@@ -52,7 +55,7 @@ export const VersionedParagraphBlock = ({
               type="button"
               onClick={() => onMove(1)}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#cfe3d6] bg-white text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)]"
-              aria-label="Следующая версия"
+              aria-label={t.next}
             >
               <ChevronRight size={14} />
             </button>

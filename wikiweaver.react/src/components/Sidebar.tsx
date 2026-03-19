@@ -114,11 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="border-t border-[var(--color-border-soft)] px-4 py-3">
-        <p className="m-0 text-[11px] text-[var(--color-ink-subtle)]">
-          {locale.app.name} - knowledge workspace
-        </p>
-      </div>
+        <div className="border-t border-[var(--color-border-soft)] px-4 py-3">
+          <p className="m-0 text-[11px] text-[var(--color-ink-subtle)]">
+            {locale.brand.sidebarCaption}
+          </p>
+        </div>
     </>
   );
 
@@ -147,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--color-ink-subtle)]">
-              Navigation
+              {locale.layout.navigation.label}
             </div>
 
             <div className="h-10 w-10" />
@@ -158,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className={`fixed inset-0 z-50 lg:hidden ${mobileOpen ? '' : 'pointer-events-none'}`}>
         <button
           type="button"
-          aria-label="Закрыть навигацию"
+          aria-label={locale.layout.navigation.mobileClose}
           onClick={onCloseMobile}
           className={`absolute inset-0 bg-[rgba(20,20,18,0.35)] backdrop-blur-sm transition-opacity duration-200 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
         />
@@ -167,8 +167,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           <div className="flex h-[var(--layout-header-height)] items-center border-b border-[var(--color-border-soft)] px-4">
             <div>
-              <p className="m-0 text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{locale.app.name}</p>
-              <p className="mb-0 mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-forest)]">navigation</p>
+              <p className="m-0 text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{locale.brand.name}</p>
+              <p className="mb-0 mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-forest)]">{locale.layout.navigation.label}</p>
             </div>
           </div>
           <div className="flex h-[calc(100%-var(--layout-header-height))] flex-col">{expandedContent}</div>

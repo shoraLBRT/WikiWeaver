@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ChevronRight,
   Home,
@@ -26,14 +26,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { collapsed, toggleCollapsed } = useSidebar();
   const isAdmin = isAdminAuthenticated();
+  const currentPath = location.pathname;
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isCreateRoute = location.pathname === '/article/new';
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [mobileSidebarState, setMobileSidebarState] = useState({ open: false, path: currentPath });
   const [searchFocusRequest, setSearchFocusRequest] = useState(0);
-
-  useEffect(() => {
-    setIsMobileSidebarOpen(false);
-  }, [location.pathname]);
+  const isMobileSidebarOpen = mobileSidebarState.open && mobileSidebarState.path === currentPath;
 
   const handleExpandSidebarSearch = () => {
     if (!collapsed) {
@@ -58,7 +56,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         >
           <Link to="/" className="flex min-w-0 flex-col leading-none">
             <span className="truncate text-[15px] font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">
-              {collapsed ? 'WW' : locale.app.name}
+              {collapsed ? locale.brand.shortName : locale.brand.name}
             </span>
           </Link>
         </div>
@@ -119,10 +117,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Button>
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => setIsMobileSidebarOpen((current) => !current)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:hidden"
+              <button
+                type="button"
+                onClick={() => setMobileSidebarState((current) => ({ open: !current.open, path: currentPath }))}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)] lg:hidden"
               title={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
               aria-label={collapsed ? locale.layout.navigation.open : locale.layout.navigation.close}
             >
@@ -136,7 +134,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <Sidebar
           collapsed={collapsed}
           mobileOpen={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          onCloseMobile={() => setMobileSidebarState({ open: false, path: currentPath })}
           searchFocusRequest={searchFocusRequest}
           onExpandSidebarSearch={handleExpandSidebarSearch}
         />

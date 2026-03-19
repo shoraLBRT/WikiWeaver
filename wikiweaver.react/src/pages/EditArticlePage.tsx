@@ -1,16 +1,14 @@
 import React from 'react';
 import { FilePenLine, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { locale } from '../localization';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
-
-const editPageTitle = 'Редактирование статьи';
-const editPageDescription = 'Полноценное редактирование существующей статьи пока не реализовано. На этой итерации сохранен честный placeholder в новом дизайне.';
-const backToAdminLabel = 'Вернуться в админ-панель';
 
 const EditArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const { articleId } = useParams<{ articleId: string }>();
+  const t = locale.editArticlePage;
 
   return (
     <div className="flex min-h-[calc(100vh-var(--layout-header-height)-3rem)] items-center justify-center px-4 py-8 sm:px-6">
@@ -21,27 +19,27 @@ const EditArticlePage: React.FC = () => {
               <FilePenLine size={22} />
             </div>
             <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-forest)]">Planned feature</p>
-              <h1 className="m-0 text-2xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{editPageTitle}</h1>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-forest)]">{t.plannedFeature}</p>
+              <h1 className="m-0 text-2xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{t.title}</h1>
             </div>
           </div>
         </div>
 
         <div className="space-y-4 px-6 py-6 sm:px-8">
           <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-7 text-sky-800">
-            {editPageDescription}
+            {t.description}
           </div>
           <div className="rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-4 py-4">
-            <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">ID статьи</p>
-            <p className="mb-0 mt-2 font-mono text-sm text-[var(--color-ink-muted)]">{articleId ?? 'unknown'}</p>
+            <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{t.articleId}</p>
+            <p className="mb-0 mt-2 font-mono text-sm text-[var(--color-ink-muted)]">{articleId ?? locale.common.unknown}</p>
           </div>
           <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white px-4 py-4 text-sm leading-7 text-[var(--color-ink-muted)]">
-            Дальнейшая реализация описана в `docs/todo/frontend-edit-content.md`.
+            {t.implementationNote}
           </div>
           <div>
             <Button onClick={() => navigate('/admin')}>
               <ArrowLeft size={14} />
-              {backToAdminLabel}
+              {t.backToAdmin}
             </Button>
           </div>
         </div>

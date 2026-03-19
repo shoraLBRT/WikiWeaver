@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { BarChart3, Check, ChevronDown, Clock3, FileText, FolderTree, Info, Layers3, Link2, PenLine, Search, Type } from 'lucide-react';
+import { formatMessage, locale } from '../../localization';
 import { Input } from '../../shared/ui/Input';
 
 type ParentOption = {
@@ -43,17 +44,19 @@ export const EditorHelpRail = ({
   onParentSearchChange,
   onSelectParent,
 }: EditorHelpRailProps) => {
+  const t = locale.addArticleEditor;
+
   return (
     <aside className="hidden xl:block xl:w-[280px] xl:shrink-0">
       <div className="sticky top-[calc(var(--layout-header-height)+24px)] space-y-6 px-4 pb-6">
         {actions ? <div>{actions}</div> : null}
         <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">Свойства статьи</p>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{t.articleProperties}</p>
           <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
 
             <label className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
               <FolderTree size={11} />
-              Родительская статья
+              {t.parentArticle}
             </label>
 
             <div className="relative">
@@ -63,7 +66,7 @@ export const EditorHelpRail = ({
                 onClick={onToggleParentDropdown}
                 className="flex w-full items-center justify-between rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-3 py-2 text-left text-[12px] text-[var(--color-ink-strong)] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <span className="truncate">{selectedParent?.path ?? 'Выберите родительскую статью...'}</span>
+                <span className="truncate">{selectedParent?.path ?? t.selectParentArticle}</span>
                 <ChevronDown size={14} className="shrink-0 text-[var(--color-ink-subtle)]" />
               </button>
 
@@ -76,7 +79,7 @@ export const EditorHelpRail = ({
                         value={parentSearch}
                         disabled={isLocked}
                         onChange={(event) => onParentSearchChange(event.target.value)}
-                        placeholder="Поиск статьи..."
+                        placeholder={t.parentSearchPlaceholder}
                         className="pl-9"
                       />
                     </div>
@@ -85,7 +88,7 @@ export const EditorHelpRail = ({
                       onClick={() => onSelectParent(null)}
                       className="mt-3 text-xs font-medium text-[var(--color-brand-forest)] transition-colors hover:text-[var(--color-brand-forest-strong)]"
                     >
-                      Очистить выбор
+                      {t.clearParentSelection}
                     </button>
                   </div>
 
@@ -112,7 +115,7 @@ export const EditorHelpRail = ({
                         );
                       })
                     ) : (
-                      <p className="m-0 px-3 py-4 text-sm text-[var(--color-ink-subtle)]">Ничего не найдено.</p>
+                      <p className="m-0 px-3 py-4 text-sm text-[var(--color-ink-subtle)]">{t.noParentResults}</p>
                     )}
                   </div>
                 </div>
@@ -124,43 +127,43 @@ export const EditorHelpRail = ({
         <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
           <p className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             <BarChart3 size={12} />
-            Сводка
+            {t.summaryTitle}
           </p>
           <div className="space-y-3 text-[12px] text-[var(--color-ink-muted)]">
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Layers3 size={12} className="text-[var(--color-ink-subtle)]" />
-                Блоков
+                {t.blocks}
               </span>
               <strong className="text-[var(--color-ink-strong)]">{blockCount}</strong>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <FileText size={12} className="text-[var(--color-ink-subtle)]" />
-                Абзацев
+                {t.paragraphs}
               </span>
               <strong className="text-[var(--color-ink-strong)]">{paragraphCount}</strong>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Type size={12} className="text-[var(--color-ink-subtle)]" />
-                Слов
+                {t.words}
               </span>
               <strong className="text-[var(--color-ink-strong)]">{wordCount}</strong>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <PenLine size={12} className="text-[var(--color-ink-subtle)]" />
-                Символов
+                {t.characters}
               </span>
               <strong className="text-[var(--color-ink-strong)]">{characterCount}</strong>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Clock3 size={12} className="text-[var(--color-ink-subtle)]" />
-                Время чтения
+                {t.readingTime}
               </span>
-              <strong className="text-[var(--color-ink-strong)]">{readingTimeMinutes > 0 ? `~${readingTimeMinutes} мин` : '-'}</strong>
+              <strong className="text-[var(--color-ink-strong)]">{readingTimeMinutes > 0 ? formatMessage(t.readingTimeMinutes, { minutes: readingTimeMinutes }) : '-'}</strong>
             </div>
           </div>
         </div>
@@ -168,20 +171,20 @@ export const EditorHelpRail = ({
         <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
           <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             <Info size={12} />
-            Инфобокс
+            {t.infoboxTitle}
           </p>
           <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-            В первой итерации это placeholder. Реализация описана в `docs/todo/frontend-infobox.md`.
+            {t.infoboxDescription}
           </p>
         </div>
 
         <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
           <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             <Link2 size={12} />
-            Метаданные
+            {t.metadataTitle}
           </p>
           <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-            Здесь останутся заглушки под metadata и related links до следующей итерации.
+            {t.metadataDescription}
           </p>
         </div>
       </div>

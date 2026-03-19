@@ -1,5 +1,6 @@
 import { Link as LinkIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { locale } from '../../localization';
 
 export type TocItem = {
   id: string;
@@ -10,13 +11,8 @@ type ArticleRightSidebarProps = {
   tocItems: TocItem[];
 };
 
-const metadataItems = [
-  ['Категория', 'Заглушка до внедрения metadata'],
-  ['Последнее изменение', 'Будет доступно позже'],
-  ['Правок', 'После реализации edit content'],
-];
-
 export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
+  const t = locale.articleRightSidebar;
   const [activeId, setActiveId] = useState<string>(tocItems[0]?.id ?? 'intro');
 
   useEffect(() => {
@@ -48,7 +44,7 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
       <div className="flex-1 overflow-y-auto py-4 px-4">
         <div className="mb-6">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            На этой странице
+            {t.onThisPage}
           </p>
           <nav className="space-y-0.5">
             {tocItems.map((item) => (
@@ -71,24 +67,24 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
 
         <div className="border-t border-[var(--color-border-soft)] pt-4">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            Связанные статьи
+            {t.relatedArticles}
           </p>
           <div className="space-y-1">
             <div className="rounded-xl border border-dashed border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-3 py-3 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-              Блок будет подключен позже. См. `docs/todo/frontend-related-links.md`.
+              {t.relatedPlaceholder}
             </div>
             <div className="flex items-center gap-1.5 text-[12px] text-[var(--color-brand-forest)] opacity-70">
-              <LinkIcon size={10} /> placeholder
+              <LinkIcon size={10} /> {t.relatedPlaceholderStatus}
             </div>
           </div>
         </div>
 
         <div className="mt-4 border-t border-[var(--color-border-soft)] pt-4">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            Информация
+            {t.information}
           </p>
           <div className="space-y-1">
-            {metadataItems.map(([label, value]) => (
+            {t.metadataItems.map(([label, value]) => (
               <div key={label}>
                 <span className="text-[11px] text-[var(--color-ink-subtle)]">{label}: </span>
                 <span className="text-[11px] text-[var(--color-ink-default)]">{value}</span>

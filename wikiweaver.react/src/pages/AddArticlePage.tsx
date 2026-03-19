@@ -101,6 +101,7 @@ const flattenNavigationTree = (
 const AddArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const t = locale.addArticlePage;
+  const editorText = locale.addArticleEditor;
   const [title, setTitle] = useState('');
   const [parentArticleId, setParentArticleId] = useState<number | null>(null);
   const [blocks, setBlocks] = useState<EditorBlock[]>([createEmptyBlock('paragraph')]);
@@ -240,7 +241,7 @@ const AddArticlePage: React.FC = () => {
     const end = textarea.selectionEnd ?? currentValue.length;
     const selected = currentValue.slice(start, end);
 
-    const withWrap = (prefix: string, suffix = prefix, fallback: string = locale.markdownEditor.insertText) => {
+    const withWrap = (prefix: string, suffix = prefix, fallback: string = editorText.markdown.insertText) => {
       const text = selected || fallback;
       const nextValue = `${currentValue.slice(0, start)}${prefix}${text}${suffix}${currentValue.slice(end)}`;
       const nextStart = start + prefix.length;
@@ -264,16 +265,16 @@ const AddArticlePage: React.FC = () => {
         withWrap('_');
         return;
       case 'link':
-        withWrap('[', '](https://example.com)', 'ссылка');
+        withWrap('[', '](https://example.com)', editorText.markdown.linkSnippet);
         return;
       case 'bulletList':
-        withLinePrefix(() => '- ', locale.markdownEditor.listSnippet);
+        withLinePrefix(() => '- ', editorText.markdown.listSnippet);
         return;
       case 'orderedList':
-        withLinePrefix((index) => `${index + 1}. `, locale.markdownEditor.listSnippet);
+        withLinePrefix((index) => `${index + 1}. `, editorText.markdown.listSnippet);
         return;
       case 'quote':
-        withLinePrefix(() => '> ', locale.markdownEditor.quoteSnippet);
+        withLinePrefix(() => '> ', editorText.markdown.quoteSnippet);
     }
   };
 
@@ -384,14 +385,14 @@ const AddArticlePage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-subtle)]">
-                      Заголовок статьи
+                      {t.articleTitleLabel}
                     </label>
                     <Input
                       value={title}
                       disabled={isLocked}
                       onFocus={() => setActiveTarget(null)}
                       onChange={(event) => setTitle(event.target.value)}
-                      placeholder="Название статьи..."
+                      placeholder={t.articleTitlePlaceholder}
                       className="h-auto border-0 bg-transparent px-0 py-0 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)] shadow-none focus:ring-0"
                     />
                   </div>
@@ -403,11 +404,11 @@ const AddArticlePage: React.FC = () => {
                   <div className="mx-auto max-w-[720px] rounded-[26px] border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-6 py-8 shadow-sm">
                     <div className="mb-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
                       <FileText size={12} />
-                      Предпросмотр статьи
+                      {t.previewTitle}
                     </div>
-                    <h1 className="mb-6 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{title || 'Без названия'}</h1>
+                    <h1 className="mb-6 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{title || locale.common.untitled}</h1>
                     <div className="article-markdown">
-                      <MarkdownContent content={previewMarkdown || 'Пока нет контента для предпросмотра.'} />
+                      <MarkdownContent content={previewMarkdown || t.previewEmpty} />
                     </div>
                   </div>
                 ) : (
@@ -494,7 +495,7 @@ const AddArticlePage: React.FC = () => {
           <div className="w-full max-w-2xl rounded-[28px] border border-[var(--color-border-soft)] bg-white shadow-[0_30px_80px_rgba(28,27,24,0.18)]">
             <div className="flex items-center justify-between border-b border-[var(--color-border-soft)] px-6 py-5">
               <div>
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">Import</p>
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">{t.importModalEyebrow}</p>
                 <h2 className="m-0 text-xl font-semibold text-[var(--color-ink-strong)]">{t.importModalTitle}</h2>
               </div>
               <button type="button" onClick={() => setIsImportOpen(false)} className="rounded-lg p-2 text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)]">
@@ -504,7 +505,7 @@ const AddArticlePage: React.FC = () => {
 
             <div className="space-y-4 px-6 py-5">
               <p className="m-0 text-sm leading-6 text-[var(--color-ink-muted)]">
-                Заголовки `##` и `###` будут импортированы как отдельные блоки. Остальной текст станет обычными параграфами.
+                {t.importModalDescription}
               </p>
               <Textarea
                 rows={10}
@@ -516,8 +517,8 @@ const AddArticlePage: React.FC = () => {
             </div>
 
             <div className="flex justify-end gap-3 border-t border-[var(--color-border-soft)] px-6 py-4">
-              <Button variant="ghost" onClick={() => setIsImportOpen(false)}>Отмена</Button>
-              <Button variant="primary" onClick={importMarkdownAsBlocks}>Импортировать</Button>
+              <Button variant="ghost" onClick={() => setIsImportOpen(false)}>{locale.common.cancel}</Button>
+              <Button variant="primary" onClick={importMarkdownAsBlocks}>{t.importing}</Button>
             </div>
           </div>
         </div>
@@ -529,8 +530,8 @@ const AddArticlePage: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-border-soft)] border-t-[var(--color-brand-forest)]" />
               <div>
-                <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">ИИ улучшает всю статью</p>
-                <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">Редактирование временно заблокировано до завершения обработки.</p>
+                <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{t.aiOverlayTitle}</p>
+                <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{t.aiOverlayDescription}</p>
               </div>
             </div>
           </Card>

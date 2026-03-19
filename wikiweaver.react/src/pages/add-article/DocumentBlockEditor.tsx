@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type TextareaHTMLAttributes } from 'react';
 import { ArrowDown, ArrowUp, GitBranch, Pilcrow, Plus, Star, Trash2 } from 'lucide-react';
+import { formatMessage, locale } from '../../localization';
 import { cn } from '../../shared/lib/cn';
 import { Textarea } from '../../shared/ui/Textarea';
 import type { AlternativeDraft, EditorBlock } from './types';
@@ -84,6 +85,7 @@ export const DocumentBlockEditor = ({
   onConvertToVersioned,
   onConvertToParagraph,
 }: DocumentBlockEditorProps) => {
+  const t = locale.addArticleEditor;
   const headingClasses =
     block.kind === 'heading2'
       ? 'min-h-[36px] text-[24px] font-bold tracking-[-0.03em]'
@@ -93,12 +95,12 @@ export const DocumentBlockEditor = ({
 
   const blockKindLabel =
     block.kind === 'heading2'
-      ? 'Heading H2'
+      ? t.blockKinds.heading2
       : block.kind === 'heading3'
-        ? 'Heading H3'
+        ? t.blockKinds.heading3
         : block.kind === 'versioned'
-          ? 'Versioned block'
-          : 'Paragraph';
+          ? t.blockKinds.versioned
+          : t.blockKinds.paragraph;
 
   return (
     <section
@@ -117,8 +119,8 @@ export const DocumentBlockEditor = ({
               disabled={disabled}
               onClick={() => onConvertToVersioned(block.id)}
               className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white hover:text-[var(--color-ink-strong)] disabled:opacity-30"
-              title="Преобразовать в версионный блок"
-              aria-label="Преобразовать в версионный блок"
+              title={t.toggleToVersioned}
+              aria-label={t.toggleToVersioned}
             >
               <GitBranch size={14} />
             </button>
@@ -129,8 +131,8 @@ export const DocumentBlockEditor = ({
               disabled={disabled}
               onClick={() => onConvertToParagraph(block.id)}
               className="rounded-lg p-1.5 text-[var(--color-ink-muted)] hover:bg-white hover:text-[var(--color-ink-strong)] disabled:opacity-30"
-              title="Преобразовать в обычный параграф"
-              aria-label="Преобразовать в обычный параграф"
+              title={t.toggleToParagraph}
+              aria-label={t.toggleToParagraph}
             >
               <Pilcrow size={14} />
             </button>
@@ -168,9 +170,9 @@ export const DocumentBlockEditor = ({
                       color: 'var(--color-brand-forest)',
                       borderColor: selectedVariant.isDefault ? 'var(--color-brand-forest)' : '#cfe3d6',
                     }}
-                  >
-                    <Star size={11} className={selectedVariant.isDefault ? 'fill-current' : ''} />
-                    По умолчанию
+                    >
+                      <Star size={11} className={selectedVariant.isDefault ? 'fill-current' : ''} />
+                    {t.defaultVersion}
                   </button>
                   <button
                     type="button"
@@ -199,13 +201,13 @@ export const DocumentBlockEditor = ({
                   onFocus={() => onFocusTarget({ blockId: block.id, localId: selectedVariant.localId })}
                   onChange={(event) => onChangeVersion(block.id, selectedVariant.localId, event.target.value)}
                   className="min-h-[32px] border-0 bg-transparent px-0 py-1 text-[14px] leading-8 shadow-none focus:ring-0"
-                  placeholder={`Текст версии ${selectedIndex + 1}...`}
+                  placeholder={formatMessage(t.versionTextPlaceholder, { index: selectedIndex + 1 })}
                 />
               </>
             );
           })()}
           <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5 px-1">
-            <span className="mr-1 ml-1 text-[10px] text-[var(--color-ink-subtle)]">Версии:</span>
+            <span className="mr-1 ml-1 text-[10px] text-[var(--color-ink-subtle)]">{t.versions}</span>
             {block.variants.map((variant, variantIndex) => {
               const defaultVariant = getDefaultVariant(block.variants);
               const isActive = activeTarget?.blockId === block.id
@@ -229,7 +231,7 @@ export const DocumentBlockEditor = ({
                     color: isActive ? 'white' : 'var(--color-brand-forest)',
                     borderColor: isActive || isDefault ? 'var(--color-brand-forest)' : '#cfe3d6',
                   }}
-                  title={isDefault ? 'Версия по умолчанию' : `Версия ${variantIndex + 1}`}
+                  title={isDefault ? t.defaultVersionTitle : formatMessage(t.versionTitle, { index: variantIndex + 1 })}
                 >
                   {variantIndex + 1}
                 </button>
@@ -240,8 +242,8 @@ export const DocumentBlockEditor = ({
               disabled={disabled}
               onClick={() => onAddVersion(block.id)}
               className="inline-flex h-[22px] w-[22px] items-center justify-center rounded border border-[#cfe3d6] bg-white text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)] disabled:opacity-40"
-              title="Добавить версию"
-              aria-label="Добавить версию"
+              title={t.addVersion}
+              aria-label={t.addVersion}
             >
               <Plus size={11} />
             </button>
@@ -255,14 +257,14 @@ export const DocumentBlockEditor = ({
           onFocus={() => onFocusTarget({ blockId: block.id, localId: null })}
           onChange={(event) => onChangePlain(block.id, event.target.value)}
           className={`border-0 bg-transparent px-0 py-0 shadow-none focus:ring-0 ${headingClasses}`}
-          placeholder={
-            block.kind === 'heading2'
-              ? 'Заголовок раздела...'
-              : block.kind === 'heading3'
-                ? 'Подзаголовок...'
-                : 'Введите текст параграфа...'
-          }
-        />
+            placeholder={
+              block.kind === 'heading2'
+                ? t.sectionTitlePlaceholder
+                : block.kind === 'heading3'
+                  ? t.subsectionTitlePlaceholder
+                  : t.paragraphPlaceholder
+            }
+          />
       )}
 
     </section>

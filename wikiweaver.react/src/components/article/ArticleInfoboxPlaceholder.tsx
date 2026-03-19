@@ -1,25 +1,18 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-
-const placeholderRows = [
-  ['Тип', 'Появится после внедрения metadata'],
-  ['Шаблон', 'Будет настраиваться для каждой wiki'],
-  ['Содержимое', 'Гибкие поля статьи'],
-  ['Статус', 'Пока не настроено'],
-  ['Источник', 'См. TODO по infobox'],
-  ['Хранение', 'Потребует расширения API'],
-];
+import { locale } from '../../localization';
 
 export const ArticleInfoboxPlaceholder = () => {
+  const t = locale.articleInfobox;
   const [expanded, setExpanded] = useState(false);
-  const visibleRows = expanded ? placeholderRows : placeholderRows.slice(0, 4);
+  const visibleRows = expanded ? t.rows : t.rows.slice(0, 4);
 
   return (
     <aside className="mb-6 w-full overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] text-sm shadow-sm lg:float-right lg:mb-4 lg:ml-6 lg:w-[280px]">
       <div className="bg-[var(--color-brand-forest)] px-4 py-3 text-center text-white">
         <p className="mb-1 font-serif text-[26px] leading-none">⌘</p>
-        <p className="text-[13px] font-semibold text-[#d6f2e2]">Infobox placeholder</p>
-        <p className="mt-0.5 text-[11px] text-[#9fe0bd]">Первая итерация дизайна</p>
+        <p className="text-[13px] font-semibold text-[#d6f2e2]">{t.title}</p>
+        <p className="mt-0.5 text-[11px] text-[#9fe0bd]">{t.subtitle}</p>
       </div>
 
       <div className="divide-y divide-[var(--color-border-mute)]">
@@ -35,10 +28,10 @@ export const ArticleInfoboxPlaceholder = () => {
 
       <div className="border-t border-[var(--color-border-soft)] px-3 py-2">
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-          Next step
+          {t.nextStep}
         </p>
         <p className="m-0 text-[11px] leading-5 text-[var(--color-ink-muted)]">
-          Подробности описаны в `docs/todo/frontend-infobox.md`.
+          {t.details}
         </p>
       </div>
 
@@ -48,7 +41,7 @@ export const ArticleInfoboxPlaceholder = () => {
         className="flex w-full items-center justify-center gap-1 border-t border-[var(--color-border-soft)] py-2 text-[12px] text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)]"
       >
         {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-        {expanded ? 'Свернуть' : 'Подробнее'}
+        {expanded ? t.collapse : t.expand}
       </button>
     </aside>
   );

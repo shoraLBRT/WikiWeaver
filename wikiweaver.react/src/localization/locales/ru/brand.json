@@ -1,0 +1,10 @@
+{
+  "brand": {
+    "name": "WikiWeaver",
+    "shortName": "WW",
+    "description": "ваша платформа для создания и управления wiki-контентом",
+    "welcomeTitle": "Добро пожаловать в WikiWeaver",
+    "sidebarCaption": "WikiWeaver - knowledge workspace",
+    "adminLoginDescription": "Управляйте контентом, AI-настройками и служебными функциями платформы в единой админ-панели."
+  }
+}

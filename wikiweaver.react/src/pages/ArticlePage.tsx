@@ -122,7 +122,7 @@ const ArticlePage: React.FC = () => {
   );
 
   const tocItems = useMemo<TocItem[]>(() => {
-    const items: TocItem[] = [{ id: 'article-overview', label: 'Общее описание' }];
+    const items: TocItem[] = [{ id: 'article-overview', label: locale.articlePage.overview }];
 
     renderedParagraphs.forEach((paragraph) => {
       if (paragraph.title) {

@@ -54,13 +54,13 @@ const AdminLoginPage: React.FC = () => {
     setErrorMessage(null);
 
     if (!formValues.email.trim() || !formValues.password.trim()) {
-      setErrorMessage('Заполните email и пароль.');
+      setErrorMessage(t.fillCredentials);
       return;
     }
 
     if (isRegisterMode) {
       if (requiresInvite && !formValues.inviteToken.trim()) {
-        setErrorMessage('Укажите invite token.');
+        setErrorMessage(t.inviteTokenRequired);
         return;
       }
 
@@ -83,20 +83,16 @@ const AdminLoginPage: React.FC = () => {
       <Card className="w-full max-w-5xl overflow-hidden border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.96)] shadow-[0_28px_90px_rgba(28,27,24,0.10)]">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
           <div className="border-b border-[var(--color-border-soft)] bg-[linear-gradient(135deg,rgba(45,106,79,0.13),rgba(244,243,238,0.5))] px-6 py-8 lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-forest)]">Admin access</p>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-forest)]">{t.heroEyebrow}</p>
             <h1 className="m-0 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">
               {isRegisterMode ? t.registerTitle : t.loginTitle}
             </h1>
             <p className="mb-0 mt-4 max-w-md text-sm leading-7 text-[var(--color-ink-muted)]">
-              Управляйте контентом, AI-настройками и служебными функциями платформы в единой админ-панели.
+              {locale.brand.adminLoginDescription}
             </p>
 
             <div className="mt-8 space-y-3">
-              {[
-                ['Content', 'Управление статьями и параграфами'],
-                ['AI', 'Проверка и настройка AI-провайдера'],
-                ['Access', 'Invite token и bootstrap admin flow'],
-              ].map(([title, description]) => (
+              {t.featureCards.map(([title, description]) => (
                 <div key={title} className="rounded-2xl border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.78)] px-4 py-3">
                   <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{title}</p>
                   <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{description}</p>
@@ -114,7 +110,7 @@ const AdminLoginPage: React.FC = () => {
                 <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">
                   {isRegisterMode ? t.registerAction : t.loginAction}
                 </p>
-                <p className="mb-0 mt-1 text-xs text-[var(--color-ink-subtle)]">JWT session for admin actions</p>
+                <p className="mb-0 mt-1 text-xs text-[var(--color-ink-subtle)]">{t.sessionHint}</p>
               </div>
             </div>
 
@@ -126,7 +122,7 @@ const AdminLoginPage: React.FC = () => {
 
             {statusQuery.isLoading ? (
               <div className="mb-4 rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm text-[var(--color-ink-muted)]">
-                Проверка статуса авторизации...
+                {t.authStatusLoading}
               </div>
             ) : null}
 

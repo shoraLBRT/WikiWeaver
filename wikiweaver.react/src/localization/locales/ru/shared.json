@@ -1,0 +1,45 @@
+{
+  "layout": {
+    "menu": {
+      "home": "Главная",
+      "addArticle": "Добавить статью",
+      "admin": "Панель администратора"
+    },
+    "actions": {
+      "adminPanel": "Админ панель",
+      "logout": "Выйти"
+    },
+    "navigation": {
+      "open": "Открыть панель навигации",
+      "close": "Закрыть панель навигации",
+      "searchPlaceholder": "Поиск",
+      "label": "Навигация",
+      "mobileClose": "Закрыть навигацию"
+    }
+  },
+  "common": {
+    "unknownError": "Неизвестная ошибка",
+    "delete": "Удалить",
+    "actions": "Действия",
+    "id": "ID",
+    "title": "Название",
+    "save": "Сохранить",
+    "settings": "Настройки",
+    "data": "Данные",
+    "loading": "Загрузка...",
+    "cancel": "Отмена",
+    "copy": "Копировать",
+    "untitled": "Без названия",
+    "unknown": "unknown",
+    "enabled": "включено",
+    "disabled": "выключено"
+  },
+  "sidebar": {
+    "loadError": "Ошибка загрузки навигации"
+  },
+  "navigationTree": {
+    "editArticle": "Редактировать статью",
+    "collapseSection": "Свернуть раздел",
+    "expandSection": "Развернуть раздел"
+  }
+}

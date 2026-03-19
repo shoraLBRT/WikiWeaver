@@ -1,0 +1,10 @@
+{
+  "brand": {
+    "name": "WikiWeaver",
+    "shortName": "WW",
+    "description": "your platform for creating and managing wiki content",
+    "welcomeTitle": "Welcome to WikiWeaver",
+    "sidebarCaption": "WikiWeaver - knowledge workspace",
+    "adminLoginDescription": "Manage content, AI settings, and platform maintenance tools in one admin workspace."
+  }
+}

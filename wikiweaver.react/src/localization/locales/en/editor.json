@@ -1,0 +1,108 @@
+{
+  "addArticlePage": {
+    "title": "New article",
+    "saved": "Article saved",
+    "saveError": "Save error",
+    "articleTitleLabel": "Article title",
+    "articleTitlePlaceholder": "Article title...",
+    "previewTitle": "Article preview",
+    "previewEmpty": "There is no content to preview yet.",
+    "importModalEyebrow": "Import",
+    "importModalTitle": "Import Markdown draft",
+    "importModalDescription": "Headings `##` and `###` are imported as separate blocks. The rest of the text becomes regular paragraphs.",
+    "importPlaceholder": "Paragraph 1\n\nParagraph 2\n\nParagraph 3",
+    "importing": "Import",
+    "importHint": "Separate paragraphs with a blank line. The import creates one version for each paragraph.",
+    "aiOverlayTitle": "AI is improving the whole article",
+    "aiOverlayDescription": "Editing is temporarily locked until processing finishes.",
+    "styledVersions": "Styled versions",
+    "importedParagraphs": "Imported paragraphs",
+    "warnings": {
+      "noParagraphsForAi": "There are no filled paragraphs to style",
+      "titleRequired": "Enter an article title",
+      "paragraphRequired": "Add at least one filled paragraph",
+      "defaultRequired": "Each paragraph must have at least one filled default version",
+      "importEmpty": "No paragraphs found for import"
+    },
+    "aiStyleFailed": "AI styling failed"
+  },
+  "addArticleEditor": {
+    "outlineTitle": "Outline",
+    "outlineEmpty": "Add H2 or H3 so the outline appears here.",
+    "articleProperties": "Article properties",
+    "parentArticle": "Parent article",
+    "selectParentArticle": "Choose a parent article...",
+    "parentSearchPlaceholder": "Search article...",
+    "clearParentSelection": "Clear selection",
+    "noParentResults": "Nothing found.",
+    "summaryTitle": "Summary",
+    "blocks": "Blocks",
+    "paragraphs": "Paragraphs",
+    "words": "Words",
+    "characters": "Characters",
+    "readingTime": "Reading time",
+    "readingTimeMinutes": "~{minutes} min",
+    "infoboxTitle": "Infobox",
+    "infoboxDescription": "In the first iteration this is a placeholder. The implementation is described in `docs/todo/frontend-infobox.md`.",
+    "metadataTitle": "Metadata",
+    "metadataDescription": "Metadata and related links placeholders stay here until the next iteration.",
+    "toggleToVersioned": "Convert to versioned block",
+    "toggleToParagraph": "Convert to regular paragraph",
+    "defaultVersion": "Default",
+    "versionTextPlaceholder": "Version text {index}...",
+    "versions": "Versions:",
+    "versionTitle": "Version {index}",
+    "defaultVersionTitle": "Default version",
+    "addVersion": "Add version",
+    "sectionTitlePlaceholder": "Section title...",
+    "subsectionTitlePlaceholder": "Subsection title...",
+    "paragraphPlaceholder": "Enter paragraph text...",
+    "blockKinds": {
+      "heading2": "Heading H2",
+      "heading3": "Heading H3",
+      "versioned": "Versioned block",
+      "paragraph": "Paragraph"
+    },
+    "topToolbar": {
+      "previewOn": "Open preview",
+      "previewOff": "Back to editing",
+      "previewLabel": "Preview",
+      "editLabel": "Edit",
+      "save": "Save",
+      "saveTitle": "Save article",
+      "import": "Import MD",
+      "importTitle": "Import Markdown",
+      "improveWithAi": "AI",
+      "improveWithAiTitle": "Improve article with AI"
+    },
+    "bottomToolbar": {
+      "addBlock": {
+        "paragraph": "Text",
+        "heading2": "H2",
+        "heading3": "H3"
+      },
+      "formatting": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "link": "Link",
+        "bulletList": "Bulleted list",
+        "orderedList": "Numbered list",
+        "quote": "Quote"
+      }
+    },
+    "markdown": {
+      "insertText": "text",
+      "headingSnippet": "Heading",
+      "listSnippet": "Item",
+      "quoteSnippet": "Quote",
+      "linkSnippet": "link",
+      "lineCount": "Markdown lines"
+    }
+  },
+  "versionedParagraph": {
+    "label": "Versioned block: set {order}",
+    "versions": "Versions:",
+    "previous": "Previous version",
+    "next": "Next version"
+  }
+}

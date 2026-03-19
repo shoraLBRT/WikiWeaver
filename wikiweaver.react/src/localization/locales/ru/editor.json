@@ -1,0 +1,108 @@
+{
+  "addArticlePage": {
+    "title": "Новая статья",
+    "saved": "Статья сохранена",
+    "saveError": "Ошибка сохранения",
+    "articleTitleLabel": "Заголовок статьи",
+    "articleTitlePlaceholder": "Название статьи...",
+    "previewTitle": "Предпросмотр статьи",
+    "previewEmpty": "Пока нет контента для предпросмотра.",
+    "importModalEyebrow": "Импорт",
+    "importModalTitle": "Импортировать черновик Markdown",
+    "importModalDescription": "Заголовки `##` и `###` будут импортированы как отдельные блоки. Остальной текст станет обычными параграфами.",
+    "importPlaceholder": "Абзац 1\n\nАбзац 2\n\nАбзац 3",
+    "importing": "Импортировать",
+    "importHint": "Разделяйте абзацы пустой строкой. Импорт создаст по одной версии на каждый абзац.",
+    "aiOverlayTitle": "AI улучшает всю статью",
+    "aiOverlayDescription": "Редактирование временно заблокировано до завершения обработки.",
+    "styledVersions": "Стилизовано версий",
+    "importedParagraphs": "Импортировано абзацев",
+    "warnings": {
+      "noParagraphsForAi": "Нет заполненных абзацев для стилизации",
+      "titleRequired": "Укажите заголовок статьи",
+      "paragraphRequired": "Добавьте хотя бы один заполненный абзац",
+      "defaultRequired": "Для каждого абзаца должна быть заполнена хотя бы одна версия по умолчанию",
+      "importEmpty": "Не найдено абзацев для импорта"
+    },
+    "aiStyleFailed": "AI-стилизация не выполнена"
+  },
+  "addArticleEditor": {
+    "outlineTitle": "Структура",
+    "outlineEmpty": "Добавьте H2 или H3, чтобы структура появилась здесь.",
+    "articleProperties": "Свойства статьи",
+    "parentArticle": "Родительская статья",
+    "selectParentArticle": "Выберите родительскую статью...",
+    "parentSearchPlaceholder": "Поиск статьи...",
+    "clearParentSelection": "Очистить выбор",
+    "noParentResults": "Ничего не найдено.",
+    "summaryTitle": "Сводка",
+    "blocks": "Блоков",
+    "paragraphs": "Абзацев",
+    "words": "Слов",
+    "characters": "Символов",
+    "readingTime": "Время чтения",
+    "readingTimeMinutes": "~{minutes} мин",
+    "infoboxTitle": "Инфобокс",
+    "infoboxDescription": "В первой итерации это placeholder. Реализация описана в `docs/todo/frontend-infobox.md`.",
+    "metadataTitle": "Метаданные",
+    "metadataDescription": "Здесь останутся заглушки под metadata и related links до следующей итерации.",
+    "toggleToVersioned": "Преобразовать в версионный блок",
+    "toggleToParagraph": "Преобразовать в обычный параграф",
+    "defaultVersion": "По умолчанию",
+    "versionTextPlaceholder": "Текст версии {index}...",
+    "versions": "Версии:",
+    "versionTitle": "Версия {index}",
+    "defaultVersionTitle": "Версия по умолчанию",
+    "addVersion": "Добавить версию",
+    "sectionTitlePlaceholder": "Заголовок раздела...",
+    "subsectionTitlePlaceholder": "Подзаголовок...",
+    "paragraphPlaceholder": "Введите текст параграфа...",
+    "blockKinds": {
+      "heading2": "Heading H2",
+      "heading3": "Heading H3",
+      "versioned": "Versioned block",
+      "paragraph": "Paragraph"
+    },
+    "topToolbar": {
+      "previewOn": "Открыть предпросмотр",
+      "previewOff": "Вернуться к редактированию",
+      "previewLabel": "Просмотр",
+      "editLabel": "Редакт.",
+      "save": "Сохранить",
+      "saveTitle": "Сохранить статью",
+      "import": "Импорт MD",
+      "importTitle": "Импортировать Markdown",
+      "improveWithAi": "Улучшить с ИИ",
+      "improveWithAiTitle": "Улучшить форматирование, проверить на ошибки."
+    },
+    "bottomToolbar": {
+      "addBlock": {
+        "paragraph": "Текст",
+        "heading2": "H2",
+        "heading3": "H3"
+      },
+      "formatting": {
+        "bold": "Жирный",
+        "italic": "Курсив",
+        "link": "Ссылка",
+        "bulletList": "Маркированный список",
+        "orderedList": "Нумерованный список",
+        "quote": "Цитата"
+      }
+    },
+    "markdown": {
+      "insertText": "текст",
+      "headingSnippet": "Заголовок",
+      "listSnippet": "Пункт",
+      "quoteSnippet": "Цитата",
+      "linkSnippet": "ссылка",
+      "lineCount": "Строк Markdown"
+    }
+  },
+  "versionedParagraph": {
+    "label": "Версионный блок: набор {order}",
+    "versions": "Версии:",
+    "previous": "Предыдущая версия",
+    "next": "Следующая версия"
+  }
+}

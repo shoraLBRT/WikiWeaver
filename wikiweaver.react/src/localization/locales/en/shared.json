@@ -1,0 +1,45 @@
+{
+  "layout": {
+    "menu": {
+      "home": "Home",
+      "addArticle": "Add article",
+      "admin": "Admin panel"
+    },
+    "actions": {
+      "adminPanel": "Admin panel",
+      "logout": "Log out"
+    },
+    "navigation": {
+      "open": "Open navigation panel",
+      "close": "Close navigation panel",
+      "searchPlaceholder": "Search",
+      "label": "Navigation",
+      "mobileClose": "Close navigation"
+    }
+  },
+  "common": {
+    "unknownError": "Unknown error",
+    "delete": "Delete",
+    "actions": "Actions",
+    "id": "ID",
+    "title": "Title",
+    "save": "Save",
+    "settings": "Settings",
+    "data": "Data",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "copy": "Copy",
+    "untitled": "Untitled",
+    "unknown": "unknown",
+    "enabled": "enabled",
+    "disabled": "disabled"
+  },
+  "sidebar": {
+    "loadError": "Failed to load navigation"
+  },
+  "navigationTree": {
+    "editArticle": "Edit article",
+    "collapseSection": "Collapse section",
+    "expandSection": "Expand section"
+  }
+}

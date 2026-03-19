@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Bot,
   Check,
@@ -76,32 +76,27 @@ const AdminPage: React.FC = () => {
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [aiCheckResult, setAiCheckResult] = useState<{ message: string; styledText: string } | null>(null);
-  const [aiSettingsForm, setAiSettingsForm] = useState<AiSettingsState>({
-    baseUrl: '',
-    model: '',
-    isEnabled: false,
-    apiKey: '',
-    clearApiKey: false,
-  });
+  const [aiSettingsFormOverride, setAiSettingsFormOverride] = useState<AiSettingsState | null>(null);
 
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
   const paragraphsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS], queryFn: getParagraphs });
   const aiSettingsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], queryFn: getAiProviderSettings });
 
-  useEffect(() => {
-    if (!aiSettingsQuery.data) {
-      return;
-    }
-
-    setAiSettingsForm({
-      baseUrl: aiSettingsQuery.data.baseUrl,
-      model: aiSettingsQuery.data.model,
-      isEnabled: aiSettingsQuery.data.isEnabled,
+  const aiSettingsDefaults = useMemo<AiSettingsState>(
+    () => ({
+      baseUrl: aiSettingsQuery.data?.baseUrl ?? '',
+      model: aiSettingsQuery.data?.model ?? '',
+      isEnabled: aiSettingsQuery.data?.isEnabled ?? false,
       apiKey: '',
       clearApiKey: false,
-    });
-  }, [aiSettingsQuery.data]);
+    }),
+    [aiSettingsQuery.data],
+  );
+  const aiSettingsForm = aiSettingsFormOverride ?? aiSettingsDefaults;
+  const updateAiSettingsForm = (updater: (current: AiSettingsState) => AiSettingsState) => {
+    setAiSettingsFormOverride((current) => updater(current ?? aiSettingsDefaults));
+  };
 
   const showNotice = (tone: Notice['tone'], message: string) => {
     setNotice({ tone, message });
@@ -154,6 +149,7 @@ const AdminPage: React.FC = () => {
     mutationFn: updateAiProviderSettings,
     onSuccess: async () => {
       showNotice('success', t.aiSettingsUpdated);
+      setAiSettingsFormOverride(null);
       await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
     },
     onError: (error) => showNotice('error', `${t.aiSettingsUpdateFailed}: ${(error as Error).message}`),
@@ -227,7 +223,7 @@ const AdminPage: React.FC = () => {
 
   const renderArticlesTable = (rows: ArticleReadDto[]) => {
     if (articlesQuery.isLoading) {
-      return <div className="py-10 text-center text-sm text-[var(--color-ink-subtle)]">Загрузка...</div>;
+      return <div className="py-10 text-center text-sm text-[var(--color-ink-subtle)]">{locale.common.loading}</div>;
     }
 
     return (
@@ -271,7 +267,7 @@ const AdminPage: React.FC = () => {
 
   const renderParagraphsTable = (rows: ParagraphReadDto[]) => {
     if (paragraphsQuery.isLoading) {
-      return <div className="py-10 text-center text-sm text-[var(--color-ink-subtle)]">Загрузка...</div>;
+      return <div className="py-10 text-center text-sm text-[var(--color-ink-subtle)]">{locale.common.loading}</div>;
     }
 
     return (
@@ -319,18 +315,18 @@ const AdminPage: React.FC = () => {
     <div className="space-y-6">
       <section className="overflow-hidden rounded-[28px] border border-[var(--color-border-soft)] bg-[linear-gradient(135deg,rgba(45,106,79,0.12),rgba(255,255,255,0.82))] shadow-[0_28px_90px_rgba(28,27,24,0.09)]">
         <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-8">
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-forest)]">Admin workspace</p>
-            <h1 className="m-0 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{t.title}</h1>
-            <p className="mb-0 mt-4 max-w-3xl text-sm leading-7 text-[var(--color-ink-muted)]">Контент, очистка, AI-конфигурация и системные действия собраны в одном интерфейсе.</p>
-          </div>
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-forest)]">{t.heroEyebrow}</p>
+              <h1 className="m-0 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{t.title}</h1>
+              <p className="mb-0 mt-4 max-w-3xl text-sm leading-7 text-[var(--color-ink-muted)]">{t.description}</p>
+            </div>
 
           <div className="rounded-[24px] border border-[var(--color-border-soft)] bg-[rgba(255,255,255,0.85)] p-5 shadow-sm">
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">Quick stats</p>
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">{t.quickStats}</p>
             <div className="space-y-2 text-sm text-[var(--color-ink-default)]">
               <div className="flex items-center justify-between"><span>{t.articlesTab}</span><strong>{articlesQuery.data?.length ?? 0}</strong></div>
               <div className="flex items-center justify-between"><span>{t.paragraphsTab}</span><strong>{paragraphsQuery.data?.length ?? 0}</strong></div>
-              <div className="flex items-center justify-between"><span>AI</span><strong>{aiSettingsQuery.data?.isEnabled ? 'enabled' : 'disabled'}</strong></div>
+              <div className="flex items-center justify-between"><span>{t.aiTab}</span><strong>{aiSettingsQuery.data?.isEnabled ? locale.common.enabled : locale.common.disabled}</strong></div>
             </div>
           </div>
         </div>
@@ -438,7 +434,7 @@ const AdminPage: React.FC = () => {
               </div>
               <div>
                 <p className="m-0 text-lg font-semibold text-[var(--color-ink-strong)]">{t.aiTab}</p>
-                <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">Параметры AI-провайдера и проверка подключения.</p>
+                <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{t.aiConfigurationDescription}</p>
               </div>
             </div>
 
@@ -448,11 +444,11 @@ const AdminPage: React.FC = () => {
 
             <div className="space-y-4">
               <label className="flex items-center justify-between rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-4 py-3">
-                <span className="text-sm font-medium text-[var(--color-ink-strong)]">AI enabled</span>
+                <span className="text-sm font-medium text-[var(--color-ink-strong)]">{t.aiEnabled}</span>
                 <input
                   type="checkbox"
                   checked={aiSettingsForm.isEnabled}
-                  onChange={(event) => setAiSettingsForm((current) => ({ ...current, isEnabled: event.target.checked }))}
+                  onChange={(event) => updateAiSettingsForm((current) => ({ ...current, isEnabled: event.target.checked }))}
                   className="h-4 w-4 accent-[var(--color-brand-forest)]"
                 />
               </label>
@@ -461,7 +457,7 @@ const AdminPage: React.FC = () => {
                 <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-subtle)]">{t.baseUrl}</label>
                 <Input
                   value={aiSettingsForm.baseUrl}
-                  onChange={(event) => setAiSettingsForm((current) => ({ ...current, baseUrl: event.target.value }))}
+                  onChange={(event) => updateAiSettingsForm((current) => ({ ...current, baseUrl: event.target.value }))}
                   disabled={!aiSettingsForm.isEnabled}
                   placeholder={t.baseUrlPlaceholder}
                 />
@@ -471,7 +467,7 @@ const AdminPage: React.FC = () => {
                 <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-subtle)]">{t.model}</label>
                 <Input
                   value={aiSettingsForm.model}
-                  onChange={(event) => setAiSettingsForm((current) => ({ ...current, model: event.target.value }))}
+                  onChange={(event) => updateAiSettingsForm((current) => ({ ...current, model: event.target.value }))}
                   disabled={!aiSettingsForm.isEnabled}
                   placeholder={t.modelPlaceholder}
                 />
@@ -482,7 +478,7 @@ const AdminPage: React.FC = () => {
                 <Input
                   type="password"
                   value={aiSettingsForm.apiKey}
-                  onChange={(event) => setAiSettingsForm((current) => ({ ...current, apiKey: event.target.value }))}
+                  onChange={(event) => updateAiSettingsForm((current) => ({ ...current, apiKey: event.target.value }))}
                   disabled={!aiSettingsForm.isEnabled}
                   placeholder={t.apiKeyPlaceholder}
                 />
@@ -493,7 +489,7 @@ const AdminPage: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={aiSettingsForm.clearApiKey}
-                  onChange={(event) => setAiSettingsForm((current) => ({ ...current, clearApiKey: event.target.checked }))}
+                  onChange={(event) => updateAiSettingsForm((current) => ({ ...current, clearApiKey: event.target.checked }))}
                   className="h-4 w-4 accent-[var(--color-brand-forest)]"
                 />
                 {t.deleteApiKey}
@@ -529,7 +525,7 @@ const AdminPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="m-0 text-base font-semibold text-[var(--color-ink-strong)]">{t.inviteTokenTitle}</p>
-                  <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">Создание нового invite token для администратора.</p>
+                  <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{t.inviteTokenDescription}</p>
                 </div>
               </div>
 
@@ -540,18 +536,18 @@ const AdminPage: React.FC = () => {
 
               {inviteToken ? (
                 <div className="mt-4 rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">Token</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-subtle)]">{t.inviteTokenValueLabel}</p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <code className="break-all text-sm text-[var(--color-ink-strong)]">{inviteToken}</code>
                     <Button
                       className="px-3 py-1.5 text-xs"
                       onClick={async () => {
                         await navigator.clipboard.writeText(inviteToken);
-                        showNotice('success', t.inviteTokenGenerated);
+                        showNotice('success', t.inviteTokenCopied);
                       }}
                     >
                       <Copy size={13} />
-                      Copy
+                      {locale.common.copy}
                     </Button>
                   </div>
                 </div>
@@ -565,7 +561,7 @@ const AdminPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="m-0 text-base font-semibold text-[var(--color-ink-strong)]">{t.uiTab}</p>
-                  <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">Режим отображения альтернатив на странице статьи.</p>
+                  <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{t.uiDescription}</p>
                 </div>
               </div>
 
@@ -586,7 +582,7 @@ const AdminPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(20,20,18,0.35)] p-4 backdrop-blur-sm">
           <div className="w-full max-w-xl rounded-[28px] border border-[var(--color-border-soft)] bg-white shadow-[0_30px_80px_rgba(28,27,24,0.18)]">
             <div className="border-b border-[var(--color-border-soft)] px-6 py-5">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-red-500">Danger zone</p>
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-red-500">{t.cleanupDangerZone}</p>
               <h2 className="m-0 text-xl font-semibold text-[var(--color-ink-strong)]">{t.cleanupModalTitle}</h2>
             </div>
             <div className="space-y-4 px-6 py-5">
@@ -596,7 +592,7 @@ const AdminPage: React.FC = () => {
               <Input value={cleanupConfirmation} onChange={(event) => setCleanupConfirmation(event.target.value)} />
             </div>
             <div className="flex justify-end gap-3 border-t border-[var(--color-border-soft)] px-6 py-4">
-              <Button variant="ghost" onClick={() => setIsCleanupModalOpen(false)}>Отмена</Button>
+              <Button variant="ghost" onClick={() => setIsCleanupModalOpen(false)}>{locale.common.cancel}</Button>
               <Button
                 variant="primary"
                 onClick={() => cleanupMutation.mutate()}
