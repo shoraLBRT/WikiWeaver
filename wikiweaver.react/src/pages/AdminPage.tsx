@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Check, Copy, Database, FileText, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
+import { Bot, Check, ChevronLeft, ChevronRight, Copy, Database, FileText, GitBranch, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   checkAiConnection,
@@ -58,6 +58,7 @@ const AdminPage: React.FC = () => {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [aiCheckResult, setAiCheckResult] = useState<{ message: string; styledText: string } | null>(null);
   const [aiSettingsFormOverride, setAiSettingsFormOverride] = useState<AiSettingsState | null>(null);
+  const [previewAlternativeIndex, setPreviewAlternativeIndex] = useState(0);
 
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
@@ -379,9 +380,85 @@ const AdminPage: React.FC = () => {
                 <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink-strong)]">{t.uiTab}</h1>
                 <p className="mt-2 text-sm text-[var(--color-ink-muted)]">Choose how paragraph alternatives are displayed.</p>
               </div>
+
+              {/* Preview Example - Styled like VersionedParagraphBlock */}
+              <section className="my-4 rounded-2xl border border-[#d9ecdf] bg-[#f7fcf9] transition-colors duration-200">
+                {/* Header with label */}
+                <div className="px-4 pt-3 pb-2">
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <GitBranch size={11} className="text-[var(--color-brand-forest)]" />
+                    <span className="text-[10.5px] font-semibold tracking-[0.03em] text-[var(--color-brand-forest)]">
+                      Versioned block: set 1
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="text-[14.5px] leading-7 text-[var(--color-ink-strong)] px-4">
+                  <p>
+                    Wikipedia is a free online encyclopedia,{' '}
+                    {previewAlternativeIndex === 0 ? (
+                      <span className="font-medium text-[var(--color-brand-forest)]">
+                        created and edited by volunteers
+                      </span>
+                    ) : (
+                      <span className="font-medium text-[var(--color-brand-forest)]">
+                        created collaboratively by communities
+                      </span>
+                    )}
+                    , around the world.
+                  </p>
+                </div>
+
+                {/* Controls - Arrows Mode */}
+                {paragraphUiMode === 'arrows' ? (
+                  <div className="flex items-center justify-end gap-1.5 px-3 pb-3 pt-1">
+                    <span className="mr-1 text-[10px] text-[var(--color-ink-subtle)]">Versions:</span>
+                    <button
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#cfe3d6] bg-white text-[var(--color-brand-forest)] transition-colors hover:bg-[#eef7f2]"
+                      onClick={() => setPreviewAlternativeIndex((prev) => (prev === 0 ? 1 : 0))}
+                      title="Previous version"
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                    <span className="min-w-12 text-center text-[11px] font-semibold text-[var(--color-ink-muted)]">
+                      {previewAlternativeIndex + 1} / 2
+                    </span>
+                    <button
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#cfe3d6] bg-white text-[var(--color-brand-forest)] transition-colors hover:bg-[#eef7f2]"
+                      onClick={() => setPreviewAlternativeIndex((prev) => (prev === 0 ? 1 : 0))}
+                      title="Next version"
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-1.5 px-3 pb-3 pt-1">
+                    <span className="mr-1 text-[10px] text-[var(--color-ink-subtle)]">Versions:</span>
+                    {[0, 1].map((index) => (
+                      <button
+                        key={index}
+                        className="rounded border px-2 py-0.5 text-[11px] font-semibold transition-colors"
+                        style={{
+                          backgroundColor: previewAlternativeIndex === index ? 'var(--color-brand-forest)' : 'white',
+                          color: previewAlternativeIndex === index ? 'white' : 'var(--color-brand-forest)',
+                          borderColor: previewAlternativeIndex === index ? 'var(--color-brand-forest)' : '#cfe3d6',
+                        }}
+                        onClick={() => setPreviewAlternativeIndex(index)}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Mode Selection */}
               <Card className="p-6">
                 <div className="mb-6 rounded-lg bg-[var(--color-surface-muted)] p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">Current Mode</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                    Active Mode
+                  </p>
                   <p className="mt-1 text-xl font-bold text-[var(--color-ink-strong)]">{currentUiModeLabel}</p>
                 </div>
 
@@ -396,7 +473,7 @@ const AdminPage: React.FC = () => {
                       className="h-4 w-4 accent-[var(--color-brand-forest)]"
                     />
                     <label htmlFor="mode-arrows" className="flex-1 cursor-pointer text-sm font-medium text-[var(--color-ink-strong)]">
-                      {t.uiModeArrows} <span className="ml-2 text-xs text-[var(--color-ink-muted)]">(→ arrows)</span>
+                      {t.uiModeArrows} <span className="ml-2 text-xs text-[var(--color-ink-muted)]">Show alternatives with arrows</span>
                     </label>
                   </div>
                   <div className="flex items-center gap-3">
@@ -409,7 +486,7 @@ const AdminPage: React.FC = () => {
                       className="h-4 w-4 accent-[var(--color-brand-forest)]"
                     />
                     <label htmlFor="mode-numbers" className="flex-1 cursor-pointer text-sm font-medium text-[var(--color-ink-strong)]">
-                      {t.uiModeNumbers} <span className="ml-2 text-xs text-[var(--color-ink-muted)]">(1, 2, 3...)</span>
+                      {t.uiModeNumbers} <span className="ml-2 text-xs text-[var(--color-ink-muted)]">Show alternatives with numbers</span>
                     </label>
                   </div>
                 </div>
