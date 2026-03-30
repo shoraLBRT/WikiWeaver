@@ -1,6 +1,13 @@
 ---
 name: WikiWeaver UI Guidelines
-description: Design system constraints for WikiWeaver React components. Use Tailwind v4, CSS variables, and project design tokens. Avoid external fonts and hardcoded colors.
+description: Design system and development workflow for WikiWeaver React components. Auto-apply when working in wikiweaver.react/. Use Tailwind v4, CSS variables, project design tokens, and Playwright for visual verification of non-trivial changes.
+triggers:
+  - wikiweaver.react/
+  - React component
+  - frontend
+  - AdminPage
+  - NavigationTree
+  - UI changes
 ---
 
 # WikiWeaver UI Guidelines
@@ -155,3 +162,40 @@ export function ArticleCard({ title, excerpt }) {
 ```
 
 Commit to this aesthetic and execute with precision.
+
+## Development Workflow
+
+**This skill is active during all frontend work in `wikiweaver.react/`.** Apply it automatically — no need for the user to invoke it explicitly.
+
+### When to take Playwright screenshots
+
+Not every change warrants a full visual verification cycle. Use judgement:
+
+**Skip screenshots for:**
+- Text/copy edits (labels, placeholders, button text)
+- Trivial spacing tweaks (`p-4` → `p-3`, `gap-2` → `gap-3`)
+- Single color token swaps where the intent is obvious (`--color-ink-default` → `--color-ink-muted`)
+- Adding/removing a single Tailwind utility class with predictable outcome
+- Logic-only changes with no visual impact
+
+**Always take screenshots for:**
+- New components or pages
+- Layout changes (flex/grid structure, sidebar, header, panels)
+- Interactive states (hover, active, expanded, modal open)
+- Multi-element styling changes where interaction between elements matters
+- Anything "close enough might not be good enough" — when you're uncertain
+
+### Screenshot workflow
+
+1. Ensure dev server is running: `npm run dev` (port 5173)
+2. Use Playwright MCP to capture affected pages
+3. Review against design system guidelines above
+4. Fix any visual inconsistencies, re-screenshot until clean
+5. Only then commit
+
+### Before committing frontend changes
+
+- [ ] Design system constraints followed (colors, fonts, spacing, icons from this skill)
+- [ ] Screenshots taken if the change is visually non-trivial
+- [ ] No visual bugs visible in screenshots (overflow, misalignment, wrong colors)
+- [ ] Related pages still look correct (no unintended side effects)
