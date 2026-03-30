@@ -186,7 +186,13 @@ const ArticlePage: React.FC = () => {
             <nav className="mb-5 flex flex-wrap items-center gap-1 text-[12.5px]">
               {breadcrumbItems.map((item, index) => (
                 <React.Fragment key={`${item.id}-${index}`}>
-                  <span className={index === breadcrumbItems.length - 1 ? 'text-[var(--color-ink-strong)]' : 'text-[var(--color-brand-forest)]'}>
+                  <span className={
+                    index === breadcrumbItems.length - 1
+                      ? 'text-[var(--color-ink-strong)]'
+                      : item.hasContent
+                        ? 'text-[var(--color-brand-forest)]'
+                        : 'text-[var(--color-ink-muted)]'
+                  }>
                     {item.hasContent ? <Link to={`/article/${item.id}`}>{item.title}</Link> : item.title}
                   </span>
                   {index < breadcrumbItems.length - 1 ? (

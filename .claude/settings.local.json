@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm list:*)",
+      "Skill(update-config)",
+      "Bash(git push:*)",
+      "Bash(curl -s \"https://claude.com/blog/improving-frontend-design-through-skills\")",
+      "Bash(npm run:*)"
+    ]
+  }
+}
