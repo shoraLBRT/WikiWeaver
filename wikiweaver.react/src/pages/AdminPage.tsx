@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Check, Copy, Database, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
+import { Bot, Check, Copy, Database, FileText, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   checkAiConnection,
   cleanupDemoData,
   getAiProviderSettings,
   getArticles,
+  getParagraphs,
   updateAiProviderSettings,
 } from '../services/adminService';
 import { generateInviteToken } from '../services/authService';
@@ -60,6 +61,7 @@ const AdminPage: React.FC = () => {
 
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
+  const paragraphsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS], queryFn: getParagraphs });
   const aiSettingsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], queryFn: getAiProviderSettings });
 
   const aiSettingsDefaults = useMemo<AiSettingsState>(
@@ -162,8 +164,35 @@ const AdminPage: React.FC = () => {
     });
   };
 
-  const articleCount = articlesQuery.data?.length ?? 0;
-  const articlesValue = articlesQuery.isLoading ? locale.common.loading : String(articleCount);
+  // Article statistics
+  const articles = useMemo(() => articlesQuery.data ?? [], [articlesQuery.data]);
+  const articleCount = articles.length;
+  const articlesWithContent = articles.filter((a) => a.hasContent).length;
+  const emptyArticles = articleCount - articlesWithContent;
+
+  // Article to paragraph count mapping
+  const articleParagraphCount = useMemo(() => {
+    const paragraphs = paragraphsQuery.data ?? [];
+    const countByArticle = new Map<number, number>();
+    articles.forEach((article) => {
+      countByArticle.set(article.id, 0);
+    });
+    paragraphs.forEach((para) => {
+      countByArticle.set(para.articleId, (countByArticle.get(para.articleId) ?? 0) + 1);
+    });
+    return countByArticle;
+  }, [articles, paragraphsQuery.data]);
+
+  // Top articles by paragraph count
+  const topArticlesByParagraphs = useMemo(() => {
+    return articles
+      .map((article) => ({
+        article,
+        paragraphCount: articleParagraphCount.get(article.id) ?? 0,
+      }))
+      .sort((a, b) => b.paragraphCount - a.paragraphCount)
+      .slice(0, 5);
+  }, [articles, articleParagraphCount]);
   const aiStatusHint = aiSettingsQuery.isLoading
     ? t.aiConfigurationDescription
     : !aiSettingsQuery.data?.isEnabled
@@ -257,20 +286,88 @@ const AdminPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink-strong)]">{t.articlesTab}</h1>
-                <p className="mt-2 text-sm text-[var(--color-ink-muted)]">Manage your article content and structure.</p>
+                <p className="mt-2 text-sm text-[var(--color-ink-muted)]">Overview of your article structure and content distribution.</p>
               </div>
-              <Card className="p-6">
-                <div className="flex items-center justify-between rounded-lg bg-[var(--color-surface-muted)] p-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">Total Articles</p>
-                    <p className="mt-1 text-2xl font-bold text-[var(--color-ink-strong)]">{articlesValue}</p>
+
+              {/* Metrics Grid */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Card className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                        Total Articles
+                      </p>
+                      <p className="mt-2 text-3xl font-bold text-[var(--color-ink-strong)]">
+                        {articlesQuery.isLoading ? '...' : articleCount}
+                      </p>
+                    </div>
+                    <Database size={32} className="text-[var(--color-brand-forest)] opacity-30" />
                   </div>
-                  <Database size={32} className="text-[var(--color-brand-forest)]" />
-                </div>
-                <Button className="mt-6" variant="primary" onClick={() => window.location.href = '/'}>
-                  <Database size={16} />
-                  View All Articles
-                </Button>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                        With Content
+                      </p>
+                      <p className="mt-2 text-3xl font-bold text-[var(--color-brand-forest)]">
+                        {articlesQuery.isLoading ? '...' : articlesWithContent}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
+                        {articleCount > 0 ? `${Math.round((articlesWithContent / articleCount) * 100)}%` : '0%'}
+                      </p>
+                    </div>
+                    <Check size={32} className="text-[var(--color-brand-forest)] opacity-30" />
+                  </div>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                        Empty (Placeholders)
+                      </p>
+                      <p className="mt-2 text-3xl font-bold text-[var(--color-ink-muted)]">
+                        {articlesQuery.isLoading ? '...' : emptyArticles}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
+                        {articleCount > 0 ? `${Math.round((emptyArticles / articleCount) * 100)}%` : '0%'}
+                      </p>
+                    </div>
+                    <FileText size={32} className="text-[var(--color-ink-muted)] opacity-30" />
+                  </div>
+                </Card>
+              </div>
+
+              {/* Top Articles by Paragraphs */}
+              <Card className="p-6">
+                <h3 className="mb-4 text-lg font-semibold text-[var(--color-ink-strong)]">Top Articles by Paragraph Count</h3>
+                {paragraphsQuery.isLoading ? (
+                  <p className="text-sm text-[var(--color-ink-muted)]">Loading...</p>
+                ) : topArticlesByParagraphs.length === 0 ? (
+                  <p className="text-sm text-[var(--color-ink-muted)]">No articles yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {topArticlesByParagraphs.map(({ article, paragraphCount }, index) => (
+                      <div key={article.id} className="flex items-center justify-between rounded-lg bg-[var(--color-surface-muted)] p-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-forest)] text-xs font-semibold text-white">
+                            {index + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-[var(--color-ink-strong)]">{article.title}</p>
+                            <p className="text-xs text-[var(--color-ink-muted)]">{article.hasContent ? 'Published' : 'Placeholder'}</p>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <p className="text-lg font-bold text-[var(--color-brand-forest)]">{paragraphCount}</p>
+                          <p className="text-xs text-[var(--color-ink-muted)]">paragraph{paragraphCount !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Card>
             </div>
           ) : null}
