@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Check, ChevronLeft, ChevronRight, Copy, Database, FileText, GitBranch, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
+import { Bot, Check, ChevronLeft, ChevronRight, Copy, Database, FileText, GitBranch, HelpCircle, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   checkAiConnection,
@@ -60,6 +60,7 @@ const AdminPage: React.FC = () => {
   const [aiCheckResult, setAiCheckResult] = useState<{ message: string; styledText: string } | null>(null);
   const [aiSettingsFormOverride, setAiSettingsFormOverride] = useState<AiSettingsState | null>(null);
   const [previewAlternativeIndex, setPreviewAlternativeIndex] = useState(0);
+  const [isDefaultPromptModalOpen, setIsDefaultPromptModalOpen] = useState(false);
 
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
@@ -602,9 +603,20 @@ const AdminPage: React.FC = () => {
                   </label>
 
                   <div className="border-t border-[var(--color-border-soft)] pt-4">
-                    <label className="mb-2 block text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
-                      {t.markdownStylingPromptLabel}
-                    </label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="block text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                        {t.markdownStylingPromptLabel}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setIsDefaultPromptModalOpen(true)}
+                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)]"
+                        title={t.viewDefaultPrompt}
+                      >
+                        <HelpCircle size={14} />
+                        {t.viewDefaultPrompt}
+                      </button>
+                    </div>
                     <Textarea
                       value={aiSettingsForm.markdownStylingSystemPrompt}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, markdownStylingSystemPrompt: event.target.value }))}
@@ -640,6 +652,53 @@ const AdminPage: React.FC = () => {
                     <Textarea readOnly value={aiCheckResult.styledText} rows={6} className="font-mono text-[13px] leading-6" />
                   </div>
                 ) : null}
+              </Card>
+            </div>
+          ) : null}
+
+          {/* Default Prompt Modal */}
+          {isDefaultPromptModalOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(20,20,18,0.35)] p-4 backdrop-blur-sm">
+              <Card className="w-full max-w-2xl">
+                <div className="border-b border-[var(--color-border-soft)] px-6 py-5">
+                  <h2 className="m-0 text-xl font-semibold text-[var(--color-ink-strong)]">{t.defaultPromptModalTitle}</h2>
+                </div>
+                <div className="space-y-6 px-6 py-5">
+                  <div className="rounded-lg bg-[var(--color-brand-forest-soft)] p-4">
+                    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-forest)]">
+                      <HelpCircle size={16} />
+                      {t.currentPrompt}
+                    </p>
+                    <div className="rounded bg-white p-3">
+                      <p className="m-0 text-xs text-[var(--color-ink-muted)]">
+                        {aiSettingsForm.markdownStylingSystemPrompt
+                          ? `${t.customPrompt} — ${aiSettingsForm.markdownStylingSystemPrompt.substring(0, 100)}...`
+                          : t.defaultPrompt}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                      {t.defaultPrompt}
+                    </p>
+                    <Textarea
+                      readOnly
+                      value={t.defaultMarkdownPrompt}
+                      rows={8}
+                      className="font-mono text-[12px] leading-5 bg-[var(--color-surface-muted)]"
+                    />
+                  </div>
+
+                  <p className="m-0 text-xs text-[var(--color-ink-muted)]">
+                    💡 {t.promptReplacementWarning}
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3 border-t border-[var(--color-border-soft)] px-6 py-4">
+                  <Button variant="ghost" onClick={() => setIsDefaultPromptModalOpen(false)}>
+                    {locale.common.cancel}
+                  </Button>
+                </div>
               </Card>
             </div>
           ) : null}

@@ -121,7 +121,14 @@
     "aiCapability4": "Never modifies sentence structure or rewrites text",
     "markdownStylingPromptLabel": "Markdown Styling Prompt",
     "markdownStylingPromptPlaceholder": "Leave empty to use the default prompt...",
-    "markdownStylingPromptHint": "Customize the system prompt used for markdown styling. Leave empty to use the default behavior."
+    "markdownStylingPromptHint": "Customize the system prompt used for markdown styling. Leave empty to use the default behavior.",
+    "viewDefaultPrompt": "View default prompt",
+    "defaultMarkdownPrompt": "You are a Markdown style editor. Your task: improve markdown formatting, punctuation, spelling and readability.\nStrict constraints:\n1) Do not change the meaning of the text.\n2) Do not rearrange words or rephrase sentences.\n3) Do not add or remove facts.\n4) Keep the original language.\n5) Return only the finished Markdown without comments or explanations.",
+    "defaultPromptModalTitle": "Default Markdown Styling Prompt",
+    "currentPrompt": "Currently used prompt:",
+    "customPrompt": "Custom (from admin panel)",
+    "defaultPrompt": "Default prompt",
+    "promptReplacementWarning": "If you set a custom prompt above, it will replace (not extend) the default behavior. Make sure your custom prompt includes the same constraints and rules you want to enforce."
   },
   "adminLoginPage": {
     "registerTitle": "Administrator registration",
