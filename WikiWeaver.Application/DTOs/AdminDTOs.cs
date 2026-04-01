@@ -13,6 +13,7 @@ namespace WikiWeaver.Application.DTOs
         public string Model { get; set; }
         public bool IsEnabled { get; set; }
         public bool HasApiKey { get; set; }
+        public string? MarkdownStylingSystemPrompt { get; set; }
     }
 
     public class UpdateAiProviderSettingsDto
@@ -22,6 +23,7 @@ namespace WikiWeaver.Application.DTOs
         public bool IsEnabled { get; set; }
         public string? ApiKey { get; set; }
         public bool ClearApiKey { get; set; }
+        public string? MarkdownStylingSystemPrompt { get; set; }
     }
 
     public class AiStyleRequestDto

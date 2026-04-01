@@ -98,6 +98,9 @@ namespace WikiWeaver.Infrastructure.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("MarkdownStylingSystemPrompt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(120)

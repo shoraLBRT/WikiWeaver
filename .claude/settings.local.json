@@ -7,11 +7,13 @@
       "Skill(update-config)",
       "Bash(git push:*)",
       "Bash(curl -s \"https://claude.com/blog/improving-frontend-design-through-skills\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet build:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "playwright"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

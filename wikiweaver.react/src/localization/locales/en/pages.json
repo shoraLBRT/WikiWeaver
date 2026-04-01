@@ -112,7 +112,16 @@
     "aiConfigurationDescription": "AI provider parameters and connection check.",
     "aiEnabled": "AI enabled",
     "uiDescription": "Display mode for alternatives on the article page.",
-    "cleanupDangerZone": "Danger zone"
+    "cleanupDangerZone": "Danger zone",
+    "aiCapabilitiesTitle": "AI Markdown Styling Capabilities",
+    "aiCapabilitiesDescription": "When enabled, AI assists authors on the article creation page to improve text formatting and readability. The system automatically:",
+    "aiCapability1": "Enhances markdown structure and formatting",
+    "aiCapability2": "Improves punctuation and grammar while preserving meaning",
+    "aiCapability3": "Maintains the original language and all content",
+    "aiCapability4": "Never modifies sentence structure or rewrites text",
+    "markdownStylingPromptLabel": "Markdown Styling Prompt",
+    "markdownStylingPromptPlaceholder": "Leave empty to use the default prompt...",
+    "markdownStylingPromptHint": "Customize the system prompt used for markdown styling. Leave empty to use the default behavior."
   },
   "adminLoginPage": {
     "registerTitle": "Administrator registration",

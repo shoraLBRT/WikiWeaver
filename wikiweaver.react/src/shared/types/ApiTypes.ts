@@ -45,6 +45,7 @@ export interface AiProviderSettingsDto {
   model: string;
   isEnabled: boolean;
   hasApiKey: boolean;
+  markdownStylingSystemPrompt?: string;
 }
 
 export interface UpdateAiProviderSettingsDto {
@@ -53,6 +54,7 @@ export interface UpdateAiProviderSettingsDto {
   isEnabled: boolean;
   apiKey?: string;
   clearApiKey?: boolean;
+  markdownStylingSystemPrompt?: string | null;
 }
 
 export interface AiStyleRequestDto {

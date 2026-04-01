@@ -112,7 +112,16 @@
     "aiConfigurationDescription": "Параметры AI-провайдера и проверка подключения.",
     "aiEnabled": "AI включен",
     "uiDescription": "Режим отображения альтернатив на странице статьи.",
-    "cleanupDangerZone": "Danger zone"
+    "cleanupDangerZone": "Danger zone",
+    "aiCapabilitiesTitle": "Возможности AI стилизации Markdown",
+    "aiCapabilitiesDescription": "Когда включено, AI помогает авторам на странице создания статьи улучшить форматирование текста и читаемость. Система автоматически:",
+    "aiCapability1": "Улучшает структуру и форматирование markdown",
+    "aiCapability2": "Улучшает пунктуацию и грамматику, сохраняя смысл",
+    "aiCapability3": "Сохраняет исходный язык и весь контент",
+    "aiCapability4": "Никогда не изменяет структуру предложений и не переписывает текст",
+    "markdownStylingPromptLabel": "Промпт для стилизации Markdown",
+    "markdownStylingPromptPlaceholder": "Оставьте пустым для использования промпта по умолчанию...",
+    "markdownStylingPromptHint": "Настройте системный промпт, используемый для стилизации markdown. Оставьте пустым для использования поведения по умолчанию."
   },
   "adminLoginPage": {
     "registerTitle": "Регистрация администратора",

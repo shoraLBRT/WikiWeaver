@@ -103,6 +103,11 @@ namespace WikiWeaver.Application.Services
                 settings.ApiKey = null;
             }
 
+            if (request.MarkdownStylingSystemPrompt != null)
+            {
+                settings.MarkdownStylingSystemPrompt = request.MarkdownStylingSystemPrompt.Trim();
+            }
+
             await _aiProviderSettingsRepository.SaveChangesAsync();
             return ServiceResult<AiProviderSettingsDto>.Success(ToResponse(settings));
         }
@@ -166,7 +171,7 @@ namespace WikiWeaver.Application.Services
                 temperature = _aiOptions.Temperature,
                 messages = new object[]
                 {
-                    new { role = "system", content = ResolveMarkdownPrompt() },
+                    new { role = "system", content = ResolveMarkdownPrompt(settings) },
                     new { role = "user", content = text }
                 }
             };
@@ -198,11 +203,19 @@ namespace WikiWeaver.Application.Services
             return AiStyleResult.Success(styledText);
         }
 
-        private string ResolveMarkdownPrompt()
+        private string ResolveMarkdownPrompt(AiProviderSettings settings)
         {
-            return string.IsNullOrWhiteSpace(_aiOptions.MarkdownStylingSystemPrompt)
-                ? AdminMessages.DefaultMarkdownStylingSystemPrompt
-                : _aiOptions.MarkdownStylingSystemPrompt;
+            if (!string.IsNullOrWhiteSpace(settings.MarkdownStylingSystemPrompt))
+            {
+                return settings.MarkdownStylingSystemPrompt;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_aiOptions.MarkdownStylingSystemPrompt))
+            {
+                return _aiOptions.MarkdownStylingSystemPrompt;
+            }
+
+            return AdminMessages.DefaultMarkdownStylingSystemPrompt;
         }
 
         private async Task<AiProviderSettings> GetOrCreateAiSettingsAsync(CancellationToken cancellationToken)
@@ -226,7 +239,8 @@ namespace WikiWeaver.Application.Services
                 BaseUrl = settings.BaseUrl,
                 Model = settings.Model,
                 IsEnabled = settings.IsEnabled,
-                HasApiKey = !string.IsNullOrWhiteSpace(settings.ApiKey)
+                HasApiKey = !string.IsNullOrWhiteSpace(settings.ApiKey),
+                MarkdownStylingSystemPrompt = settings.MarkdownStylingSystemPrompt
             };
         }
 

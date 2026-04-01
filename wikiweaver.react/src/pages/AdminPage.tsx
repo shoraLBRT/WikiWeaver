@@ -33,6 +33,7 @@ type AiSettingsState = {
   isEnabled: boolean;
   apiKey: string;
   clearApiKey: boolean;
+  markdownStylingSystemPrompt: string;
 };
 
 const noticeClasses: Record<Notice['tone'], string> = {
@@ -72,6 +73,7 @@ const AdminPage: React.FC = () => {
       isEnabled: aiSettingsQuery.data?.isEnabled ?? false,
       apiKey: '',
       clearApiKey: false,
+      markdownStylingSystemPrompt: aiSettingsQuery.data?.markdownStylingSystemPrompt ?? '',
     }),
     [aiSettingsQuery.data],
   );
@@ -162,6 +164,7 @@ const AdminPage: React.FC = () => {
       isEnabled: aiSettingsForm.isEnabled,
       apiKey: aiSettingsForm.apiKey.trim() || undefined,
       clearApiKey: aiSettingsForm.clearApiKey,
+      markdownStylingSystemPrompt: aiSettingsForm.markdownStylingSystemPrompt.trim() || null,
     });
   };
 
@@ -499,8 +502,39 @@ const AdminPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink-strong)]">{t.aiTab}</h1>
-                <p className="mt-2 text-sm text-[var(--color-ink-muted)]">Configure your AI provider connection.</p>
+                <p className="mt-2 text-sm text-[var(--color-ink-muted)]">Configure your AI provider connection and customize the markdown styling behavior.</p>
               </div>
+
+              <Card className="border-[var(--color-brand-forest-soft)] bg-[var(--color-brand-forest-soft)]/20 p-6">
+                <div className="flex gap-4">
+                  <Bot size={24} className="flex-shrink-0 text-[var(--color-brand-forest)]" />
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-ink-strong)]">{t.aiCapabilitiesTitle}</h3>
+                    <p className="mt-2 text-sm text-[var(--color-ink-muted)]">
+                      {t.aiCapabilitiesDescription}
+                    </p>
+                    <ul className="mt-3 space-y-1 text-sm text-[var(--color-ink-muted)]">
+                      <li className="flex items-start gap-2">
+                        <span className="text-[var(--color-brand-forest)] font-bold">•</span>
+                        <span>{t.aiCapability1}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[var(--color-brand-forest)] font-bold">•</span>
+                        <span>{t.aiCapability2}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[var(--color-brand-forest)] font-bold">•</span>
+                        <span>{t.aiCapability3}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[var(--color-brand-forest)] font-bold">•</span>
+                        <span>{t.aiCapability4}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+
               <Card className="p-6">
                 <div className="mb-6 rounded-lg bg-[var(--color-surface-muted)] p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">Status</p>
@@ -566,6 +600,23 @@ const AdminPage: React.FC = () => {
                     />
                     <span className="text-sm text-[var(--color-ink-muted)]">{t.deleteApiKey}</span>
                   </label>
+
+                  <div className="border-t border-[var(--color-border-soft)] pt-4">
+                    <label className="mb-2 block text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
+                      {t.markdownStylingPromptLabel}
+                    </label>
+                    <Textarea
+                      value={aiSettingsForm.markdownStylingSystemPrompt}
+                      onChange={(event) => updateAiSettingsForm((current) => ({ ...current, markdownStylingSystemPrompt: event.target.value }))}
+                      disabled={!aiSettingsForm.isEnabled}
+                      placeholder={t.markdownStylingPromptPlaceholder}
+                      rows={6}
+                      className="font-mono text-[13px] leading-5"
+                    />
+                    <p className="mt-2 text-xs text-[var(--color-ink-subtle)]">
+                      {t.markdownStylingPromptHint}
+                    </p>
+                  </div>
 
                   <div className="flex flex-wrap gap-3 pt-2">
                     <Button variant="primary" onClick={saveAiSettings} disabled={aiSettingsMutation.isPending}>
