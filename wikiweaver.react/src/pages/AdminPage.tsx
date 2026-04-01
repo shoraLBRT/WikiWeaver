@@ -7,6 +7,7 @@ import {
   getAiProviderSettings,
   getArticles,
   getParagraphs,
+  resetAiSettings,
   updateAiProviderSettings,
 } from '../services/adminService';
 import { generateInviteToken } from '../services/authService';
@@ -23,6 +24,7 @@ import { cn } from '../shared/lib/cn';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { Input } from '../shared/ui/Input';
+import { Switch } from '../shared/ui/Switch';
 import { Textarea } from '../shared/ui/Textarea';
 
 type AdminSection = 'articles' | 'displayMode' | 'aiProvider' | 'adminAccess' | 'cleanup';
@@ -32,7 +34,6 @@ type AiSettingsState = {
   model: string;
   isEnabled: boolean;
   apiKey: string;
-  clearApiKey: boolean;
   markdownStylingSystemPrompt: string;
 };
 
@@ -73,7 +74,6 @@ const AdminPage: React.FC = () => {
       model: aiSettingsQuery.data?.model ?? '',
       isEnabled: aiSettingsQuery.data?.isEnabled ?? false,
       apiKey: '',
-      clearApiKey: false,
       markdownStylingSystemPrompt: aiSettingsQuery.data?.markdownStylingSystemPrompt ?? '',
     }),
     [aiSettingsQuery.data],
@@ -142,6 +142,16 @@ const AdminPage: React.FC = () => {
     onError: (error) => showNotice('error', `${t.aiCheckFailed}: ${(error as Error).message}`),
   });
 
+  const resetAiSettingsMutation = useMutation({
+    mutationFn: resetAiSettings,
+    onSuccess: async () => {
+      showNotice('success', t.resetAiSettingsSuccess);
+      setAiSettingsFormOverride(null);
+      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
+    },
+    onError: (error) => showNotice('error', `${t.resetAiSettingsFailed}: ${(error as Error).message}`),
+  });
+
   const onParagraphUiModeChange = (value: ParagraphUiMode) => {
     setParagraphUiMode(value);
     localStorage.setItem(ARTICLE_UI_MODE_STORAGE_KEY, value);
@@ -164,7 +174,6 @@ const AdminPage: React.FC = () => {
       model: aiSettingsForm.model.trim(),
       isEnabled: aiSettingsForm.isEnabled,
       apiKey: aiSettingsForm.apiKey.trim() || undefined,
-      clearApiKey: aiSettingsForm.clearApiKey,
       markdownStylingSystemPrompt: aiSettingsForm.markdownStylingSystemPrompt.trim() || null,
     });
   };
@@ -543,12 +552,10 @@ const AdminPage: React.FC = () => {
                 </div>
 
                 <form autoComplete="off" className="space-y-4">
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <Switch
                       checked={aiSettingsForm.isEnabled}
-                      onChange={(event) => updateAiSettingsForm((current) => ({ ...current, isEnabled: event.target.checked }))}
-                      className="h-4 w-4 accent-[var(--color-brand-forest)]"
+                      onChange={(checked) => updateAiSettingsForm((current) => ({ ...current, isEnabled: checked }))}
                     />
                     <span className="text-sm font-medium text-[var(--color-ink-strong)]">{t.aiEnabled}</span>
                   </label>
@@ -598,16 +605,6 @@ const AdminPage: React.FC = () => {
                     <p className="mt-2 text-xs text-[var(--color-ink-subtle)]">{t.apiKeyHint}</p>
                   </div>
 
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={aiSettingsForm.clearApiKey}
-                      onChange={(event) => updateAiSettingsForm((current) => ({ ...current, clearApiKey: event.target.checked }))}
-                      className="h-4 w-4 accent-[var(--color-brand-forest)]"
-                    />
-                    <span className="text-sm text-[var(--color-ink-muted)]">{t.deleteApiKey}</span>
-                  </label>
-
                   <div className="border-t border-[var(--color-border-soft)] pt-4">
                     <div className="mb-2 flex items-center justify-between">
                       <label className="block text-[11px] font-semibold uppercase tracking-widest text-[var(--color-ink-subtle)]">
@@ -645,6 +642,10 @@ const AdminPage: React.FC = () => {
                     <Button onClick={() => aiConnectionCheckMutation.mutate()} disabled={aiConnectionCheckMutation.isPending}>
                       <Sparkles size={14} />
                       {aiConnectionCheckMutation.isPending ? '...' : t.checkAiConnection}
+                    </Button>
+                    <Button variant="danger" onClick={() => resetAiSettingsMutation.mutate()} disabled={resetAiSettingsMutation.isPending}>
+                      <Trash2 size={14} />
+                      {resetAiSettingsMutation.isPending ? '...' : t.resetAiSettings}
                     </Button>
                   </div>
                 </form>

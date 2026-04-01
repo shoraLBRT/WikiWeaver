@@ -98,11 +98,6 @@ namespace WikiWeaver.Application.Services
                 settings.ApiKey = request.ApiKey.Trim();
             }
 
-            if (request.ClearApiKey)
-            {
-                settings.ApiKey = null;
-            }
-
             if (request.MarkdownStylingSystemPrompt != null)
             {
                 settings.MarkdownStylingSystemPrompt = request.MarkdownStylingSystemPrompt.Trim();
@@ -110,6 +105,18 @@ namespace WikiWeaver.Application.Services
 
             await _aiProviderSettingsRepository.SaveChangesAsync();
             return ServiceResult<AiProviderSettingsDto>.Success(ToResponse(settings));
+        }
+
+        public async Task<AiProviderSettingsDto> ResetAiSettingsAsync(CancellationToken cancellationToken = default)
+        {
+            var settings = await _aiProviderSettingsRepository.GetSettingsAsync(cancellationToken);
+            if (settings is not null)
+            {
+                await _aiProviderSettingsRepository.DeleteAsync(settings);
+                await _aiProviderSettingsRepository.SaveChangesAsync();
+            }
+
+            return ToResponse(new AiProviderSettings());
         }
 
         public async Task<ServiceResult<AiStyleResponseDto>> StyleMarkdownAsync(string text, CancellationToken cancellationToken = default)

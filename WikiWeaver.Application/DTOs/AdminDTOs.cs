@@ -22,7 +22,6 @@ namespace WikiWeaver.Application.DTOs
         public string Model { get; set; }
         public bool IsEnabled { get; set; }
         public string? ApiKey { get; set; }
-        public bool ClearApiKey { get; set; }
         public string? MarkdownStylingSystemPrompt { get; set; }
     }
 

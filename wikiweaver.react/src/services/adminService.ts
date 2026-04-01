@@ -48,6 +48,11 @@ export const styleMarkdownWithAi = async (payload: AiStyleRequestDto): Promise<A
   return response.data;
 };
 
+export const resetAiSettings = async (): Promise<AiProviderSettingsDto> => {
+  const response = await apiClient.delete<AiProviderSettingsDto>('/admin/ai-settings');
+  return response.data;
+};
+
 export const checkAiConnection = async (): Promise<AiConnectionCheckResultDto> => {
   const response = await apiClient.post<AiConnectionCheckResultDto>('/admin/ai-check');
   return response.data;

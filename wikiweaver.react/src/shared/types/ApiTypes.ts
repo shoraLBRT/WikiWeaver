@@ -53,7 +53,6 @@ export interface UpdateAiProviderSettingsDto {
   model: string;
   isEnabled: boolean;
   apiKey?: string;
-  clearApiKey?: boolean;
   markdownStylingSystemPrompt?: string | null;
 }
 

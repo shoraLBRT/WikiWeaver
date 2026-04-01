@@ -32,6 +32,12 @@ public static class AdminEndpoints
                 : Results.BadRequest(new { message = result.ErrorMessage });
         });
 
+        group.MapDelete("/ai-settings", async (AdminService service, CancellationToken cancellationToken) =>
+        {
+            var result = await service.ResetAiSettingsAsync(cancellationToken);
+            return Results.Ok(result);
+        });
+
         group.MapPost("/ai-style", async (
             AiStyleRequestDto request,
             AdminService service,
