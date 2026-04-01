@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, Check, ChevronLeft, ChevronRight, Copy, Database, FileText, GitBranch, HelpCircle, KeyRound, Settings2, Sparkles, Trash2, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -62,10 +62,46 @@ const AdminPage: React.FC = () => {
   const [previewAlternativeIndex, setPreviewAlternativeIndex] = useState(0);
   const [isDefaultPromptModalOpen, setIsDefaultPromptModalOpen] = useState(false);
 
+  const aiFormRef = useRef<HTMLFormElement>(null);
+
   const confirmationPhrase = t.cleanupConfirmationPhrase;
   const articlesQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_ARTICLES], queryFn: getArticles });
   const paragraphsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_PARAGRAPHS], queryFn: getParagraphs });
   const aiSettingsQuery = useQuery({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], queryFn: getAiProviderSettings });
+
+  useEffect(() => {
+    if (!aiFormRef.current) return;
+
+    const form = aiFormRef.current;
+    const inputs = form.querySelectorAll('input, textarea');
+
+    const handleAutoFill = (event: Event) => {
+      const target = event.target as HTMLInputElement | HTMLTextAreaElement;
+      if (target.type === 'checkbox') return;
+
+      // Check if this looks like browser autofill (generic text that doesn't match expected patterns)
+      if (target.value === 'Admin' || target.value === 'admin') {
+        target.value = '';
+        if (target instanceof HTMLInputElement) {
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (target instanceof HTMLTextAreaElement) {
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    };
+
+    inputs.forEach((input) => {
+      input.addEventListener('animationstart', handleAutoFill as EventListener);
+      input.addEventListener('input', handleAutoFill as EventListener);
+    });
+
+    return () => {
+      inputs.forEach((input) => {
+        input.removeEventListener('animationstart', handleAutoFill as EventListener);
+        input.removeEventListener('input', handleAutoFill as EventListener);
+      });
+    };
+  }, []);
 
   const aiSettingsDefaults = useMemo<AiSettingsState>(
     () => ({
@@ -542,7 +578,7 @@ const AdminPage: React.FC = () => {
                   <p className="mt-1 text-base font-semibold text-[var(--color-ink-strong)]">{aiStatusHint}</p>
                 </div>
 
-                <form autoComplete="off" className="space-y-4">
+                <form ref={aiFormRef} autoComplete="off" className="space-y-4">
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
@@ -559,6 +595,7 @@ const AdminPage: React.FC = () => {
                         {t.baseUrl}
                       </label>
                       <Input
+                        name="ai-base-url"
                         value={aiSettingsForm.baseUrl}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, baseUrl: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -570,6 +607,7 @@ const AdminPage: React.FC = () => {
                         {t.model}
                       </label>
                       <Input
+                        name="ai-model"
                         value={aiSettingsForm.model}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, model: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -584,6 +622,7 @@ const AdminPage: React.FC = () => {
                     </label>
                     <Input
                       type="password"
+                      name="ai-api-key"
                       value={aiSettingsForm.apiKey}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, apiKey: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
@@ -618,6 +657,7 @@ const AdminPage: React.FC = () => {
                       </button>
                     </div>
                     <Textarea
+                      name="ai-markdown-prompt"
                       value={aiSettingsForm.markdownStylingSystemPrompt}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, markdownStylingSystemPrompt: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
