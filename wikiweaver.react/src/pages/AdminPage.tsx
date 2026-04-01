@@ -144,10 +144,10 @@ const AdminPage: React.FC = () => {
 
   const resetAiSettingsMutation = useMutation({
     mutationFn: resetAiSettings,
-    onSuccess: async () => {
-      showNotice('success', t.resetAiSettingsSuccess);
+    onSuccess: (data) => {
+      queryClient.setQueryData([APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS], data);
       setAiSettingsFormOverride(null);
-      await queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ADMIN_AI_SETTINGS] });
+      showNotice('success', t.resetAiSettingsSuccess);
     },
     onError: (error) => showNotice('error', `${t.resetAiSettingsFailed}: ${(error as Error).message}`),
   });
