@@ -559,6 +559,7 @@ const AdminPage: React.FC = () => {
                         {t.baseUrl}
                       </label>
                       <Input
+                        autoComplete="off"
                         value={aiSettingsForm.baseUrl}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, baseUrl: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -570,6 +571,7 @@ const AdminPage: React.FC = () => {
                         {t.model}
                       </label>
                       <Input
+                        autoComplete="off"
                         value={aiSettingsForm.model}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, model: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -584,6 +586,7 @@ const AdminPage: React.FC = () => {
                     </label>
                     <Input
                       type="password"
+                      autoComplete="off"
                       value={aiSettingsForm.apiKey}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, apiKey: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
@@ -618,6 +621,7 @@ const AdminPage: React.FC = () => {
                       </button>
                     </div>
                     <Textarea
+                      autoComplete="off"
                       value={aiSettingsForm.markdownStylingSystemPrompt}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, markdownStylingSystemPrompt: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
