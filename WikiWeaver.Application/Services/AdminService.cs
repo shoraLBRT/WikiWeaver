@@ -109,14 +109,17 @@ namespace WikiWeaver.Application.Services
 
         public async Task<AiProviderSettingsDto> ResetAiSettingsAsync(CancellationToken cancellationToken = default)
         {
-            var settings = await _aiProviderSettingsRepository.GetSettingsAsync(cancellationToken);
-            if (settings is not null)
-            {
-                await _aiProviderSettingsRepository.DeleteAsync(settings);
-                await _aiProviderSettingsRepository.SaveChangesAsync();
-            }
+            var settings = await GetOrCreateAiSettingsAsync(cancellationToken);
+            var defaults = new AiProviderSettings();
 
-            return ToResponse(new AiProviderSettings());
+            settings.BaseUrl = defaults.BaseUrl;
+            settings.Model = defaults.Model;
+            settings.ApiKey = defaults.ApiKey;
+            settings.IsEnabled = defaults.IsEnabled;
+            settings.MarkdownStylingSystemPrompt = defaults.MarkdownStylingSystemPrompt;
+
+            await _aiProviderSettingsRepository.SaveChangesAsync();
+            return ToResponse(settings);
         }
 
         public async Task<ServiceResult<AiStyleResponseDto>> StyleMarkdownAsync(string text, CancellationToken cancellationToken = default)

@@ -1,9 +1,12 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace WikiWeaver.Infrastructure.Migrations
 {
+    [DbContext(typeof(Data.WikiWeaverDbContext))]
+    [Migration("20260313120000_MigrateNodesToArticles")]
     public partial class MigrateNodesToArticles : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

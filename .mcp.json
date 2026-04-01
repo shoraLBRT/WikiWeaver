@@ -2,7 +2,10 @@
   "mcpServers": {
     "playwright": {
       "command": "cmd",
-      "args": ["/c", "npx", "@playwright/mcp@latest"]
+      "args": [
+        "/c", "npx", "@playwright/mcp@latest",
+        "--executable-path", "C:\\Users\\shora\\AppData\\Local\\Yandex\\YandexBrowser\\Application\\browser.exe"
+      ]
     }
   }
 }
