@@ -91,6 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
             placeholder={locale.layout.navigation.searchPlaceholder}
+            autoComplete="off"
             className="bg-white py-1.5 pl-8 text-[13px]"
           />
         </div>
