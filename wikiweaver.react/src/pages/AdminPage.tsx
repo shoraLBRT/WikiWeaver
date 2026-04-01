@@ -542,7 +542,7 @@ const AdminPage: React.FC = () => {
                   <p className="mt-1 text-base font-semibold text-[var(--color-ink-strong)]">{aiStatusHint}</p>
                 </div>
 
-                <div className="space-y-4">
+                <form autoComplete="off" className="space-y-4">
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
@@ -559,7 +559,6 @@ const AdminPage: React.FC = () => {
                         {t.baseUrl}
                       </label>
                       <Input
-                        autoComplete="off"
                         value={aiSettingsForm.baseUrl}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, baseUrl: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -571,7 +570,6 @@ const AdminPage: React.FC = () => {
                         {t.model}
                       </label>
                       <Input
-                        autoComplete="off"
                         value={aiSettingsForm.model}
                         onChange={(event) => updateAiSettingsForm((current) => ({ ...current, model: event.target.value }))}
                         disabled={!aiSettingsForm.isEnabled}
@@ -586,7 +584,6 @@ const AdminPage: React.FC = () => {
                     </label>
                     <Input
                       type="password"
-                      autoComplete="off"
                       value={aiSettingsForm.apiKey}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, apiKey: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
@@ -621,7 +618,6 @@ const AdminPage: React.FC = () => {
                       </button>
                     </div>
                     <Textarea
-                      autoComplete="off"
                       value={aiSettingsForm.markdownStylingSystemPrompt}
                       onChange={(event) => updateAiSettingsForm((current) => ({ ...current, markdownStylingSystemPrompt: event.target.value }))}
                       disabled={!aiSettingsForm.isEnabled}
@@ -644,7 +640,7 @@ const AdminPage: React.FC = () => {
                       {aiConnectionCheckMutation.isPending ? '...' : t.checkAiConnection}
                     </Button>
                   </div>
-                </div>
+                </form>
 
                 {aiCheckResult ? (
                   <div className="mt-6 rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] p-4">

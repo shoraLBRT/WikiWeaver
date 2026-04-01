@@ -74,11 +74,10 @@ export const EditorHelpRail = ({
 
               {isParentDropdownOpen ? (
                 <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-white shadow-[0_20px_50px_rgba(28,27,24,0.12)]">
-                  <div className="border-b border-[var(--color-border-soft)] p-3">
+                  <form autoComplete="off" className="border-b border-[var(--color-border-soft)] p-3">
                     <div className="relative">
                       <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
                       <Input
-                        autoComplete="off"
                         value={parentSearch}
                         disabled={isLocked}
                         onChange={(event) => onParentSearchChange(event.target.value)}
@@ -93,7 +92,7 @@ export const EditorHelpRail = ({
                     >
                       {t.clearParentSelection}
                     </button>
-                  </div>
+                  </form>
 
                   <div className="max-h-72 overflow-y-auto p-2">
                     {filteredParentOptions.length > 0 ? (
