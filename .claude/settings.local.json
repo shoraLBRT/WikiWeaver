@@ -9,5 +9,9 @@
       "Bash(curl -s \"https://claude.com/blog/improving-frontend-design-through-skills\")",
       "Bash(npm run:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
+  "enableAllProjectMcpServers": true
 }
