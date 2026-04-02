@@ -65,13 +65,15 @@ The API applies migrations and seeds demo data on startup. Swagger is available 
 ## Roadmap
 
 * [x] Implement paragraph alternative selection logic
-* [ ] Add validation and centralized error handling
-* [ ] Integrate user authentication
+* [x] Add validation and centralized error handling
+* [x] Integrate user authentication
 * [x] Add React-based frontend for interacting with content
 * [x] Add admin panel for moderating content
 * [x] Add AI style-supporter for authors
 * [x] Add markdown support style articles
 * [x] Update design system. Migrate from AntD to Tailwind
+* [ ] Add infobox and metadata features
+* [ ] Create/edit frontend workflow
 
 ## Agent Collaboration
 
