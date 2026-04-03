@@ -159,7 +159,7 @@ export const InfoboxEditor = ({
                         ref={syncFieldRowFromInput}
                         placeholder={text.fieldLabelPlaceholder}
                         data-infobox-field-input="true"
-                        className="min-h-[28px] h-full resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
+                        className="min-h-[28px] h-full resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[12px] font-medium uppercase leading-5 tracking-[0.08em] text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
                       />
                     </label>
 

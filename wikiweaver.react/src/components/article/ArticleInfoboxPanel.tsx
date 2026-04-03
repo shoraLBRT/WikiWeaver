@@ -63,8 +63,8 @@ export const ArticleInfoboxPanel = ({ infobox }: ArticleInfoboxPanelProps) => {
       {normalizedInfobox.fields.length > 0 ? (
         <div className="divide-y divide-[var(--color-border-mute)]">
           {visibleFields.map((field) => (
-            <div key={`${field.key}-${field.order}`} className="grid grid-cols-[104px_minmax(0,1fr)] items-stretch gap-3 px-4 py-3">
-              <span className="whitespace-pre-wrap break-words text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-ink-muted)]">
+            <div key={`${field.key}-${field.order}`} className="grid grid-cols-[104px_minmax(0,1fr)] items-start gap-3 px-4 py-3">
+              <span className="whitespace-pre-wrap break-words text-[12px] font-medium uppercase leading-5 tracking-[0.08em] text-[var(--color-ink-muted)]">
                 {field.label}
               </span>
               <span className="min-w-0 whitespace-pre-wrap break-words text-[12px] leading-5 text-[var(--color-ink-strong)]">{field.value}</span>
