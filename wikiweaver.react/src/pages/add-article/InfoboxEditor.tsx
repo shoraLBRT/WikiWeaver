@@ -49,13 +49,35 @@ export const InfoboxEditor = ({
   onRemoveField,
 }: InfoboxEditorProps) => {
   const hasFields = draft.fields.length > 0;
-  const autoSizeTextarea = (element: HTMLTextAreaElement | null) => {
+  const syncFieldRowHeights = (container: HTMLElement | null) => {
+    if (!container) {
+      return;
+    }
+
+    const textareas = Array.from(container.querySelectorAll<HTMLTextAreaElement>('[data-infobox-field-input="true"]'));
+
+    if (textareas.length === 0) {
+      return;
+    }
+
+    let nextHeight = 0;
+
+    textareas.forEach((textarea) => {
+      textarea.style.height = '0px';
+      nextHeight = Math.max(nextHeight, textarea.scrollHeight);
+    });
+
+    textareas.forEach((textarea) => {
+      textarea.style.height = `${nextHeight}px`;
+    });
+  };
+
+  const syncFieldRowFromInput = (element: HTMLTextAreaElement | null) => {
     if (!element) {
       return;
     }
 
-    element.style.height = '0px';
-    element.style.height = `${element.scrollHeight}px`;
+    syncFieldRowHeights(element.closest('[data-infobox-field-row]'));
   };
 
   return (
@@ -121,20 +143,27 @@ export const InfoboxEditor = ({
                     </Button>
                   </div>
 
-                  <div className="flex gap-3">
-                    <label className="w-[104px] shrink-0">
+                  <div data-infobox-field-row className="flex items-start gap-3">
+                    <label className="w-[104px] shrink-0 self-stretch">
                       <span className="sr-only">{text.fieldLabelLabel}</span>
-                      <Input
+                      <Textarea
+                        rows={1}
                         value={field.label}
                         maxLength={30}
                         disabled={disabled}
-                        onChange={(event) => onUpdateField(field.id, { label: event.target.value })}
+                        onChange={(event) => {
+                          onUpdateField(field.id, { label: event.target.value });
+                          syncFieldRowFromInput(event.currentTarget);
+                        }}
+                        onInput={(event) => syncFieldRowFromInput(event.currentTarget)}
+                        ref={syncFieldRowFromInput}
                         placeholder={text.fieldLabelPlaceholder}
-                        className="min-h-[28px] rounded-none border-0 bg-transparent px-0 py-0 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
+                        data-infobox-field-input="true"
+                        className="min-h-[28px] h-full resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
                       />
                     </label>
 
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 self-stretch">
                       <label className="block">
                         <span className="sr-only">{text.fieldValueLabel}</span>
                         <Textarea
@@ -144,12 +173,13 @@ export const InfoboxEditor = ({
                           disabled={disabled}
                           onChange={(event) => {
                             onUpdateField(field.id, { value: event.target.value });
-                            autoSizeTextarea(event.currentTarget);
+                            syncFieldRowFromInput(event.currentTarget);
                           }}
-                          onInput={(event) => autoSizeTextarea(event.currentTarget)}
-                          ref={autoSizeTextarea}
+                          onInput={(event) => syncFieldRowFromInput(event.currentTarget)}
+                          ref={syncFieldRowFromInput}
                           placeholder={text.fieldValuePlaceholder}
-                          className="min-h-[28px] resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[12px] leading-5 text-[var(--color-ink-strong)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
+                          data-infobox-field-input="true"
+                          className="min-h-[28px] h-full resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[12px] leading-5 text-[var(--color-ink-strong)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
                         />
                       </label>
                     </div>
