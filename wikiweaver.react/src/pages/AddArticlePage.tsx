@@ -328,6 +328,27 @@ const AddArticlePage: React.FC = () => {
     });
   };
 
+  const infoboxEditorProps = {
+    draft: infobox,
+    disabled: isLocked,
+    text: editorText.infobox,
+    onTitleChange: (value: string) => setInfobox((current) => ({ ...current, title: value })),
+    onSubtitleChange: (value: string) => setInfobox((current) => ({ ...current, subtitle: value })),
+    onAddField: () => setInfobox((current) => ({ ...current, fields: addInfoboxField(current.fields) })),
+    onUpdateField: (fieldId: string, patch: { key?: string; label?: string; value?: string }) => setInfobox((current) => ({
+      ...current,
+      fields: updateInfoboxField(current.fields, fieldId, patch),
+    })),
+    onMoveField: (fieldId: string, direction: -1 | 1) => setInfobox((current) => ({
+      ...current,
+      fields: moveInfoboxField(current.fields, fieldId, direction),
+    })),
+    onRemoveField: (fieldId: string) => setInfobox((current) => ({
+      ...current,
+      fields: removeInfoboxField(current.fields, fieldId),
+    })),
+  };
+
   const improveWholeArticleWithAi = async () => {
     if (isLocked || !canUseAi) {
       return;
@@ -437,26 +458,7 @@ const AddArticlePage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="mx-auto max-w-[720px]">
-                    <InfoboxEditor
-                      draft={infobox}
-                      disabled={isLocked}
-                      text={editorText.infobox}
-                      onTitleChange={(value) => setInfobox((current) => ({ ...current, title: value }))}
-                      onSubtitleChange={(value) => setInfobox((current) => ({ ...current, subtitle: value }))}
-                      onAddField={() => setInfobox((current) => ({ ...current, fields: addInfoboxField(current.fields) }))}
-                      onUpdateField={(fieldId, patch) => setInfobox((current) => ({
-                        ...current,
-                        fields: updateInfoboxField(current.fields, fieldId, patch),
-                      }))}
-                      onMoveField={(fieldId, direction) => setInfobox((current) => ({
-                        ...current,
-                        fields: moveInfoboxField(current.fields, fieldId, direction),
-                      }))}
-                      onRemoveField={(fieldId) => setInfobox((current) => ({
-                        ...current,
-                        fields: removeInfoboxField(current.fields, fieldId),
-                      }))}
-                    />
+                    <InfoboxEditor {...infoboxEditorProps} />
 
                     <div className="space-y-0.5">
                       {blocks.map((block, index) => (

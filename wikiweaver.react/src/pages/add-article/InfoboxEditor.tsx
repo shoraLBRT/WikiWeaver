@@ -1,5 +1,6 @@
-import { ArrowDown, ArrowUp, Info, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import type { InfoboxDraft } from './types';
+import { cn } from '../../shared/lib/cn';
 import { Button } from '../../shared/ui/Button';
 import { Input } from '../../shared/ui/Input';
 import { Textarea } from '../../shared/ui/Textarea';
@@ -13,13 +14,10 @@ type InfoboxEditorText = {
   subtitlePlaceholder: string;
   addField: string;
   emptyState: string;
-  fieldKeyLabel: string;
-  fieldKeyPlaceholder: string;
   fieldLabelLabel: string;
   fieldLabelPlaceholder: string;
   fieldValueLabel: string;
   fieldValuePlaceholder: string;
-  keyHint: string;
   moveUp: string;
   moveDown: string;
   removeField: string;
@@ -29,6 +27,7 @@ type InfoboxEditorProps = {
   draft: InfoboxDraft;
   disabled: boolean;
   text: InfoboxEditorText;
+  className?: string;
   onTitleChange: (value: string) => void;
   onSubtitleChange: (value: string) => void;
   onAddField: () => void;
@@ -41,92 +40,137 @@ export const InfoboxEditor = ({
   draft,
   disabled,
   text,
+  className,
   onTitleChange,
   onSubtitleChange,
   onAddField,
   onUpdateField,
   onMoveField,
   onRemoveField,
-}: InfoboxEditorProps) => (
-  <section className="mb-6 rounded-[26px] border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-5 py-5 shadow-sm sm:px-6">
-    <div className="mb-4 flex items-start justify-between gap-4">
-      <div>
-        <p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--color-ink-subtle)]">
-          <Info size={12} />
-          {text.title}
-        </p>
-        <p className="m-0 max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">{text.description}</p>
-      </div>
-      <Button variant="secondary" disabled={disabled} onClick={onAddField}>
-        <Plus size={14} />
-        {text.addField}
-      </Button>
-    </div>
+}: InfoboxEditorProps) => {
+  const hasFields = draft.fields.length > 0;
+  const autoSizeTextarea = (element: HTMLTextAreaElement | null) => {
+    if (!element) {
+      return;
+    }
 
-    <div className="grid gap-4 lg:grid-cols-2">
-      <label className="block">
-        <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{text.titleLabel}</span>
-        <Input value={draft.title} disabled={disabled} onChange={(event) => onTitleChange(event.target.value)} placeholder={text.titlePlaceholder} />
-      </label>
+    element.style.height = '0px';
+    element.style.height = `${element.scrollHeight}px`;
+  };
 
-      <label className="block">
-        <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{text.subtitleLabel}</span>
-        <Input value={draft.subtitle} disabled={disabled} onChange={(event) => onSubtitleChange(event.target.value)} placeholder={text.subtitlePlaceholder} />
-      </label>
-    </div>
+  return (
+    <section className={cn('w-full', className)}>
+      <aside className="mb-6 w-full overflow-hidden rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] text-sm shadow-sm lg:float-right lg:mb-4 lg:ml-6 lg:w-[320px]">
+        <div className="bg-[var(--color-brand-forest)] px-4 py-3 text-white">
+          <label className="block">
+            <span className="sr-only">{text.titleLabel}</span>
+            <Input
+              value={draft.title}
+              maxLength={60}
+              disabled={disabled}
+              onChange={(event) => onTitleChange(event.target.value)}
+              placeholder={text.titlePlaceholder}
+              className="h-auto border-0 bg-transparent px-0 py-0 text-[15px] font-semibold leading-6 text-white placeholder:text-[#d8efe2] shadow-none focus:ring-0"
+            />
+          </label>
+          <label className="mt-1 block">
+            <span className="sr-only">{text.subtitleLabel}</span>
+            <Input
+              value={draft.subtitle}
+              maxLength={80}
+              disabled={disabled}
+              onChange={(event) => onSubtitleChange(event.target.value)}
+              placeholder={text.subtitlePlaceholder}
+              className="h-auto border-0 bg-transparent px-0 py-0 text-[12px] leading-5 text-[#cfeedd] placeholder:text-[#b7ddc8] shadow-none focus:ring-0"
+            />
+          </label>
+        </div>
 
-    {draft.fields.length > 0 ? (
-      <div className="mt-5 space-y-3">
-        {draft.fields.map((field, index) => (
-          <div key={field.id} className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{text.fieldLabelLabel} {index + 1}</p>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" disabled={disabled || index === 0} onClick={() => onMoveField(field.id, -1)} aria-label={text.moveUp}>
-                  <ArrowUp size={14} />
-                </Button>
-                <Button variant="ghost" disabled={disabled || index === draft.fields.length - 1} onClick={() => onMoveField(field.id, 1)} aria-label={text.moveDown}>
-                  <ArrowDown size={14} />
-                </Button>
-                <Button variant="ghost" disabled={disabled} onClick={() => onRemoveField(field.id)} aria-label={text.removeField}>
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            </div>
+        {hasFields ? (
+          <div className="divide-y divide-[var(--color-border-mute)] bg-[var(--color-surface-muted)]">
+            {draft.fields.map((field, index) => {
+              return (
+                <div key={field.id} className="group relative px-4 py-3">
+                  <div className="pointer-events-none absolute right-1 top-1 z-10 flex items-center gap-0.5 rounded-full bg-white/92 px-1 py-0.5 shadow-sm opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                    <Button
+                      variant="ghost"
+                      disabled={disabled || index === 0}
+                      onClick={() => onMoveField(field.id, -1)}
+                      aria-label={text.moveUp}
+                      className="h-5 w-5 rounded-full px-0 py-0 text-[var(--color-ink-subtle)] hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)]"
+                    >
+                      <ArrowUp size={11} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      disabled={disabled || index === draft.fields.length - 1}
+                      onClick={() => onMoveField(field.id, 1)}
+                      aria-label={text.moveDown}
+                      className="h-5 w-5 rounded-full px-0 py-0 text-[var(--color-ink-subtle)] hover:bg-[var(--color-page-panel)] hover:text-[var(--color-ink-strong)]"
+                    >
+                      <ArrowDown size={11} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      disabled={disabled}
+                      onClick={() => onRemoveField(field.id)}
+                      aria-label={text.removeField}
+                      className="h-5 w-5 rounded-full px-0 py-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 size={11} />
+                    </Button>
+                  </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <label className="block">
-                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{text.fieldKeyLabel}</span>
-                  <Input value={field.key} disabled={disabled} onChange={(event) => onUpdateField(field.id, { key: event.target.value })} placeholder={text.fieldKeyPlaceholder} />
-                  <span className="mt-2 block text-[12px] leading-5 text-[var(--color-ink-subtle)]">{text.keyHint}</span>
-                </label>
+                  <div className="flex gap-3">
+                    <label className="w-[104px] shrink-0">
+                      <span className="sr-only">{text.fieldLabelLabel}</span>
+                      <Input
+                        value={field.label}
+                        maxLength={30}
+                        disabled={disabled}
+                        onChange={(event) => onUpdateField(field.id, { label: event.target.value })}
+                        placeholder={text.fieldLabelPlaceholder}
+                        className="min-h-[28px] rounded-none border-0 bg-transparent px-0 py-0 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
+                      />
+                    </label>
 
-                <label className="block">
-                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{text.fieldLabelLabel}</span>
-                  <Input value={field.label} disabled={disabled} onChange={(event) => onUpdateField(field.id, { label: event.target.value })} placeholder={text.fieldLabelPlaceholder} />
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{text.fieldValueLabel}</span>
-                <Textarea
-                  rows={5}
-                  value={field.value}
-                  disabled={disabled}
-                  onChange={(event) => onUpdateField(field.id, { value: event.target.value })}
-                  placeholder={text.fieldValuePlaceholder}
-                  className="min-h-[128px]"
-                />
-              </label>
-            </div>
+                    <div className="min-w-0 flex-1">
+                      <label className="block">
+                        <span className="sr-only">{text.fieldValueLabel}</span>
+                        <Textarea
+                          rows={1}
+                          value={field.value}
+                          maxLength={50}
+                          disabled={disabled}
+                          onChange={(event) => {
+                            onUpdateField(field.id, { value: event.target.value });
+                            autoSizeTextarea(event.currentTarget);
+                          }}
+                          onInput={(event) => autoSizeTextarea(event.currentTarget)}
+                          ref={autoSizeTextarea}
+                          placeholder={text.fieldValuePlaceholder}
+                          className="min-h-[28px] resize-none overflow-hidden rounded-none border-0 bg-transparent px-0 py-0 text-[12px] leading-5 text-[var(--color-ink-strong)] placeholder:text-[var(--color-ink-subtle)] shadow-none focus:ring-0"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
-    ) : (
-      <div className="mt-5 rounded-2xl border border-dashed border-[var(--color-border-soft)] bg-white px-4 py-5 text-sm leading-6 text-[var(--color-ink-muted)]">
-        {text.emptyState}
-      </div>
-    )}
-  </section>
-);
+        ) : (
+          <div className="px-4 py-4 text-[12px] leading-6 text-[var(--color-ink-muted)]">
+            {text.emptyState}
+          </div>
+        )}
+
+        <div className="flex justify-end border-t border-[var(--color-border-soft)] px-4 py-2">
+          <Button variant="ghost" disabled={disabled} onClick={onAddField} className="shrink-0 rounded-full px-2.5 py-1 text-[11px] text-[var(--color-brand-forest)] hover:bg-[var(--color-brand-forest-soft)] hover:text-[var(--color-brand-forest-strong)]">
+            <Plus size={12} />
+            {text.addField}
+          </Button>
+        </div>
+      </aside>
+    </section>
+  );
+};
