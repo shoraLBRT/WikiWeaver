@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
 import { API_BASE_URL } from '../../config';
-import { getStoredAdminToken } from '../../services/authTokenStorage';
+import { clearStoredAdminToken, getStoredAdminToken, notifyAdminSessionExpired } from '../../services/authTokenStorage';
 import { toApiError } from './apiError';
 
 const apiClient: AxiosInstance = axios.create({
@@ -22,7 +22,22 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: unknown) => Promise.reject(toApiError(error)),
+  (error: unknown) => {
+    const apiError = toApiError(error);
+
+    if (apiError.status === 401) {
+      clearStoredAdminToken();
+
+      if (import.meta.env.DEV) {
+        const traceSuffix = apiError.traceId ? ` TraceId: ${apiError.traceId}` : '';
+        console.warn(`[auth] Admin session expired.${traceSuffix}`);
+      }
+
+      notifyAdminSessionExpired();
+    }
+
+    return Promise.reject(apiError);
+  },
 );
 
 export default apiClient;

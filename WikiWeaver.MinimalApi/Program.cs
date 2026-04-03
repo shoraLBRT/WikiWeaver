@@ -10,6 +10,7 @@ using WikiWeaver.Infrastructure;
 using WikiWeaver.Infrastructure.Data;
 using WikiWeaver.Infrastructure.UnitOfWork;
 using WikiWeaver.MinimalApi.Endpoints;
+using WikiWeaver.MinimalApi.Infrastructure;
 using WikiWeaver.MinimalApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +56,7 @@ if (string.IsNullOrWhiteSpace(authOptions.JwtSigningKey))
     throw new InvalidOperationException("Auth:JwtSigningKey is required.");
 }
 
+builder.Services.AddScoped<JwtProblemEvents>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -70,6 +72,8 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtSigningKey)),
             ClockSkew = TimeSpan.FromMinutes(1),
         };
+
+        options.EventsType = typeof(JwtProblemEvents);
     });
 
 builder.Services.AddAuthorizationBuilder()

@@ -1,5 +1,6 @@
-using System.Text.Json;
+using System.Security.Claims;
 using WikiWeaver.Application.Exceptions;
+using WikiWeaver.MinimalApi.Infrastructure;
 
 namespace WikiWeaver.MinimalApi.Middleware;
 
@@ -36,24 +37,42 @@ public sealed class ExceptionHandlingMiddleware
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
         {
-            _logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}", context.TraceIdentifier);
+            _logger.LogError(
+                exception,
+                "Unhandled exception. StatusCode: {StatusCode}, Method: {Method}, Path: {Path}, TraceId: {TraceId}, UserId: {UserId}",
+                statusCode,
+                context.Request.Method,
+                context.Request.Path,
+                context.TraceIdentifier,
+                GetUserId(context));
         }
         else
         {
-            _logger.LogWarning(exception, "Handled exception. TraceId: {TraceId}", context.TraceIdentifier);
+            _logger.LogWarning(
+                exception,
+                "Handled exception. StatusCode: {StatusCode}, Method: {Method}, Path: {Path}, TraceId: {TraceId}, UserId: {UserId}",
+                statusCode,
+                context.Request.Method,
+                context.Request.Path,
+                context.TraceIdentifier,
+                GetUserId(context));
         }
 
-        context.Response.ContentType = "application/problem+json";
-        context.Response.StatusCode = statusCode;
-
-        var payload = new
+        if (context.Response.HasStarted)
         {
-            title,
-            status = statusCode,
-            code,
-            traceId = context.TraceIdentifier,
-        };
+            _logger.LogWarning(
+                "Could not write problem response because the response already started. Method: {Method}, Path: {Path}, TraceId: {TraceId}",
+                context.Request.Method,
+                context.Request.Path,
+                context.TraceIdentifier);
+            return;
+        }
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+        await ProblemHttpResponseWriter.WriteAsync(context, statusCode, code, title);
+    }
+
+    private static string? GetUserId(HttpContext context)
+    {
+        return context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     }
 }
