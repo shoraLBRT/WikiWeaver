@@ -11,8 +11,8 @@ using WikiWeaver.Infrastructure.Data;
 namespace WikiWeaver.Infrastructure.Migrations
 {
     [DbContext(typeof(WikiWeaverDbContext))]
-    [Migration("20260313235955_DeleteNodes")]
-    partial class DeleteNodes
+    [Migration("20260403200324_InitialBaseline")]
+    partial class InitialBaseline
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,6 +100,9 @@ namespace WikiWeaver.Infrastructure.Migrations
 
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("MarkdownStylingSystemPrompt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Model")
                         .IsRequired()
