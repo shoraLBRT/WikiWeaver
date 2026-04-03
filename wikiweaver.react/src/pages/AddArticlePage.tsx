@@ -12,10 +12,12 @@ import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { Input } from '../shared/ui/Input';
 import { Textarea } from '../shared/ui/Textarea';
-import type { ArticleContentCreateDto, NavigationArticleDto } from '../shared/types/ApiTypes';
+import type { ArticleContentCreateDto, ArticleInfoboxDto, NavigationArticleDto } from '../shared/types/ApiTypes';
+import { ArticleInfoboxPanel } from '../components/article/ArticleInfoboxPanel';
 import { DocumentBlockEditor } from './add-article/DocumentBlockEditor';
 import { EditorBottomToolbar, type FormatAction } from './add-article/EditorBottomToolbar';
 import { EditorHelpRail } from './add-article/EditorHelpRail';
+import { InfoboxEditor } from './add-article/InfoboxEditor';
 import { EditorOutlineRail } from './add-article/EditorOutlineRail';
 import { EditorToolbar } from './add-article/EditorToolbar';
 import {
@@ -37,6 +39,7 @@ import {
   updatePlainBlockContent,
   updateVersionContent,
 } from './add-article/draftHelpers';
+import { addInfoboxField, buildInfoboxCreateDto, createEmptyInfoboxDraft, hasIncompleteInfoboxFields, moveInfoboxField, removeInfoboxField, updateInfoboxField } from './add-article/infoboxHelpers';
 import type { EditorBlock } from './add-article/types';
 
 type Notice = {
@@ -105,6 +108,7 @@ const AddArticlePage: React.FC = () => {
   const editorText = locale.addArticleEditor;
   const [title, setTitle] = useState('');
   const [parentArticleId, setParentArticleId] = useState<number | null>(null);
+  const [infobox, setInfobox] = useState(createEmptyInfoboxDraft);
   const [blocks, setBlocks] = useState<EditorBlock[]>([createEmptyBlock('paragraph')]);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
@@ -166,6 +170,18 @@ const AddArticlePage: React.FC = () => {
   });
 
   const previewMarkdown = useMemo(() => buildDocumentPreviewMarkdown(blocks), [blocks]);
+  const previewInfobox = useMemo<ArticleInfoboxDto | undefined>(() => {
+    const dto = buildInfoboxCreateDto(infobox);
+    if (!dto) {
+      return undefined;
+    }
+
+    return {
+      title: dto.title,
+      subtitle: dto.subtitle,
+      fields: dto.fields.map((field) => ({ ...field, id: field.order })),
+    };
+  }, [infobox]);
   const paragraphCount = useMemo(
     () =>
       blocks.reduce((sum, block) => {
@@ -299,11 +315,38 @@ const AddArticlePage: React.FC = () => {
       return;
     }
 
+    if (hasIncompleteInfoboxFields(infobox)) {
+      showNotice('warning', t.warnings.infoboxFieldIncomplete);
+      return;
+    }
+
     mutation.mutate({
       title: title.trim(),
       parentArticleId: parentArticleId ?? undefined,
       paragraphs: buildParagraphDtosFromBlocks(blocks),
+      infobox: buildInfoboxCreateDto(infobox),
     });
+  };
+
+  const infoboxEditorProps = {
+    draft: infobox,
+    disabled: isLocked,
+    text: editorText.infobox,
+    onTitleChange: (value: string) => setInfobox((current) => ({ ...current, title: value })),
+    onSubtitleChange: (value: string) => setInfobox((current) => ({ ...current, subtitle: value })),
+    onAddField: () => setInfobox((current) => ({ ...current, fields: addInfoboxField(current.fields) })),
+    onUpdateField: (fieldId: string, patch: { key?: string; label?: string; value?: string }) => setInfobox((current) => ({
+      ...current,
+      fields: updateInfoboxField(current.fields, fieldId, patch),
+    })),
+    onMoveField: (fieldId: string, direction: -1 | 1) => setInfobox((current) => ({
+      ...current,
+      fields: moveInfoboxField(current.fields, fieldId, direction),
+    })),
+    onRemoveField: (fieldId: string) => setInfobox((current) => ({
+      ...current,
+      fields: removeInfoboxField(current.fields, fieldId),
+    })),
   };
 
   const improveWholeArticleWithAi = async () => {
@@ -408,38 +451,43 @@ const AddArticlePage: React.FC = () => {
                       {t.previewTitle}
                     </div>
                     <h1 className="mb-6 text-3xl font-bold tracking-[-0.03em] text-[var(--color-ink-strong)]">{title || locale.common.untitled}</h1>
+                    <ArticleInfoboxPanel infobox={previewInfobox} />
                     <div className="article-markdown">
                       <MarkdownContent content={previewMarkdown || t.previewEmpty} />
                     </div>
                   </div>
                 ) : (
-                  <div className="mx-auto max-w-[720px] space-y-0.5">
-                    {blocks.map((block, index) => (
-                      <DocumentBlockEditor
-                        key={block.id}
-                        block={block}
-                        index={index}
-                        total={blocks.length}
-                        disabled={isLocked}
-                        activeTarget={activeTarget}
-                        blockRef={(blockId, node) => {
-                          blockRefs.current[blockId] = node;
-                        }}
-                        editorRef={(key, node) => {
-                          editorRefs.current[key] = node;
-                        }}
-                        onFocusTarget={setActiveTarget}
-                        onChangePlain={(blockId, content) => setBlocks((current) => updatePlainBlockContent(current, blockId, content))}
-                        onChangeVersion={(blockId, localId, content) => setBlocks((current) => updateVersionContent(current, blockId, localId, content))}
-                        onSetDefault={(blockId, localId) => setBlocks((current) => setDefaultVersion(current, blockId, localId))}
-                        onAddVersion={(blockId) => setBlocks((current) => addVersionToBlock(current, blockId))}
-                        onRemoveVersion={(blockId, localId) => setBlocks((current) => removeVersionFromBlock(current, blockId, localId))}
-                        onDeleteBlock={(blockId) => setBlocks((current) => (current.length > 1 ? deleteBlock(current, blockId) : current))}
-                        onMoveBlock={(blockId, direction) => setBlocks((current) => moveBlock(current, blockId, direction))}
-                        onConvertToVersioned={(blockId) => setBlocks((current) => convertParagraphToVersioned(current, blockId))}
-                        onConvertToParagraph={(blockId) => setBlocks((current) => convertVersionedToParagraph(current, blockId))}
-                      />
-                    ))}
+                  <div className="mx-auto max-w-[720px]">
+                    <InfoboxEditor {...infoboxEditorProps} />
+
+                    <div className="space-y-0.5">
+                      {blocks.map((block, index) => (
+                        <DocumentBlockEditor
+                          key={block.id}
+                          block={block}
+                          index={index}
+                          total={blocks.length}
+                          disabled={isLocked}
+                          activeTarget={activeTarget}
+                          blockRef={(blockId, node) => {
+                            blockRefs.current[blockId] = node;
+                          }}
+                          editorRef={(key, node) => {
+                            editorRefs.current[key] = node;
+                          }}
+                          onFocusTarget={setActiveTarget}
+                          onChangePlain={(blockId, content) => setBlocks((current) => updatePlainBlockContent(current, blockId, content))}
+                          onChangeVersion={(blockId, localId, content) => setBlocks((current) => updateVersionContent(current, blockId, localId, content))}
+                          onSetDefault={(blockId, localId) => setBlocks((current) => setDefaultVersion(current, blockId, localId))}
+                          onAddVersion={(blockId) => setBlocks((current) => addVersionToBlock(current, blockId))}
+                          onRemoveVersion={(blockId, localId) => setBlocks((current) => removeVersionFromBlock(current, blockId, localId))}
+                          onDeleteBlock={(blockId) => setBlocks((current) => (current.length > 1 ? deleteBlock(current, blockId) : current))}
+                          onMoveBlock={(blockId, direction) => setBlocks((current) => moveBlock(current, blockId, direction))}
+                          onConvertToVersioned={(blockId) => setBlocks((current) => convertParagraphToVersioned(current, blockId))}
+                          onConvertToParagraph={(blockId) => setBlocks((current) => convertVersionedToParagraph(current, blockId))}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

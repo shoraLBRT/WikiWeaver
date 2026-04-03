@@ -4,6 +4,19 @@ export type AlternativeDraft = {
   isDefault: boolean;
 };
 
+export type InfoboxFieldDraft = {
+  id: string;
+  key: string;
+  label: string;
+  value: string;
+};
+
+export type InfoboxDraft = {
+  title: string;
+  subtitle: string;
+  fields: InfoboxFieldDraft[];
+};
+
 export type PlainBlockKind = 'heading2' | 'heading3' | 'paragraph';
 
 export type PlainEditorBlock = {

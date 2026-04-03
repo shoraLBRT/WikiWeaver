@@ -41,7 +41,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWikiWeaverReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.SetIsOriginAllowed(origin =>
+            Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            && (uri.IsLoopback || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase)))
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials();

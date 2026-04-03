@@ -66,6 +66,9 @@ public static class DemoDataSeeder
             }
 
             article.Title = articleSeed.Title;
+            article.InfoboxTitle = string.IsNullOrWhiteSpace(articleSeed.Infobox?.Title) ? null : articleSeed.Infobox.Title.Trim();
+            article.InfoboxSubtitle = string.IsNullOrWhiteSpace(articleSeed.Infobox?.Subtitle) ? null : articleSeed.Infobox.Subtitle.Trim();
+            article.InfoboxFields = BuildInfoboxFields(articleSeed.Infobox).ToList();
             article.Paragraphs = BuildParagraphs(articleSeed.Paragraphs).ToList();
         }
 
@@ -96,6 +99,31 @@ public static class DemoDataSeeder
                 Content = content,
                 Order = currentOrder,
                 IsDefault = !isAlternative
+            };
+        }
+    }
+
+    private static IEnumerable<ArticleInfoboxField> BuildInfoboxFields(DemoArticleInfoboxSeed? infobox)
+    {
+        if (infobox is null)
+        {
+            yield break;
+        }
+
+        for (var index = 0; index < infobox.Fields.Count; index++)
+        {
+            var field = infobox.Fields[index];
+            if (string.IsNullOrWhiteSpace(field.Label) || string.IsNullOrWhiteSpace(field.Value))
+            {
+                continue;
+            }
+
+            yield return new ArticleInfoboxField
+            {
+                Order = index + 1,
+                Key = string.IsNullOrWhiteSpace(field.Key) ? $"field-{index + 1}" : field.Key.Trim(),
+                Label = field.Label.Trim(),
+                Value = field.Value.Trim(),
             };
         }
     }
@@ -148,7 +176,25 @@ public static class DemoDataSeeder
     {
         foreach (var article in articles)
         {
+            ValidateInfobox(article);
             ValidateParagraphs(article);
+        }
+    }
+
+    private static void ValidateInfobox(DemoArticleContentSeed article)
+    {
+        if (article.Infobox is null)
+        {
+            return;
+        }
+
+        foreach (var field in article.Infobox.Fields)
+        {
+            if (string.IsNullOrWhiteSpace(field.Label) != string.IsNullOrWhiteSpace(field.Value))
+            {
+                throw new InvalidOperationException(
+                    $"Demo seed article '{article.Title}' contains an infobox field with a missing label or value.");
+            }
         }
     }
 

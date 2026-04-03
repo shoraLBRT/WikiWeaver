@@ -7,16 +7,45 @@ export interface ParagraphDto {
   isDefault: boolean;
 }
 
+export interface ArticleInfoboxFieldDto {
+  id: number;
+  order: number;
+  key: string;
+  label: string;
+  value: string;
+}
+
+export interface ArticleInfoboxDto {
+  title?: string;
+  subtitle?: string;
+  fields: ArticleInfoboxFieldDto[];
+}
+
+export interface ArticleInfoboxFieldCreateDto {
+  order: number;
+  key: string;
+  label: string;
+  value: string;
+}
+
+export interface ArticleInfoboxCreateDto {
+  title?: string;
+  subtitle?: string;
+  fields: ArticleInfoboxFieldCreateDto[];
+}
+
 export interface ArticleContentDto {
   id: number;
   title: string;
   paragraphs: ParagraphDto[];
+  infobox?: ArticleInfoboxDto;
 }
 
 export interface ArticleContentCreateDto {
   title: string;
   parentArticleId?: number;
   paragraphs: ParagraphDto[];
+  infobox?: ArticleInfoboxCreateDto;
 }
 
 export interface ArticleReadDto {

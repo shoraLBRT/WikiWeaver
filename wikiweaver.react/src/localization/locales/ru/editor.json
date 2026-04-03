@@ -22,7 +22,8 @@
       "titleRequired": "Укажите заголовок статьи",
       "paragraphRequired": "Добавьте хотя бы один заполненный абзац",
       "defaultRequired": "Для каждого абзаца должна быть заполнена хотя бы одна версия по умолчанию",
-      "importEmpty": "Не найдено абзацев для импорта"
+      "importEmpty": "Не найдено абзацев для импорта",
+      "infoboxFieldIncomplete": "В каждой строке инфобокса должны быть заполнены и название, и значение"
     },
     "aiStyleFailed": "AI-стилизация не выполнена"
   },
@@ -43,9 +44,26 @@
     "readingTime": "Время чтения",
     "readingTimeMinutes": "~{minutes} мин",
     "infoboxTitle": "Инфобокс",
-    "infoboxDescription": "В первой итерации это placeholder. Реализация описана в `docs/todo/frontend-infobox.md`.",
+    "infoboxDescription": "Добавьте компактный обзорный блок, который будет показываться рядом со статьей при чтении.",
     "metadataTitle": "Метаданные",
     "metadataDescription": "Здесь останутся заглушки под metadata и related links до следующей итерации.",
+    "infobox": {
+      "title": "Инфобокс",
+      "description": "Редактируйте инфобокс сразу в том компактном виде, в котором его увидят читатели.",
+      "titleLabel": "Заголовок инфобокса",
+      "titlePlaceholder": "Обзор",
+      "subtitleLabel": "Подзаголовок",
+      "subtitlePlaceholder": "Краткая справка",
+      "addField": "Добавить поле",
+      "emptyState": "Полей инфобокса пока нет. Добавьте короткую строку, если статье нужен блок быстрой справки.",
+      "fieldLabelLabel": "Название",
+      "fieldLabelPlaceholder": "Тема",
+      "fieldValueLabel": "Значение",
+      "fieldValuePlaceholder": "Общая информация",
+      "moveUp": "Переместить поле вверх",
+      "moveDown": "Переместить поле вниз",
+      "removeField": "Удалить поле"
+    },
     "toggleToVersioned": "Преобразовать в версионный блок",
     "toggleToParagraph": "Преобразовать в обычный параграф",
     "defaultVersion": "По умолчанию",

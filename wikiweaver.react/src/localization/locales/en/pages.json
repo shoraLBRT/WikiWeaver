@@ -22,20 +22,11 @@
     ]
   },
   "articleInfobox": {
-    "title": "Infobox placeholder",
-    "subtitle": "First design iteration",
-    "nextStep": "Next step",
-    "details": "Details are described in `docs/todo/frontend-infobox.md`.",
+    "defaultTitle": "Overview",
+    "noFields": "This infobox is configured, but no fields have been filled yet.",
     "expand": "Show more",
     "collapse": "Collapse",
-    "rows": [
-      ["Type", "Appears after metadata is implemented"],
-      ["Template", "Configured for each wiki"],
-      ["Content", "Flexible article fields"],
-      ["Status", "Not configured yet"],
-      ["Source", "See the infobox TODO"],
-      ["Storage", "Requires API expansion"]
-    ]
+    "implementationNote": "Infobox fields are stored as ordered key-value facts attached to the article."
   },
   "adminPage": {
     "title": "Admin panel",

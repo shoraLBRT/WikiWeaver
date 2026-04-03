@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getArticleContentById } from '../services/Article/articleService';
-import { ArticleInfoboxPlaceholder } from '../components/article/ArticleInfoboxPlaceholder';
+import { ArticleInfoboxPanel } from '../components/article/ArticleInfoboxPanel';
 import { ArticleRightSidebar, type TocItem } from '../components/article/ArticleRightSidebar';
 import { VersionedParagraphBlock } from '../components/article/VersionedParagraphBlock';
 import MarkdownContent from '../components/MarkdownContent';
@@ -208,7 +208,7 @@ const ArticlePage: React.FC = () => {
           </h1>
 
           <div id="article-overview" className="scroll-mt-24">
-            <ArticleInfoboxPlaceholder />
+            <ArticleInfoboxPanel infobox={articleContent.infobox} />
           </div>
 
           {renderedParagraphs.length > 0 ? (

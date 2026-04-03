@@ -22,7 +22,8 @@
       "titleRequired": "Enter an article title",
       "paragraphRequired": "Add at least one filled paragraph",
       "defaultRequired": "Each paragraph must have at least one filled default version",
-      "importEmpty": "No paragraphs found for import"
+      "importEmpty": "No paragraphs found for import",
+      "infoboxFieldIncomplete": "Each infobox row must include both a label and a value"
     },
     "aiStyleFailed": "AI styling failed"
   },
@@ -43,9 +44,26 @@
     "readingTime": "Reading time",
     "readingTimeMinutes": "~{minutes} min",
     "infoboxTitle": "Infobox",
-    "infoboxDescription": "In the first iteration this is a placeholder. The implementation is described in `docs/todo/frontend-infobox.md`.",
+    "infoboxDescription": "Add a compact overview block that appears beside the article while reading.",
     "metadataTitle": "Metadata",
     "metadataDescription": "Metadata and related links placeholders stay here until the next iteration.",
+    "infobox": {
+      "title": "Infobox",
+      "description": "Edit the infobox in the same compact layout that readers will see.",
+      "titleLabel": "Infobox title",
+      "titlePlaceholder": "Overview",
+      "subtitleLabel": "Subtitle",
+      "subtitlePlaceholder": "Quick reference",
+      "addField": "Add field",
+      "emptyState": "No infobox fields yet. Add a short row when the article needs quick-reference details.",
+      "fieldLabelLabel": "Label",
+      "fieldLabelPlaceholder": "Topic",
+      "fieldValueLabel": "Value",
+      "fieldValuePlaceholder": "General information",
+      "moveUp": "Move field up",
+      "moveDown": "Move field down",
+      "removeField": "Remove field"
+    },
     "toggleToVersioned": "Convert to versioned block",
     "toggleToParagraph": "Convert to regular paragraph",
     "defaultVersion": "Default",
