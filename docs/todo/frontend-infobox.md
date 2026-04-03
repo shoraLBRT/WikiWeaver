@@ -9,14 +9,21 @@ Add an infobox block to the article page that displays structured article facts 
 - Matches the target look-and-feel from `WikiWeaver.react2`.
 
 ## Current Status
-- `WikiWeaver.react2/src/app/components/ArticleInfobox.tsx` is static and domain-specific.
-- `wikiweaver.react` has no infobox data model.
-- The current API returns only title and paragraph content for article reading.
+- `wikiweaver.react` now renders a real infobox from article content DTOs.
+- The create-article flow now supports authoring infobox title, subtitle, and ordered fields.
+- The backend stores infobox data as ordered article fields and returns them from `/articles/{id}/content`.
+- Editing existing article infoboxes is still deferred with the broader edit-content task.
 
-## First Iteration Scope
+## Implemented Scope
 - Keep the infobox area in the new article design.
-- Render a placeholder shell with explanatory text.
-- Avoid domain-specific hardcoded rows.
+- Persist a generic ordered key-value infobox per article.
+- Render populated and configured-empty states without domain-specific hardcoded rows.
+- Support infobox authoring in the create-article flow.
+
+## Remaining Scope
+- Add infobox editing for existing articles.
+- Decide whether rich formatting or links are needed inside values.
+- Add automated tests once the repository test harness is introduced.
 
 ## Proposed UX
 - Title section at top of the infobox.
@@ -25,8 +32,8 @@ Add an infobox block to the article page that displays structured article facts 
 - Placeholder message when no infobox is configured.
 
 ## Frontend Work
-- Create an `ArticleInfoboxPanel` component.
-- Define a neutral data model:
+- Keep `ArticleInfoboxPanel` as the reader-facing component.
+- Keep a neutral data model:
 
 ```ts
 type InfoboxField = {
@@ -43,7 +50,7 @@ type ArticleInfoboxViewModel = {
 ```
 
 - Support states:
-  - `not-supported-yet`
+  - `not-configured`
   - `configured-empty`
   - `ready`
 
@@ -74,14 +81,12 @@ type ArticleInfoboxViewModel = {
 ```
 
 ## Implementation Algorithm
-1. Create infobox placeholder component in the new article page.
-2. Define generic infobox types in frontend domain models.
-3. Extend backend article model and DTOs with generic metadata fields.
-4. Add API serialization and mapping.
-5. Build a view-model mapper for article page rendering.
-6. Render infobox rows with graceful empty handling.
-7. Add authoring support in create/edit flows later.
-8. Add tests for placeholder and populated states.
+1. Extend backend article persistence with infobox title, subtitle, and ordered fields.
+2. Add create/read DTO support and API mapping.
+3. Render the real infobox on the article page with overflow handling.
+4. Add infobox authoring to the create-article flow.
+5. Keep edit support as a follow-up under `docs/todo/frontend-edit-content.md`.
+6. Add tests once the repository-level test setup is available.
 
 ## Risks
 - Domain-neutral design may become too generic without editorial rules.
@@ -89,9 +94,9 @@ type ArticleInfoboxViewModel = {
 - If editing is added later, validation rules must stay generic but predictable.
 
 ## Definition of Done
-- Placeholder is visible in iteration one.
 - Generic infobox contract is documented.
-- Later implementation can be connected without redesigning article page layout.
+- Articles can be created with infobox data and read back without redesigning article page layout.
+- The implementation remains domain-neutral and ready for future edit support.
 
 ## Open Questions
 - Should infobox values support markdown, links, or only plain text?

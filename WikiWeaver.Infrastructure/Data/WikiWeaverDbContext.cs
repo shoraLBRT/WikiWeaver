@@ -10,6 +10,7 @@ namespace WikiWeaver.Infrastructure.Data
         { }
 
         public DbSet<Article> Articles { get; set; } = null!;
+        public DbSet<ArticleInfoboxField> ArticleInfoboxFields { get; set; } = null!;
         public DbSet<Paragraph> Paragraphs { get; set; } = null!;
         public DbSet<AiProviderSettings> AiProviderSettings { get; set; } = null!;
         public DbSet<AdminUser> AdminUsers { get; set; } = null!;
@@ -28,6 +29,31 @@ namespace WikiWeaver.Infrastructure.Data
                 .WithOne(paragraph => paragraph.Article)
                 .HasForeignKey(paragraph => paragraph.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Article>()
+                .HasMany(article => article.InfoboxFields)
+                .WithOne(field => field.Article)
+                .HasForeignKey(field => field.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Article>()
+                .Property(article => article.InfoboxTitle)
+                .HasMaxLength(160);
+
+            modelBuilder.Entity<Article>()
+                .Property(article => article.InfoboxSubtitle)
+                .HasMaxLength(240);
+
+            modelBuilder.Entity<ArticleInfoboxField>()
+                .Property(field => field.Key)
+                .HasMaxLength(80);
+
+            modelBuilder.Entity<ArticleInfoboxField>()
+                .Property(field => field.Label)
+                .HasMaxLength(120);
+
+            modelBuilder.Entity<ArticleInfoboxField>()
+                .HasIndex(field => new { field.ArticleId, field.Order });
 
             modelBuilder.Entity<AiProviderSettings>()
                 .Property(settings => settings.BaseUrl)

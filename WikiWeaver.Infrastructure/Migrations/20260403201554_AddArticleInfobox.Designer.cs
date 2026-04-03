@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WikiWeaver.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using WikiWeaver.Infrastructure.Data;
 namespace WikiWeaver.Infrastructure.Migrations
 {
     [DbContext(typeof(WikiWeaverDbContext))]
-    partial class WikiWeaverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260403201554_AddArticleInfobox")]
+    partial class AddArticleInfobox
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");

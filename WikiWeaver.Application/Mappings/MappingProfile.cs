@@ -9,7 +9,11 @@ namespace WikiWeaver.Application.Mappings
         public MappingProfile()
         {
             CreateMap<Article, ArticleReadDto>()
-                .ForMember(dest => dest.HasContent, opt => opt.MapFrom(src => src.Paragraphs.Any(paragraph => paragraph.IsDefault)));
+                .ForMember(dest => dest.HasContent, opt => opt.MapFrom(src =>
+                    src.Paragraphs.Any(paragraph => paragraph.IsDefault)
+                    || src.InfoboxFields.Any()
+                    || !string.IsNullOrWhiteSpace(src.InfoboxTitle)
+                    || !string.IsNullOrWhiteSpace(src.InfoboxSubtitle)));
             CreateMap<ArticleCreateDto, Article>();
             CreateMap<ArticleUpdateDto, Article>();
 

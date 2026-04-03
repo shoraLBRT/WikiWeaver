@@ -12,12 +12,20 @@ namespace WikiWeaver.Infrastructure.Repositories
             => _dbSet
                 .Include(article => article.ChildArticles)
                 .Include(article => article.Paragraphs)
+                .Include(article => article.InfoboxFields)
                 .ToListAsync(cancellationToken);
 
         public Task<List<Article>> GetAllWithParagraphsAsync(CancellationToken cancellationToken = default)
             => _dbSet
                 .Include(article => article.Paragraphs)
+                .Include(article => article.InfoboxFields)
                 .ToListAsync(cancellationToken);
+
+        public Task<Article?> GetByIdWithContentAsync(int articleId, CancellationToken cancellationToken = default)
+            => _dbSet
+                .Include(article => article.Paragraphs)
+                .Include(article => article.InfoboxFields)
+                .FirstOrDefaultAsync(article => article.Id == articleId, cancellationToken);
 
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);

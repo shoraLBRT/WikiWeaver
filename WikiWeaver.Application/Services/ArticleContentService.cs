@@ -24,19 +24,18 @@ namespace WikiWeaver.Application.Services
 
         public async Task<ArticleContentDto> GetContentByArticleIdAsync(int articleId)
         {
-            var article = await _articleRepo.GetByIdAsync(articleId);
+            var article = await _articleRepo.GetByIdWithContentAsync(articleId);
             if (article is null)
             {
                 throw new NotFoundException("Article not found");
             }
 
-            var paragraphs = await _paragraphRepo.GetParagraphsByArticleAsync(articleId);
-            var paragraphDtos = paragraphs
-                .OrderBy(p => p.Order)
-                .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
+            var paragraphDtos = article.Paragraphs
+                .OrderBy(paragraph => paragraph.Order)
+                .Select(paragraph => new ParagraphDto(paragraph.Id, paragraph.Content, paragraph.Order, paragraph.IsDefault))
                 .ToList();
 
-            return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
+            return new ArticleContentDto(article.Id, article.Title, paragraphDtos, MapInfobox(article));
         }
 
         public async Task<ArticleContentDto> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
@@ -53,6 +52,13 @@ namespace WikiWeaver.Application.Services
                 throw new ValidationException(errorMessage ?? "Invalid paragraph order.");
             }
 
+            var normalizedInfobox = NormalizeInfobox(dto.Infobox);
+            var (infoboxValid, infoboxErrorMessage) = ValidateInfobox(normalizedInfobox);
+            if (!infoboxValid)
+            {
+                throw new ValidationException(infoboxErrorMessage ?? "Invalid infobox.");
+            }
+
             try
             {
                 await _uow.BeginTransactionAsync();
@@ -60,7 +66,9 @@ namespace WikiWeaver.Application.Services
                 var article = new Article
                 {
                     Title = dto.Title,
-                    ParentArticleId = dto.ParentArticleId
+                    ParentArticleId = dto.ParentArticleId,
+                    InfoboxTitle = normalizedInfobox?.Title,
+                    InfoboxSubtitle = normalizedInfobox?.Subtitle
                 };
 
                 await _articleRepo.AddAsync(article);
@@ -79,15 +87,30 @@ namespace WikiWeaver.Application.Services
                     await _paragraphRepo.AddAsync(paragraph);
                 }
 
+                foreach (var incomingField in normalizedInfobox?.Fields ?? Enumerable.Empty<ArticleInfoboxFieldCreateDto>())
+                {
+                    article.InfoboxFields.Add(new ArticleInfoboxField
+                    {
+                        ArticleId = article.Id,
+                        Order = incomingField.Order,
+                        Key = incomingField.Key,
+                        Label = incomingField.Label,
+                        Value = incomingField.Value,
+                    });
+                }
+
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
 
-                var paragraphDtos = (await _paragraphRepo.GetParagraphsByArticleAsync(article.Id))
-                    .OrderBy(p => p.Order)
-                    .Select(p => new ParagraphDto(p.Id, p.Content, p.Order, p.IsDefault))
+                var createdArticle = await _articleRepo.GetByIdWithContentAsync(article.Id)
+                    ?? throw new NotFoundException("Article not found after creation");
+
+                var paragraphDtos = createdArticle.Paragraphs
+                    .OrderBy(paragraph => paragraph.Order)
+                    .Select(paragraph => new ParagraphDto(paragraph.Id, paragraph.Content, paragraph.Order, paragraph.IsDefault))
                     .ToList();
 
-                return new ArticleContentDto(article.Id, article.Title, paragraphDtos);
+                return new ArticleContentDto(createdArticle.Id, createdArticle.Title, paragraphDtos, MapInfobox(createdArticle));
             }
             catch
             {
@@ -105,10 +128,25 @@ namespace WikiWeaver.Application.Services
             var (valid, errorMessage) = ValidateOrder(incomingParagraphs);
             if (!valid) return (false, errorMessage);
 
+            var normalizedInfobox = NormalizeInfobox(dto.Infobox is null
+                ? null
+                : new ArticleInfoboxCreateDto(
+                    dto.Infobox.Title,
+                    dto.Infobox.Subtitle,
+                    dto.Infobox.Fields.Select(field => new ArticleInfoboxFieldCreateDto(field.Order, field.Key, field.Label, field.Value)).ToList()));
+            var (infoboxValid, infoboxErrorMessage) = ValidateInfobox(normalizedInfobox);
+            if (!infoboxValid) return (false, infoboxErrorMessage);
+
             var existingParagraphs = (await _paragraphRepo.GetParagraphsByArticleAsync(articleId)).ToList();
             var existingIdsSet = existingParagraphs.Select(p => p.Id).ToHashSet();
             if (!ValidateIncomingIds(incomingParagraphs, existingIdsSet))
                 return (false, "Some paragraph ids do not belong to this article.");
+
+            var article = await _articleRepo.GetByIdWithContentAsync(articleId);
+            if (article is null)
+            {
+                return (false, "Article not found.");
+            }
 
             try
             {
@@ -117,7 +155,7 @@ namespace WikiWeaver.Application.Services
                 await DeleteRemovedParagraphsAsync(existingParagraphs, incomingParagraphs);
                 UpdateExistingParagraphs(existingParagraphs, incomingParagraphs);
                 await AddNewParagraphsAsync(articleId, incomingParagraphs);
-                await UpdateArticleTitleAsync(articleId, dto.Title);
+                UpdateArticleMetadata(article, dto.Title, normalizedInfobox);
 
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
@@ -166,6 +204,97 @@ namespace WikiWeaver.Application.Services
             return incomingExistingIds.All(id => existingIdsSet.Contains(id));
         }
 
+        private (bool IsValid, string? ErrorMessage) ValidateInfobox(ArticleInfoboxCreateDto? infobox)
+        {
+            if (infobox is null)
+            {
+                return (true, null);
+            }
+
+            var fields = infobox.Fields ?? new List<ArticleInfoboxFieldCreateDto>();
+
+            if (fields.Count == 0)
+            {
+                return (true, null);
+            }
+
+            var orders = fields.Select(field => field.Order).ToList();
+            if (orders.Any(order => order < 1))
+            {
+                return (false, "Infobox field order must be >= 1.");
+            }
+
+            var distinctOrders = orders.Distinct().OrderBy(order => order).ToList();
+            if (distinctOrders.Count != (distinctOrders.Any() ? distinctOrders.Max() : 0))
+            {
+                return (false, "Infobox field order must form a contiguous sequence from 1 to N.");
+            }
+
+            if (fields.Any(field => string.IsNullOrWhiteSpace(field.Key)))
+            {
+                return (false, "Each infobox field must contain a key.");
+            }
+
+            if (fields.Any(field => string.IsNullOrWhiteSpace(field.Label)))
+            {
+                return (false, "Each infobox field must contain a label.");
+            }
+
+            if (fields.Any(field => string.IsNullOrWhiteSpace(field.Value)))
+            {
+                return (false, "Each infobox field must contain a value.");
+            }
+
+            return (true, null);
+        }
+
+        private ArticleInfoboxCreateDto? NormalizeInfobox(ArticleInfoboxCreateDto? infobox)
+        {
+            if (infobox is null)
+            {
+                return null;
+            }
+
+            var title = NormalizeOptionalText(infobox.Title);
+            var subtitle = NormalizeOptionalText(infobox.Subtitle);
+            var fields = (infobox.Fields ?? new List<ArticleInfoboxFieldCreateDto>())
+                .Select(field => new ArticleInfoboxFieldCreateDto(
+                    field.Order,
+                    field.Key.Trim(),
+                    field.Label.Trim(),
+                    field.Value.Trim()))
+                .Where(field => !string.IsNullOrWhiteSpace(field.Label) || !string.IsNullOrWhiteSpace(field.Value) || !string.IsNullOrWhiteSpace(field.Key))
+                .OrderBy(field => field.Order)
+                .ToList();
+
+            if (title is null && subtitle is null && fields.Count == 0)
+            {
+                return null;
+            }
+
+            return new ArticleInfoboxCreateDto(title, subtitle, fields);
+        }
+
+        private static string? NormalizeOptionalText(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static ArticleInfoboxDto? MapInfobox(Article article)
+        {
+            var fields = article.InfoboxFields
+                .OrderBy(field => field.Order)
+                .Select(field => new ArticleInfoboxFieldDto(field.Id, field.Order, field.Key, field.Label, field.Value))
+                .ToList();
+
+            if (string.IsNullOrWhiteSpace(article.InfoboxTitle)
+                && string.IsNullOrWhiteSpace(article.InfoboxSubtitle)
+                && fields.Count == 0)
+            {
+                return null;
+            }
+
+            return new ArticleInfoboxDto(article.InfoboxTitle, article.InfoboxSubtitle, fields);
+        }
+
         private async Task DeleteRemovedParagraphsAsync(List<Paragraph> existingParagraphs, List<ParagraphDto> incomingParagraphs)
         {
             var incomingIds = incomingParagraphs.Where(p => p.Id != 0).Select(p => p.Id).ToHashSet();
@@ -201,12 +330,24 @@ namespace WikiWeaver.Application.Services
             }
         }
 
-        private async Task UpdateArticleTitleAsync(int articleId, string title)
+        private void UpdateArticleMetadata(Article article, string title, ArticleInfoboxCreateDto? infobox)
         {
-            var article = await _articleRepo.GetByIdAsync(articleId);
-            if (article is null) return;
             article.Title = title;
-            await _articleRepo.UpdateAsync(article);
+            article.InfoboxTitle = infobox?.Title;
+            article.InfoboxSubtitle = infobox?.Subtitle;
+
+            article.InfoboxFields.Clear();
+            foreach (var field in infobox?.Fields ?? Enumerable.Empty<ArticleInfoboxFieldCreateDto>())
+            {
+                article.InfoboxFields.Add(new ArticleInfoboxField
+                {
+                    ArticleId = article.Id,
+                    Order = field.Order,
+                    Key = field.Key,
+                    Label = field.Label,
+                    Value = field.Value,
+                });
+            }
         }
     }
 }

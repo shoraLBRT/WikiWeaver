@@ -21,7 +21,10 @@ namespace WikiWeaver.Application.Services
                     Id = article.Id,
                     Title = article.Title,
                     ParentArticleId = article.ParentArticleId,
-                    HasContent = article.Paragraphs.Any(paragraph => paragraph.IsDefault),
+                    HasContent = article.Paragraphs.Any(paragraph => paragraph.IsDefault)
+                        || article.InfoboxFields.Any()
+                        || !string.IsNullOrWhiteSpace(article.InfoboxTitle)
+                        || !string.IsNullOrWhiteSpace(article.InfoboxSubtitle),
                     Children = new List<NavigationArticleDto>()
                 })
                 .ToDictionary(article => article.Id);

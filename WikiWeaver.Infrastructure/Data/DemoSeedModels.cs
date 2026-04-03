@@ -22,5 +22,20 @@ internal sealed class DemoArticleContentSeed
     public string NavigationTitle { get; init; } = string.Empty;
 
     public string Title { get; init; } = string.Empty;
+    public DemoArticleInfoboxSeed? Infobox { get; init; }
     public List<string> Paragraphs { get; init; } = new();
+}
+
+internal sealed class DemoArticleInfoboxSeed
+{
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public List<DemoArticleInfoboxFieldSeed> Fields { get; init; } = new();
+}
+
+internal sealed class DemoArticleInfoboxFieldSeed
+{
+    public string Key { get; init; } = string.Empty;
+    public string Label { get; init; } = string.Empty;
+    public string Value { get; init; } = string.Empty;
 }
