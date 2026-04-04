@@ -18,14 +18,14 @@ type EditorHelpRailProps = {
   readingTimeMinutes: number;
   actions?: ReactNode;
   isLocked: boolean;
-  isLoadingParents: boolean;
-  selectedParent: ParentOption | null;
-  parentSearch: string;
-  filteredParentOptions: ParentOption[];
-  isParentDropdownOpen: boolean;
-  onToggleParentDropdown: () => void;
-  onParentSearchChange: (value: string) => void;
-  onSelectParent: (option: ParentOption | null) => void;
+  isLoadingParents?: boolean;
+  selectedParent?: ParentOption | null;
+  parentSearch?: string;
+  filteredParentOptions?: ParentOption[];
+  isParentDropdownOpen?: boolean;
+  onToggleParentDropdown?: () => void;
+  onParentSearchChange?: (value: string) => void;
+  onSelectParent?: (option: ParentOption | null) => void;
 };
 
 export const EditorHelpRail = ({
@@ -52,6 +52,7 @@ export const EditorHelpRail = ({
     <aside className="hidden xl:block xl:w-[280px] xl:shrink-0">
       <div className="sticky top-[calc(var(--layout-header-height)+24px)] space-y-6 px-4 pb-6">
         {actions ? <div>{actions}</div> : null}
+        {onToggleParentDropdown ? (
         <div>
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">{t.articleProperties}</p>
           <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
@@ -78,16 +79,16 @@ export const EditorHelpRail = ({
                     <div className="relative">
                       <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-subtle)]" />
                       <Input
-                        value={parentSearch}
+                        value={parentSearch ?? ''}
                         disabled={isLocked}
-                        onChange={(event) => onParentSearchChange(event.target.value)}
+                        onChange={(event) => onParentSearchChange?.(event.target.value)}
                         placeholder={t.parentSearchPlaceholder}
                         className="pl-9"
                       />
                     </div>
                     <button
                       type="button"
-                      onClick={() => onSelectParent(null)}
+                      onClick={() => onSelectParent?.(null)}
                       className="mt-3 text-xs font-medium text-[var(--color-brand-forest)] transition-colors hover:text-[var(--color-brand-forest-strong)]"
                     >
                       {t.clearParentSelection}
@@ -95,15 +96,15 @@ export const EditorHelpRail = ({
                   </form>
 
                   <div className="max-h-72 overflow-y-auto p-2">
-                    {filteredParentOptions.length > 0 ? (
-                      filteredParentOptions.map((option) => {
+                    {(filteredParentOptions ?? []).length > 0 ? (
+                      (filteredParentOptions ?? []).map((option) => {
                         const isSelected = option.id === selectedParent?.id;
 
                         return (
                           <button
                             key={option.id}
                             type="button"
-                            onClick={() => onSelectParent(option)}
+                            onClick={() => onSelectParent?.(option)}
                             className={`flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left transition-colors ${isSelected ? 'bg-[var(--color-brand-forest-soft)]' : 'hover:bg-[var(--color-page-panel)]'}`}
                           >
                             <span className="mt-0.5 shrink-0 text-[var(--color-brand-forest)]">
@@ -125,6 +126,7 @@ export const EditorHelpRail = ({
             </div>
           </div>
         </div>
+        ) : null}
 
         <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white p-4 shadow-sm">
           <p className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">

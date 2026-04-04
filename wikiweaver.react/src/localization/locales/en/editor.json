@@ -117,6 +117,12 @@
       "lineCount": "Markdown lines"
     }
   },
+  "editArticlePage": {
+    "title": "Edit article",
+    "saved": "Article updated",
+    "saveError": "Update error",
+    "loadError": "Failed to load article"
+  },
   "versionedParagraph": {
     "label": "Versioned block: set {order}",
     "versions": "Versions:",

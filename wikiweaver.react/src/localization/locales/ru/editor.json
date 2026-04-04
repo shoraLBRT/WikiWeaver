@@ -117,6 +117,12 @@
       "lineCount": "Строк Markdown"
     }
   },
+  "editArticlePage": {
+    "title": "Редактирование статьи",
+    "saved": "Статья обновлена",
+    "saveError": "Ошибка обновления",
+    "loadError": "Не удалось загрузить статью"
+  },
   "versionedParagraph": {
     "label": "Версионный блок: набор {order}",
     "versions": "Версии:",

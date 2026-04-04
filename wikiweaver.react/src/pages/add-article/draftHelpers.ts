@@ -198,7 +198,7 @@ export const buildParagraphDtosFromBlocks = (blocks: EditorBlock[]): ParagraphDt
         .filter((variant) => variant.content.trim())
         .forEach((variant) => {
           paragraphs.push({
-            id: 0,
+            id: variant.paragraphId ?? 0,
             content: variant.content.trim(),
             order,
             isDefault: variant.isDefault,
@@ -214,7 +214,7 @@ export const buildParagraphDtosFromBlocks = (blocks: EditorBlock[]): ParagraphDt
     }
 
     paragraphs.push({
-      id: 0,
+      id: block.paragraphId ?? 0,
       content,
       order,
       isDefault: true,
@@ -282,6 +282,61 @@ export const buildDocumentPreviewMarkdown = (blocks: EditorBlock[]): string =>
       return toStoredMarkdown(block);
     })
     .join('\n\n');
+
+export const importBlocksFromParagraphs = (paragraphs: ParagraphDto[]): EditorBlock[] => {
+  const groups = new Map<number, ParagraphDto[]>();
+  for (const p of paragraphs) {
+    const group = groups.get(p.order) ?? [];
+    group.push(p);
+    groups.set(p.order, group);
+  }
+
+  const sortedOrders = [...groups.keys()].sort((a, b) => a - b);
+
+  return sortedOrders.map((order) => {
+    const group = groups.get(order)!;
+
+    if (group.length === 1) {
+      const p = group[0];
+
+      if (p.content.startsWith('### ')) {
+        return {
+          id: crypto.randomUUID(),
+          kind: 'heading3' as const,
+          content: p.content.replace(/^###\s+/, ''),
+          paragraphId: p.id,
+        };
+      }
+
+      if (p.content.startsWith('## ')) {
+        return {
+          id: crypto.randomUUID(),
+          kind: 'heading2' as const,
+          content: p.content.replace(/^##\s+/, ''),
+          paragraphId: p.id,
+        };
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        kind: 'paragraph' as const,
+        content: p.content,
+        paragraphId: p.id,
+      };
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      kind: 'versioned' as const,
+      variants: group.map((p) => ({
+        localId: crypto.randomUUID(),
+        content: p.content,
+        isDefault: p.isDefault,
+        paragraphId: p.id,
+      })),
+    };
+  });
+};
 
 export const collectWholeArticleAiTargets = (
   blocks: EditorBlock[],

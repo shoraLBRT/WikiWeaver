@@ -144,13 +144,5 @@
     ],
     "sessionHint": "JWT session for admin actions",
     "authStatusLoading": "Checking authorization status..."
-  },
-  "editArticlePage": {
-    "title": "Edit article",
-    "description": "Full editing for an existing article is not implemented yet. This iteration keeps an honest placeholder in the new design.",
-    "backToAdmin": "Back to admin panel",
-    "plannedFeature": "Planned feature",
-    "articleId": "Article ID",
-    "implementationNote": "Further implementation is described in `docs/todo/frontend-edit-content.md`."
   }
 }
