@@ -1,4 +1,4 @@
-import type { ArticleInfoboxCreateDto, ArticleInfoboxFieldCreateDto } from '../../shared/types/ApiTypes';
+import type { ArticleInfoboxCreateDto, ArticleInfoboxDto, ArticleInfoboxFieldCreateDto } from '../../shared/types/ApiTypes';
 import type { InfoboxDraft, InfoboxFieldDraft } from './types';
 
 const slugifySegment = (value: string): string =>
@@ -102,3 +102,14 @@ export const hasIncompleteInfoboxFields = (draft: InfoboxDraft): boolean =>
     const hasValue = Boolean(field.value.trim());
     return hasLabel !== hasValue;
   });
+
+export const importInfoboxFromDto = (dto: ArticleInfoboxDto): InfoboxDraft => ({
+  title: dto.title ?? '',
+  subtitle: dto.subtitle ?? '',
+  fields: dto.fields.map((f) => ({
+    id: crypto.randomUUID(),
+    key: f.key,
+    label: f.label,
+    value: f.value,
+  })),
+});

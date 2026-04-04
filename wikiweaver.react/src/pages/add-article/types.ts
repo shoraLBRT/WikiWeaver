@@ -2,6 +2,7 @@ export type AlternativeDraft = {
   localId: string;
   content: string;
   isDefault: boolean;
+  paragraphId?: number;
 };
 
 export type InfoboxFieldDraft = {
@@ -23,6 +24,7 @@ export type PlainEditorBlock = {
   id: string;
   kind: PlainBlockKind;
   content: string;
+  paragraphId?: number;
 };
 
 export type VersionedEditorBlock = {

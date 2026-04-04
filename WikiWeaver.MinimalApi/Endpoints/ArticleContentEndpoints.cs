@@ -21,6 +21,12 @@ namespace WikiWeaver.MinimalApi.Endpoints
                 return Results.Created($"/articles/{article.Id}/content", article);
             }).RequireAuthorization("AdminOnly");
 
+            group.MapPut("/{id:int}/content", async (int id, ArticleContentDto dto, ArticleContentService service) =>
+            {
+                var (success, errorMessage) = await service.UpdateContentAsync(id, dto);
+                return success ? Results.NoContent() : Results.BadRequest(errorMessage);
+            }).RequireAuthorization("AdminOnly");
+
             return builder;
         }
     }

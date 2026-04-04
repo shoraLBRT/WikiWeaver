@@ -144,13 +144,5 @@
     ],
     "sessionHint": "JWT session for admin actions",
     "authStatusLoading": "Проверка статуса авторизации..."
-  },
-  "editArticlePage": {
-    "title": "Редактирование статьи",
-    "description": "Полноценное редактирование существующей статьи пока не реализовано. На этой итерации сохранен честный placeholder в новом дизайне.",
-    "backToAdmin": "Вернуться в админ-панель",
-    "plannedFeature": "Planned feature",
-    "articleId": "ID статьи",
-    "implementationNote": "Дальнейшая реализация описана в `docs/todo/frontend-edit-content.md`."
   }
 }

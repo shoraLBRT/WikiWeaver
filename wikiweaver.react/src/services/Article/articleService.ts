@@ -11,7 +11,12 @@ export const createArticleContent = async (payload: ArticleContentCreateDto): Pr
   return response.data;
 };
 
+export const updateArticleContent = async (id: number, payload: ArticleContentDto): Promise<void> => {
+  await apiClient.put(`/articles/${id}/content`, payload);
+};
+
 export const articleService = {
   getArticleContentById,
   createArticleContent,
+  updateArticleContent,
 };
