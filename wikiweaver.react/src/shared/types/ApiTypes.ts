@@ -34,11 +34,26 @@ export interface ArticleInfoboxCreateDto {
   fields: ArticleInfoboxFieldCreateDto[];
 }
 
+export interface ArticleRelatedLinkDto {
+  id: number;
+  relatedArticleId: number;
+  relatedArticleTitle: string;
+  order: number;
+}
+
+export interface ArticleRelatedLinkCreateDto {
+  relatedArticleId: number;
+  order: number;
+}
+
 export interface ArticleContentDto {
   id: number;
   title: string;
   paragraphs: ParagraphDto[];
   infobox?: ArticleInfoboxDto;
+  summary?: string;
+  tags: string[];
+  relatedLinks?: ArticleRelatedLinkDto[];
 }
 
 export interface ArticleContentCreateDto {
@@ -46,6 +61,9 @@ export interface ArticleContentCreateDto {
   parentArticleId?: number;
   paragraphs: ParagraphDto[];
   infobox?: ArticleInfoboxCreateDto;
+  summary?: string;
+  tags?: string[];
+  relatedLinks?: ArticleRelatedLinkCreateDto[];
 }
 
 export interface ArticleReadDto {

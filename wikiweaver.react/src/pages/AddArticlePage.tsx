@@ -40,6 +40,7 @@ import {
   updateVersionContent,
 } from './add-article/draftHelpers';
 import { addInfoboxField, buildInfoboxCreateDto, createEmptyInfoboxDraft, hasIncompleteInfoboxFields, moveInfoboxField, removeInfoboxField, updateInfoboxField } from './add-article/infoboxHelpers';
+import { addRelatedLink, buildRelatedLinkCreateDtos, moveRelatedLink, removeRelatedLink, type RelatedLinkDraft } from './add-article/metadataHelpers';
 import type { EditorBlock } from './add-article/types';
 
 type Notice = {
@@ -118,6 +119,9 @@ const AddArticlePage: React.FC = () => {
   const [isAiRunning, setIsAiRunning] = useState(false);
   const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false);
   const [parentSearch, setParentSearch] = useState('');
+  const [summary, setSummary] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [relatedLinks, setRelatedLinks] = useState<RelatedLinkDraft[]>([]);
 
   const editorRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const blockRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -325,6 +329,9 @@ const AddArticlePage: React.FC = () => {
       parentArticleId: parentArticleId ?? undefined,
       paragraphs: buildParagraphDtosFromBlocks(blocks),
       infobox: buildInfoboxCreateDto(infobox),
+      summary: summary.trim() || undefined,
+      tags: tags.length > 0 ? tags : undefined,
+      relatedLinks: buildRelatedLinkCreateDtos(relatedLinks),
     });
   };
 
@@ -535,6 +542,15 @@ const AddArticlePage: React.FC = () => {
           }}
           onParentSearchChange={setParentSearch}
           onSelectParent={selectParentArticle}
+          summary={summary}
+          tags={tags}
+          relatedLinks={relatedLinks}
+          articleOptions={parentOptions}
+          onSummaryChange={setSummary}
+          onTagsChange={setTags}
+          onAddRelatedLink={(articleId, articleTitle) => setRelatedLinks((current) => addRelatedLink(current, articleId, articleTitle))}
+          onRemoveRelatedLink={(draftId) => setRelatedLinks((current) => removeRelatedLink(current, draftId))}
+          onMoveRelatedLink={(draftId, direction) => setRelatedLinks((current) => moveRelatedLink(current, draftId, direction))}
         />
         </div>
       </div>

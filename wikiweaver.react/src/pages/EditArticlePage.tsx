@@ -6,12 +6,13 @@ import MarkdownContent from '../components/MarkdownContent';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { useLocale } from '../localization/hooks';
 import { getArticleContentById, updateArticleContent } from '../services/Article/articleService';
+import { getNavigationTree } from '../services/Article/navigationService';
 import { getAiProviderSettings, styleMarkdownWithAi } from '../services/adminService';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { Input } from '../shared/ui/Input';
 import { Textarea } from '../shared/ui/Textarea';
-import type { ArticleContentDto, ArticleInfoboxDto } from '../shared/types/ApiTypes';
+import type { ArticleContentDto, ArticleInfoboxDto, NavigationArticleDto } from '../shared/types/ApiTypes';
 import { ArticleInfoboxPanel } from '../components/article/ArticleInfoboxPanel';
 import { DocumentBlockEditor } from './add-article/DocumentBlockEditor';
 import { EditorBottomToolbar, type FormatAction } from './add-article/EditorBottomToolbar';
@@ -49,7 +50,26 @@ import {
   removeInfoboxField,
   updateInfoboxField,
 } from './add-article/infoboxHelpers';
+import { addRelatedLink, importRelatedLinksFromDto, moveRelatedLink, removeRelatedLink, type RelatedLinkDraft } from './add-article/metadataHelpers';
 import type { EditorBlock } from './add-article/types';
+
+type ArticleOption = {
+  id: number;
+  title: string;
+  path: string;
+};
+
+const flattenNavigationTree = (
+  nodes: NavigationArticleDto[],
+  parentTitles: string[] = [],
+): ArticleOption[] =>
+  nodes.flatMap((node) => {
+    const titles = [...parentTitles, node.title];
+    return [
+      { id: node.id, title: node.title, path: titles.join(' / ') },
+      ...flattenNavigationTree(node.children ?? [], titles),
+    ];
+  });
 
 type Notice = {
   tone: 'success' | 'warning' | 'error';
@@ -102,6 +122,9 @@ const EditArticlePage: React.FC = () => {
   const [activeTarget, setActiveTarget] = useState<EditorTarget | null>(null);
   const [isAiRunning, setIsAiRunning] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [summary, setSummary] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [relatedLinks, setRelatedLinks] = useState<RelatedLinkDraft[]>([]);
 
   const editorRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const blockRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -117,6 +140,16 @@ const EditArticlePage: React.FC = () => {
     queryFn: getAiProviderSettings,
   });
 
+  const navigationTreeQuery = useQuery({
+    queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE],
+    queryFn: getNavigationTree,
+  });
+
+  const articleOptions = useMemo(
+    () => flattenNavigationTree(navigationTreeQuery.data ?? []),
+    [navigationTreeQuery.data],
+  );
+
   useEffect(() => {
     if (articleQuery.data && !isInitialized) {
       const data = articleQuery.data;
@@ -126,6 +159,9 @@ const EditArticlePage: React.FC = () => {
       if (data.infobox) {
         setInfobox(importInfoboxFromDto(data.infobox));
       }
+      setSummary(data.summary ?? '');
+      setTags(data.tags ?? []);
+      setRelatedLinks(data.relatedLinks ? importRelatedLinksFromDto(data.relatedLinks) : []);
       setIsInitialized(true);
     }
   }, [articleQuery.data, isInitialized]);
@@ -309,6 +345,14 @@ const EditArticlePage: React.FC = () => {
       title: title.trim(),
       paragraphs: buildParagraphDtosFromBlocks(blocks),
       infobox: infoboxDto,
+      summary: summary.trim() || undefined,
+      tags,
+      relatedLinks: relatedLinks.map((link, index) => ({
+        id: 0,
+        relatedArticleId: link.articleId,
+        relatedArticleTitle: link.articleTitle,
+        order: index + 1,
+      })),
     });
   };
 
@@ -538,6 +582,16 @@ const EditArticlePage: React.FC = () => {
             />
           )}
           isLocked={isLocked}
+          summary={summary}
+          tags={tags}
+          relatedLinks={relatedLinks}
+          articleOptions={articleOptions}
+          currentArticleId={numericId}
+          onSummaryChange={setSummary}
+          onTagsChange={setTags}
+          onAddRelatedLink={(articleId, articleTitle) => setRelatedLinks((current) => addRelatedLink(current, articleId, articleTitle))}
+          onRemoveRelatedLink={(draftId) => setRelatedLinks((current) => removeRelatedLink(current, draftId))}
+          onMoveRelatedLink={(draftId, direction) => setRelatedLinks((current) => moveRelatedLink(current, draftId, direction))}
         />
         </div>
       </div>

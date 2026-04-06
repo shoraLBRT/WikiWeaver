@@ -11,6 +11,7 @@ namespace WikiWeaver.Infrastructure.Data
 
         public DbSet<Article> Articles { get; set; } = null!;
         public DbSet<ArticleInfoboxField> ArticleInfoboxFields { get; set; } = null!;
+        public DbSet<ArticleRelatedLink> ArticleRelatedLinks { get; set; } = null!;
         public DbSet<Paragraph> Paragraphs { get; set; } = null!;
         public DbSet<AiProviderSettings> AiProviderSettings { get; set; } = null!;
         public DbSet<AdminUser> AdminUsers { get; set; } = null!;
@@ -54,6 +55,29 @@ namespace WikiWeaver.Infrastructure.Data
 
             modelBuilder.Entity<ArticleInfoboxField>()
                 .HasIndex(field => new { field.ArticleId, field.Order });
+
+            modelBuilder.Entity<Article>()
+                .Property(article => article.Summary)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Article>()
+                .Property(article => article.Tags)
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<Article>()
+                .HasMany(article => article.RelatedLinks)
+                .WithOne(link => link.Article)
+                .HasForeignKey(link => link.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ArticleRelatedLink>()
+                .HasOne(link => link.RelatedArticle)
+                .WithMany()
+                .HasForeignKey(link => link.RelatedArticleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ArticleRelatedLink>()
+                .HasIndex(link => new { link.ArticleId, link.Order });
 
             modelBuilder.Entity<AiProviderSettings>()
                 .Property(settings => settings.BaseUrl)

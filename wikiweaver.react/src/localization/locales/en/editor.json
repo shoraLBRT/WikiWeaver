@@ -45,8 +45,20 @@
     "readingTimeMinutes": "~{minutes} min",
     "infoboxTitle": "Infobox",
     "infoboxDescription": "Add a compact overview block that appears beside the article while reading.",
-    "metadataTitle": "Metadata",
-    "metadataDescription": "Metadata and related links placeholders stay here until the next iteration.",
+    "metadata": {
+      "summaryLabel": "Summary",
+      "summaryPlaceholder": "A short description of this article...",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Add tags, separate with comma or Enter",
+      "relatedLinksTitle": "Related articles",
+      "relatedLinksSearchPlaceholder": "Search article...",
+      "noRelatedLinksYet": "No related articles added",
+      "noSearchResults": "Nothing found",
+      "removeTag": "Remove tag",
+      "removeRelatedLink": "Remove",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
+    },
     "infobox": {
       "title": "Infobox",
       "description": "Edit the infobox in the same compact layout that readers will see.",
