@@ -13,7 +13,8 @@ namespace WikiWeaver.Application.Mappings
                     src.Paragraphs.Any(paragraph => paragraph.IsDefault)
                     || src.InfoboxFields.Any()
                     || !string.IsNullOrWhiteSpace(src.InfoboxTitle)
-                    || !string.IsNullOrWhiteSpace(src.InfoboxSubtitle)));
+                    || !string.IsNullOrWhiteSpace(src.InfoboxSubtitle)
+                    || !string.IsNullOrWhiteSpace(src.Summary)));
             CreateMap<ArticleCreateDto, Article>();
             CreateMap<ArticleUpdateDto, Article>();
 

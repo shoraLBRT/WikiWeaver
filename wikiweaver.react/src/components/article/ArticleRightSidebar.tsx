@@ -1,6 +1,8 @@
-import { Link as LinkIcon } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLocale } from '../../localization/hooks';
+import type { ArticleRelatedLinkDto } from '../../shared/types/ApiTypes';
 
 export type TocItem = {
   id: string;
@@ -9,12 +11,14 @@ export type TocItem = {
 
 type ArticleRightSidebarProps = {
   tocItems: TocItem[];
+  summary?: string;
+  tags?: string[];
+  relatedLinks?: ArticleRelatedLinkDto[];
 };
 
-export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
+export const ArticleRightSidebar = ({ tocItems, summary, tags, relatedLinks }: ArticleRightSidebarProps) => {
   const locale = useLocale();
   const t = locale.articleRightSidebar;
-  const metadataItems = t.metadataItems as Array<[string, string]>;
   const [activeId, setActiveId] = useState<string>(tocItems[0]?.id ?? 'intro');
 
   useEffect(() => {
@@ -40,6 +44,10 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, [tocItems]);
+
+  const hasTags = tags && tags.length > 0;
+  const hasRelatedLinks = relatedLinks && relatedLinks.length > 0;
+  const hasSummary = Boolean(summary?.trim());
 
   return (
     <aside className="hidden xl:block xl:w-[220px] xl:shrink-0">
@@ -67,32 +75,56 @@ export const ArticleRightSidebar = ({ tocItems }: ArticleRightSidebarProps) => {
           </nav>
         </div>
 
+        {(hasSummary || hasTags) && (
+          <div className="mb-4 border-t border-[var(--color-border-soft)] pt-4 space-y-3">
+            {hasSummary && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
+                  {t.summaryTitle}
+                </p>
+                <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-default)]">{summary}</p>
+              </div>
+            )}
+            {hasTags && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
+                  {t.tagsTitle}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {tags!.map((tag) => (
+                    <span
+                      key={tag}
+                      className="flex items-center gap-1 rounded-full bg-[var(--color-brand-forest-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-brand-forest)]"
+                    >
+                      <Tag size={8} />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="border-t border-[var(--color-border-soft)] pt-4">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             {t.relatedArticles}
           </p>
-          <div className="space-y-1">
-            <div className="rounded-xl border border-dashed border-[var(--color-border-soft)] bg-[var(--color-surface-muted)] px-3 py-3 text-[12px] leading-5 text-[var(--color-ink-muted)]">
-              {t.relatedPlaceholder}
-            </div>
-            <div className="flex items-center gap-1.5 text-[12px] text-[var(--color-brand-forest)] opacity-70">
-              <LinkIcon size={10} /> {t.relatedPlaceholderStatus}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 border-t border-[var(--color-border-soft)] pt-4">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
-            {t.information}
-          </p>
-          <div className="space-y-1">
-            {metadataItems.map(([label, value]) => (
-              <div key={label}>
-                <span className="text-[11px] text-[var(--color-ink-subtle)]">{label}: </span>
-                <span className="text-[11px] text-[var(--color-ink-default)]">{value}</span>
-              </div>
-            ))}
-          </div>
+          {hasRelatedLinks ? (
+            <nav className="space-y-0.5">
+              {relatedLinks!.map((link) => (
+                <Link
+                  key={link.id}
+                  to={`/article/${link.relatedArticleId}`}
+                  className="block rounded px-2 py-1 text-[12.5px] text-[var(--color-brand-forest)] transition-colors hover:bg-[var(--color-brand-forest-soft)]"
+                >
+                  {link.relatedArticleTitle}
+                </Link>
+              ))}
+            </nav>
+          ) : (
+            <p className="m-0 text-[12px] leading-5 text-[var(--color-ink-subtle)]">{t.noRelatedArticles}</p>
+          )}
         </div>
       </div>
     </aside>

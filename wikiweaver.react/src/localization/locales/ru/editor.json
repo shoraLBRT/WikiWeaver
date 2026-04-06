@@ -45,8 +45,20 @@
     "readingTimeMinutes": "~{minutes} мин",
     "infoboxTitle": "Инфобокс",
     "infoboxDescription": "Добавьте компактный обзорный блок, который будет показываться рядом со статьей при чтении.",
-    "metadataTitle": "Метаданные",
-    "metadataDescription": "Здесь останутся заглушки под metadata и related links до следующей итерации.",
+    "metadata": {
+      "summaryLabel": "Краткое описание",
+      "summaryPlaceholder": "Краткое описание статьи...",
+      "tagsLabel": "Теги",
+      "tagsPlaceholder": "Добавьте теги через запятую или Enter",
+      "relatedLinksTitle": "Связанные статьи",
+      "relatedLinksSearchPlaceholder": "Поиск статьи...",
+      "noRelatedLinksYet": "Связанных статей не добавлено",
+      "noSearchResults": "Ничего не найдено",
+      "removeTag": "Удалить тег",
+      "removeRelatedLink": "Удалить",
+      "moveUp": "Вверх",
+      "moveDown": "Вниз"
+    },
     "infobox": {
       "title": "Инфобокс",
       "description": "Редактируйте инфобокс сразу в том компактном виде, в котором его увидят читатели.",

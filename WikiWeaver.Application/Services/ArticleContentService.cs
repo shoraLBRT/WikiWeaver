@@ -1,4 +1,4 @@
-﻿using WikiWeaver.Application.DTOs;
+using WikiWeaver.Application.DTOs;
 using WikiWeaver.Application.Exceptions;
 using WikiWeaver.Domain.Entities;
 using WikiWeaver.Infrastructure.Repositories;
@@ -35,7 +35,14 @@ namespace WikiWeaver.Application.Services
                 .Select(paragraph => new ParagraphDto(paragraph.Id, paragraph.Content, paragraph.Order, paragraph.IsDefault))
                 .ToList();
 
-            return new ArticleContentDto(article.Id, article.Title, paragraphDtos, MapInfobox(article));
+            return new ArticleContentDto(
+                article.Id,
+                article.Title,
+                paragraphDtos,
+                MapInfobox(article),
+                article.Summary,
+                ParseTags(article.Tags),
+                MapRelatedLinks(article));
         }
 
         public async Task<ArticleContentDto> CreateArticleWithContentAsync(ArticleContentCreateDto dto)
@@ -68,7 +75,9 @@ namespace WikiWeaver.Application.Services
                     Title = dto.Title,
                     ParentArticleId = dto.ParentArticleId,
                     InfoboxTitle = normalizedInfobox?.Title,
-                    InfoboxSubtitle = normalizedInfobox?.Subtitle
+                    InfoboxSubtitle = normalizedInfobox?.Subtitle,
+                    Summary = NormalizeOptionalText(dto.Summary),
+                    Tags = SerializeTags(dto.Tags)
                 };
 
                 await _articleRepo.AddAsync(article);
@@ -99,6 +108,22 @@ namespace WikiWeaver.Application.Services
                     });
                 }
 
+                var (relatedLinksValid, relatedLinksError) = await ValidateRelatedLinksAsync(dto.RelatedLinks, article.Id);
+                if (!relatedLinksValid)
+                {
+                    throw new ValidationException(relatedLinksError ?? "Invalid related links.");
+                }
+
+                foreach (var link in dto.RelatedLinks ?? Enumerable.Empty<ArticleRelatedLinkCreateDto>())
+                {
+                    article.RelatedLinks.Add(new ArticleRelatedLink
+                    {
+                        ArticleId = article.Id,
+                        RelatedArticleId = link.RelatedArticleId,
+                        Order = link.Order
+                    });
+                }
+
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
 
@@ -110,7 +135,14 @@ namespace WikiWeaver.Application.Services
                     .Select(paragraph => new ParagraphDto(paragraph.Id, paragraph.Content, paragraph.Order, paragraph.IsDefault))
                     .ToList();
 
-                return new ArticleContentDto(createdArticle.Id, createdArticle.Title, paragraphDtos, MapInfobox(createdArticle));
+                return new ArticleContentDto(
+                    createdArticle.Id,
+                    createdArticle.Title,
+                    paragraphDtos,
+                    MapInfobox(createdArticle),
+                    createdArticle.Summary,
+                    ParseTags(createdArticle.Tags),
+                    MapRelatedLinks(createdArticle));
             }
             catch
             {
@@ -142,6 +174,12 @@ namespace WikiWeaver.Application.Services
             if (!ValidateIncomingIds(incomingParagraphs, existingIdsSet))
                 return (false, "Some paragraph ids do not belong to this article.");
 
+            var incomingRelatedLinks = dto.RelatedLinks?
+                .Select(l => new ArticleRelatedLinkCreateDto(l.RelatedArticleId, l.Order))
+                .ToList();
+            var (relatedLinksValid, relatedLinksError) = await ValidateRelatedLinksAsync(incomingRelatedLinks, articleId);
+            if (!relatedLinksValid) return (false, relatedLinksError);
+
             var article = await _articleRepo.GetByIdWithContentAsync(articleId);
             if (article is null)
             {
@@ -155,7 +193,7 @@ namespace WikiWeaver.Application.Services
                 await DeleteRemovedParagraphsAsync(existingParagraphs, incomingParagraphs);
                 UpdateExistingParagraphs(existingParagraphs, incomingParagraphs);
                 await AddNewParagraphsAsync(articleId, incomingParagraphs);
-                UpdateArticleMetadata(article, dto.Title, normalizedInfobox);
+                UpdateArticleMetadata(article, dto.Title, normalizedInfobox, dto.Summary, dto.Tags, incomingRelatedLinks);
 
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
@@ -202,6 +240,24 @@ namespace WikiWeaver.Application.Services
         {
             var incomingExistingIds = incomingParagraphs.Where(p => p.Id != 0).Select(p => p.Id);
             return incomingExistingIds.All(id => existingIdsSet.Contains(id));
+        }
+
+        private async Task<(bool IsValid, string? ErrorMessage)> ValidateRelatedLinksAsync(
+            List<ArticleRelatedLinkCreateDto>? links, int articleId)
+        {
+            if (links is null || links.Count == 0)
+                return (true, null);
+
+            if (links.Any(l => l.RelatedArticleId == articleId))
+                return (false, "An article cannot link to itself.");
+
+            foreach (var link in links)
+            {
+                if (await _articleRepo.GetByIdAsync(link.RelatedArticleId) is null)
+                    return (false, $"Related article with id {link.RelatedArticleId} does not exist.");
+            }
+
+            return (true, null);
         }
 
         private (bool IsValid, string? ErrorMessage) ValidateInfobox(ArticleInfoboxCreateDto? infobox)
@@ -278,6 +334,23 @@ namespace WikiWeaver.Application.Services
         private static string? NormalizeOptionalText(string? value)
             => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+        private static List<string> ParseTags(string? tags)
+            => tags?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                   .Where(t => !string.IsNullOrEmpty(t))
+                   .ToList()
+               ?? new List<string>();
+
+        private static string? SerializeTags(List<string>? tags)
+        {
+            if (tags is null || tags.Count == 0) return null;
+            var normalized = tags
+                .Select(t => t.Trim())
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Distinct()
+                .ToList();
+            return normalized.Count == 0 ? null : string.Join(",", normalized);
+        }
+
         private static ArticleInfoboxDto? MapInfobox(Article article)
         {
             var fields = article.InfoboxFields
@@ -293,6 +366,21 @@ namespace WikiWeaver.Application.Services
             }
 
             return new ArticleInfoboxDto(article.InfoboxTitle, article.InfoboxSubtitle, fields);
+        }
+
+        private static List<ArticleRelatedLinkDto>? MapRelatedLinks(Article article)
+        {
+            if (article.RelatedLinks.Count == 0)
+                return null;
+
+            return article.RelatedLinks
+                .OrderBy(link => link.Order)
+                .Select(link => new ArticleRelatedLinkDto(
+                    link.Id,
+                    link.RelatedArticleId,
+                    link.RelatedArticle.Title,
+                    link.Order))
+                .ToList();
         }
 
         private async Task DeleteRemovedParagraphsAsync(List<Paragraph> existingParagraphs, List<ParagraphDto> incomingParagraphs)
@@ -330,11 +418,19 @@ namespace WikiWeaver.Application.Services
             }
         }
 
-        private void UpdateArticleMetadata(Article article, string title, ArticleInfoboxCreateDto? infobox)
+        private void UpdateArticleMetadata(
+            Article article,
+            string title,
+            ArticleInfoboxCreateDto? infobox,
+            string? summary,
+            List<string> tags,
+            List<ArticleRelatedLinkCreateDto>? relatedLinks)
         {
             article.Title = title;
             article.InfoboxTitle = infobox?.Title;
             article.InfoboxSubtitle = infobox?.Subtitle;
+            article.Summary = NormalizeOptionalText(summary);
+            article.Tags = SerializeTags(tags);
 
             article.InfoboxFields.Clear();
             foreach (var field in infobox?.Fields ?? Enumerable.Empty<ArticleInfoboxFieldCreateDto>())
@@ -346,6 +442,17 @@ namespace WikiWeaver.Application.Services
                     Key = field.Key,
                     Label = field.Label,
                     Value = field.Value,
+                });
+            }
+
+            article.RelatedLinks.Clear();
+            foreach (var link in relatedLinks ?? Enumerable.Empty<ArticleRelatedLinkCreateDto>())
+            {
+                article.RelatedLinks.Add(new ArticleRelatedLink
+                {
+                    ArticleId = article.Id,
+                    RelatedArticleId = link.RelatedArticleId,
+                    Order = link.Order
                 });
             }
         }

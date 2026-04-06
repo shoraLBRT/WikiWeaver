@@ -11,15 +11,10 @@
   },
   "articleRightSidebar": {
     "onThisPage": "На этой странице",
+    "summaryTitle": "Краткое описание",
+    "tagsTitle": "Теги",
     "relatedArticles": "Связанные статьи",
-    "relatedPlaceholder": "Блок будет подключен позже. См. `docs/todo/frontend-related-links.md`.",
-    "relatedPlaceholderStatus": "placeholder",
-    "information": "Информация",
-    "metadataItems": [
-      ["Категория", "Заглушка до внедрения metadata"],
-      ["Последнее изменение", "Будет доступно позже"],
-      ["Правок", "После реализации edit content"]
-    ]
+    "noRelatedArticles": "Связанных статей нет"
   },
   "articleInfobox": {
     "defaultTitle": "Обзор",

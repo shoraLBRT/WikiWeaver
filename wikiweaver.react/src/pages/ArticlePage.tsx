@@ -248,7 +248,12 @@ const ArticlePage: React.FC = () => {
         </div>
       </main>
 
-      <ArticleRightSidebar tocItems={tocItems} />
+      <ArticleRightSidebar
+        tocItems={tocItems}
+        summary={articleContent.summary}
+        tags={articleContent.tags}
+        relatedLinks={articleContent.relatedLinks}
+      />
     </div>
   );
 };

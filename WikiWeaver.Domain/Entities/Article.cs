@@ -11,5 +11,8 @@ namespace WikiWeaver.Domain.Entities
         public ICollection<Article> ChildArticles { get; set; } = new List<Article>();
         public ICollection<Paragraph> Paragraphs { get; set; } = new List<Paragraph>();
         public ICollection<ArticleInfoboxField> InfoboxFields { get; set; } = new List<ArticleInfoboxField>();
+        public string? Summary { get; set; }
+        public string? Tags { get; set; }
+        public ICollection<ArticleRelatedLink> RelatedLinks { get; set; } = new List<ArticleRelatedLink>();
     }
 }
