@@ -9,7 +9,17 @@
       "Bash(curl -s \"https://claude.com/blog/improving-frontend-design-through-skills\")",
       "Bash(npm run:*)",
       "Bash(dotnet ef:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(ls *.sln)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet exec:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(echo \"using System.Reflection; var asm = Assembly.LoadFrom\\(@\"\"C:\\\\Users\\\\shora\\\\.nuget\\\\packages\\\\automapper\\\\15.1.3\\\\lib\\\\net8.0\\\\AutoMapper.dll\"\"\\); var type = asm.GetType\\(\"\"AutoMapper.MapperConfiguration\"\"\\); foreach \\(var c in type.GetConstructors\\(\\)\\) Console.WriteLine\\(string.Join\\(\"\", \"\", c.GetParameters\\(\\).Select\\(p => p.ParameterType.Name + \"\" \"\" + p.Name\\)\\)\\);\")",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet add:*)",
+      "Bash(echo \"var type = typeof\\(AutoMapper.MapperConfiguration\\); foreach \\(var c in type.GetConstructors\\(\\)\\) Console.WriteLine\\(string.Join\\(\"\", \"\", c.GetParameters\\(\\).Select\\(p => p.ParameterType.FullName + \"\" \"\" + p.Name\\)\\)\\);\")"
     ]
   },
   "enableAllProjectMcpServers": true,
