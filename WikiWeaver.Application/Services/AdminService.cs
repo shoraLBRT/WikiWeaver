@@ -254,7 +254,7 @@ namespace WikiWeaver.Application.Services
             };
         }
 
-        private static string BuildChatCompletionsEndpoint(string baseUrl)
+        internal static string BuildChatCompletionsEndpoint(string baseUrl)
         {
             var trimmed = baseUrl.Trim().TrimEnd('/');
             return trimmed.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
@@ -262,7 +262,7 @@ namespace WikiWeaver.Application.Services
                 : $"{trimmed}/v1/chat/completions";
         }
 
-        private static string ExtractProviderErrorMessage(string rawError)
+        internal static string ExtractProviderErrorMessage(string rawError)
         {
             if (string.IsNullOrWhiteSpace(rawError))
             {
@@ -301,7 +301,7 @@ namespace WikiWeaver.Application.Services
             return rawError.Length <= maxLength ? rawError : rawError[..maxLength];
         }
 
-        private static string? TryExtractContent(JsonElement root)
+        internal static string? TryExtractContent(JsonElement root)
         {
             if (!root.TryGetProperty("choices", out var choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
             {

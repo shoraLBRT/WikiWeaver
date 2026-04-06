@@ -212,7 +212,7 @@ namespace WikiWeaver.Application.Services
             return await _articleRepo.GetByIdAsync(articleId) is not null;
         }
 
-        private (bool IsValid, string? ErrorMessage) ValidateOrder(List<ParagraphDto> paragraphs)
+        internal (bool IsValid, string? ErrorMessage) ValidateOrder(List<ParagraphDto> paragraphs)
         {
             if (!paragraphs.Any())
                 return (false, "At least one paragraph is required.");
@@ -259,8 +259,8 @@ namespace WikiWeaver.Application.Services
 
             return (true, null);
         }
-
-        private (bool IsValid, string? ErrorMessage) ValidateInfobox(ArticleInfoboxCreateDto? infobox)
+			
+        internal (bool IsValid, string? ErrorMessage) ValidateInfobox(ArticleInfoboxCreateDto? infobox)
         {
             if (infobox is null)
             {
@@ -304,7 +304,7 @@ namespace WikiWeaver.Application.Services
             return (true, null);
         }
 
-        private ArticleInfoboxCreateDto? NormalizeInfobox(ArticleInfoboxCreateDto? infobox)
+        internal ArticleInfoboxCreateDto? NormalizeInfobox(ArticleInfoboxCreateDto? infobox)
         {
             if (infobox is null)
             {
