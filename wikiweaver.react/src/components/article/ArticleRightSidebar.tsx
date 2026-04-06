@@ -50,8 +50,8 @@ export const ArticleRightSidebar = ({ tocItems, summary, tags, relatedLinks }: A
   const hasSummary = Boolean(summary?.trim());
 
   return (
-    <aside className="hidden xl:block xl:w-[220px] xl:shrink-0">
-      <div className="flex-1 overflow-y-auto py-4 px-4">
+    <aside className="hidden xl:sticky xl:top-0 xl:block xl:h-screen xl:w-[220px] xl:shrink-0 xl:overflow-y-auto">
+      <div className="py-4 px-4">
         <div className="mb-6">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-subtle)]">
             {t.onThisPage}
