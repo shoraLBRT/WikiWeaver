@@ -14,7 +14,7 @@ This file defines baseline instructions for coding agents working in this reposi
 ## Working Agreement
 - Keep changes focused on the requested task.
 - Prefer small, atomic commits.
-- Run relevant tests/linters before finishing.
+- Run relevant tests before finishing.
 - If behavior or contracts are changed, update documentation.
 
 ## Required Reading
