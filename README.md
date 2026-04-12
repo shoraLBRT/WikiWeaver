@@ -38,22 +38,6 @@ WikiWeaver/
 └── docs/                      # Plans and engineering guidelines
 ```
 
-## Getting Started
-
-1. **Run backend**
-   ```bash
-   dotnet restore
-   dotnet build
-   dotnet run --project WikiWeaver.MinimalApi
-   ```
-
-2. **Run frontend**
-   ```bash
-   cd wikiweaver.react
-   npm install
-   npm run dev
-   ```
-
 The API applies migrations and seeds demo data on startup. Swagger is available in Development mode.
 
 ## Testing Status
