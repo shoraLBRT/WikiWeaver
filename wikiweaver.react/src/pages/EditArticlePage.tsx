@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, X } from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import MarkdownContent from '../components/MarkdownContent';
 import { APP_CONSTANTS } from '../constants/AppConstants';
 import { useLocale } from '../localization/hooks';
 import { getArticleContentById, updateArticleContent } from '../services/Article/articleService';
 import { getNavigationTree } from '../services/Article/navigationService';
-import { getAiProviderSettings, styleMarkdownWithAi } from '../services/adminService';
+import { deleteArticle, getAiProviderSettings, styleMarkdownWithAi } from '../services/adminService';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { Input } from '../shared/ui/Input';
@@ -71,6 +71,15 @@ const flattenNavigationTree = (
     ];
   });
 
+const findNodeInTree = (nodes: NavigationArticleDto[], id: number): NavigationArticleDto | null => {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNodeInTree(node.children ?? [], id);
+    if (found) return found;
+  }
+  return null;
+};
+
 type Notice = {
   tone: 'success' | 'warning' | 'error';
   message: string;
@@ -105,6 +114,7 @@ const getTargetValue = (blocks: EditorBlock[], target: EditorTarget): string | n
 const EditArticlePage: React.FC = () => {
   const locale = useLocale();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { articleId } = useParams<{ articleId: string }>();
   const numericId = Number(articleId);
 
@@ -125,6 +135,8 @@ const EditArticlePage: React.FC = () => {
   const [summary, setSummary] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [relatedLinks, setRelatedLinks] = useState<RelatedLinkDraft[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
   const editorRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const blockRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -180,6 +192,19 @@ const EditArticlePage: React.FC = () => {
       navigate(`/article/${numericId}`);
     },
     onError: (error) => showNotice('error', `${t.saveError}: ${(error as Error).message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteArticle(numericId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.NAVIGATION_TREE] });
+      queryClient.invalidateQueries({ queryKey: [APP_CONSTANTS.QUERY_KEYS.ARTICLE_CONTENT] });
+      navigate('/');
+    },
+    onError: (error) => {
+      setIsDeleteModalOpen(false);
+      showNotice('error', `${t.deleteError}: ${(error as Error).message}`);
+    },
   });
 
   const previewMarkdown = useMemo(() => buildDocumentPreviewMarkdown(blocks), [blocks]);
@@ -579,6 +604,16 @@ const EditArticlePage: React.FC = () => {
               onImport={() => setIsImportOpen(true)}
               onImproveAll={improveWholeArticleWithAi}
               onSave={saveArticle}
+              showDelete
+              isDeleting={deleteMutation.isPending}
+              onDelete={() => {
+                const node = findNodeInTree(navigationTreeQuery.data ?? [], numericId);
+                if (node && (node.children ?? []).length > 0) {
+                  showNotice('warning', t.deleteBlockedByChildren);
+                  return;
+                }
+                setIsDeleteModalOpen(true);
+              }}
             />
           )}
           isLocked={isLocked}
@@ -639,6 +674,39 @@ const EditArticlePage: React.FC = () => {
                 <p className="m-0 text-sm font-semibold text-[var(--color-ink-strong)]">{addT.aiOverlayTitle}</p>
                 <p className="mb-0 mt-1 text-sm text-[var(--color-ink-muted)]">{addT.aiOverlayDescription}</p>
               </div>
+            </div>
+          </Card>
+        </div>
+      ) : null}
+
+      {isDeleteModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(20,20,18,0.35)] p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-xl">
+            <div className="border-b border-[var(--color-border-soft)] px-6 py-5">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-red-500">{t.deleteModalEyebrow}</p>
+              <h2 className="m-0 text-xl font-semibold text-[var(--color-ink-strong)]">{t.deleteModalTitle}</h2>
+            </div>
+            <div className="space-y-4 px-6 py-5">
+              <p className="m-0 text-sm leading-7 text-[var(--color-ink-muted)]">
+                {t.deleteModalDescription.replace('{title}', title)}
+              </p>
+              <Input
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                placeholder={title}
+              />
+            </div>
+            <div className="flex justify-end gap-3 border-t border-[var(--color-border-soft)] px-6 py-4">
+              <Button variant="ghost" onClick={() => { setIsDeleteModalOpen(false); setDeleteConfirmation(''); }}>
+                {locale.common.cancel}
+              </Button>
+              <Button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteConfirmation !== title || deleteMutation.isPending}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleteMutation.isPending ? '...' : t.deleteModalConfirm}
+              </Button>
             </div>
           </Card>
         </div>

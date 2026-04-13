@@ -133,7 +133,15 @@
     "title": "Редактирование статьи",
     "saved": "Статья обновлена",
     "saveError": "Ошибка обновления",
-    "loadError": "Не удалось загрузить статью"
+    "loadError": "Не удалось загрузить статью",
+    "deleteButton": "Удалить",
+    "deleteModalEyebrow": "Опасная зона",
+    "deleteModalTitle": "Удалить статью",
+    "deleteModalDescription": "Это действие нельзя отменить. Для подтверждения введите название статьи: {title}",
+    "deleteModalConfirm": "Удалить статью",
+    "deleted": "Статья удалена",
+    "deleteError": "Ошибка удаления",
+    "deleteBlockedByChildren": "У этой статьи есть дочерние статьи. Сначала удалите или переместите их, а затем удалите эту статью."
   },
   "versionedParagraph": {
     "label": "Версионный блок: набор {order}",
