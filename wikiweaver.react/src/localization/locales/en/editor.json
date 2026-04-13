@@ -133,7 +133,14 @@
     "title": "Edit article",
     "saved": "Article updated",
     "saveError": "Update error",
-    "loadError": "Failed to load article"
+    "loadError": "Failed to load article",
+    "deleteButton": "Delete",
+    "deleteModalEyebrow": "Danger zone",
+    "deleteModalTitle": "Delete article",
+    "deleteModalDescription": "This action cannot be undone. To confirm, type the article title: {title}",
+    "deleteModalConfirm": "Delete article",
+    "deleted": "Article deleted",
+    "deleteError": "Delete error"
   },
   "versionedParagraph": {
     "label": "Versioned block: set {order}",
