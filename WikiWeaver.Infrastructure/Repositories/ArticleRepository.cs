@@ -34,6 +34,11 @@ namespace WikiWeaver.Infrastructure.Repositories
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _dbSet.CountAsync(cancellationToken);
 
+        public Task NullifyAllParentIdsAsync(CancellationToken cancellationToken = default)
+            => _dbSet.ExecuteUpdateAsync(
+                s => s.SetProperty(a => a.ParentArticleId, (int?)null),
+                cancellationToken);
+
         public Task DeleteAllAsync(CancellationToken cancellationToken = default)
             => _dbSet.ExecuteDeleteAsync(cancellationToken);
     }

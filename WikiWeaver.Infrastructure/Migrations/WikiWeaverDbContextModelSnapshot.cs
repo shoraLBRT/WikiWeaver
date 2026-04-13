@@ -280,7 +280,7 @@ namespace WikiWeaver.Infrastructure.Migrations
                     b.HasOne("WikiWeaver.Domain.Entities.Article", "RelatedArticle")
                         .WithMany()
                         .HasForeignKey("RelatedArticleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Article");
