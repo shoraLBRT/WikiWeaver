@@ -71,6 +71,15 @@ const flattenNavigationTree = (
     ];
   });
 
+const findNodeInTree = (nodes: NavigationArticleDto[], id: number): NavigationArticleDto | null => {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNodeInTree(node.children ?? [], id);
+    if (found) return found;
+  }
+  return null;
+};
+
 type Notice = {
   tone: 'success' | 'warning' | 'error';
   message: string;
@@ -597,7 +606,14 @@ const EditArticlePage: React.FC = () => {
               onSave={saveArticle}
               showDelete
               isDeleting={deleteMutation.isPending}
-              onDelete={() => setIsDeleteModalOpen(true)}
+              onDelete={() => {
+                const node = findNodeInTree(navigationTreeQuery.data ?? [], numericId);
+                if (node && (node.children ?? []).length > 0) {
+                  showNotice('warning', t.deleteBlockedByChildren);
+                  return;
+                }
+                setIsDeleteModalOpen(true);
+              }}
             />
           )}
           isLocked={isLocked}

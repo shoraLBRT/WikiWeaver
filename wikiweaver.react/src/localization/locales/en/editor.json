@@ -140,7 +140,8 @@
     "deleteModalDescription": "This action cannot be undone. To confirm, type the article title: {title}",
     "deleteModalConfirm": "Delete article",
     "deleted": "Article deleted",
-    "deleteError": "Delete error"
+    "deleteError": "Delete error",
+    "deleteBlockedByChildren": "This article has child articles. Delete or move them first before deleting this article."
   },
   "versionedParagraph": {
     "label": "Versioned block: set {order}",
