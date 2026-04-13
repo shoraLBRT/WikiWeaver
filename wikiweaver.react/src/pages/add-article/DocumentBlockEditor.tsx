@@ -257,7 +257,12 @@ export const DocumentBlockEditor = ({
           value={block.content}
           disabled={disabled}
           onFocus={() => onFocusTarget({ blockId: block.id, localId: null })}
-          onChange={(event) => onChangePlain(block.id, event.target.value)}
+          onChange={(event) => {
+            const isHeading = block.kind === 'heading2' || block.kind === 'heading3';
+            const value = isHeading ? event.target.value.replace(/\n/g, '') : event.target.value;
+            onChangePlain(block.id, value);
+          }}
+          maxLength={block.kind === 'heading2' || block.kind === 'heading3' ? 150 : undefined}
           className={`border-0 bg-transparent px-0 py-0 shadow-none focus:ring-0 ${headingClasses}`}
             placeholder={
               block.kind === 'heading2'
