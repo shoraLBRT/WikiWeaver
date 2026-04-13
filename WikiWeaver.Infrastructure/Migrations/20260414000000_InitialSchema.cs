@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WikiWeaver.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialBaseline : Migration
+    public partial class InitialSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,7 +50,11 @@ namespace WikiWeaver.Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
-                    ParentArticleId = table.Column<int>(type: "INTEGER", nullable: true)
+                    ParentArticleId = table.Column<int>(type: "INTEGER", nullable: true),
+                    InfoboxTitle = table.Column<string>(type: "TEXT", maxLength: 160, nullable: true),
+                    InfoboxSubtitle = table.Column<string>(type: "TEXT", maxLength: 240, nullable: true),
+                    Summary = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Tags = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -91,6 +95,56 @@ namespace WikiWeaver.Infrastructure.Migrations
                         principalTable: "AdminUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ArticleInfoboxFields",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ArticleId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false),
+                    Key = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
+                    Label = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
+                    Value = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArticleInfoboxFields", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArticleInfoboxFields_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ArticleRelatedLinks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ArticleId = table.Column<int>(type: "INTEGER", nullable: false),
+                    RelatedArticleId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArticleRelatedLinks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArticleRelatedLinks_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ArticleRelatedLinks_Articles_RelatedArticleId",
+                        column: x => x.RelatedArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -138,6 +192,21 @@ namespace WikiWeaver.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArticleInfoboxFields_ArticleId_Order",
+                table: "ArticleInfoboxFields",
+                columns: new[] { "ArticleId", "Order" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArticleRelatedLinks_ArticleId_Order",
+                table: "ArticleRelatedLinks",
+                columns: new[] { "ArticleId", "Order" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArticleRelatedLinks_RelatedArticleId",
+                table: "ArticleRelatedLinks",
+                column: "RelatedArticleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Articles_ParentArticleId",
                 table: "Articles",
                 column: "ParentArticleId");
@@ -151,20 +220,13 @@ namespace WikiWeaver.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AdminInviteTokens");
-
-            migrationBuilder.DropTable(
-                name: "AiProviderSettings");
-
-            migrationBuilder.DropTable(
-                name: "Paragraphs");
-
-            migrationBuilder.DropTable(
-                name: "AdminUsers");
-
-            migrationBuilder.DropTable(
-                name: "Articles");
+            migrationBuilder.DropTable(name: "AdminInviteTokens");
+            migrationBuilder.DropTable(name: "AiProviderSettings");
+            migrationBuilder.DropTable(name: "ArticleInfoboxFields");
+            migrationBuilder.DropTable(name: "ArticleRelatedLinks");
+            migrationBuilder.DropTable(name: "Paragraphs");
+            migrationBuilder.DropTable(name: "AdminUsers");
+            migrationBuilder.DropTable(name: "Articles");
         }
     }
 }

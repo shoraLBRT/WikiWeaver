@@ -50,6 +50,7 @@ namespace WikiWeaver.Application.Services
             try
             {
                 await _paragraphRepository.DeleteAllAsync(cancellationToken);
+                await _articleRepository.NullifyAllParentIdsAsync(cancellationToken);
                 await _articleRepository.DeleteAllAsync(cancellationToken);
 
                 await _unitOfWork.CommitAsync();

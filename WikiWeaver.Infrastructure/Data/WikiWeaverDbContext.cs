@@ -74,7 +74,7 @@ namespace WikiWeaver.Infrastructure.Data
                 .HasOne(link => link.RelatedArticle)
                 .WithMany()
                 .HasForeignKey(link => link.RelatedArticleId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ArticleRelatedLink>()
                 .HasIndex(link => new { link.ArticleId, link.Order });
