@@ -44,7 +44,7 @@ export const updateAiProviderSettings = async (payload: UpdateAiProviderSettings
 };
 
 export const styleMarkdownWithAi = async (payload: AiStyleRequestDto): Promise<AiStyleResponseDto> => {
-  const response = await apiClient.post<AiStyleResponseDto>('/admin/ai-style', payload);
+  const response = await apiClient.post<AiStyleResponseDto>('/admin/ai-style', payload, { timeout: 120_000 });
   return response.data;
 };
 

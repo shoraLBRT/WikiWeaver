@@ -187,6 +187,7 @@ namespace WikiWeaver.Application.Services
             };
 
             var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(110);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
 
             var endpoint = BuildChatCompletionsEndpoint(settings.BaseUrl);
